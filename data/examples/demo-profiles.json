@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 1,
+  "modelId": "synthetic-response-demo-v1",
+  "profiles": [
+    {
+      "id": "new-visitor", "displayName": "New visitor",
+      "values": { "previousResponses": 0, "visits": 1, "lifetimeValue": 0, "placement": "home", "loyaltyTier": null }
+    },
+    {
+      "id": "returning-visitor", "displayName": "Returning visitor",
+      "values": { "previousResponses": 2, "visits": 3, "lifetimeValue": 180, "placement": "cart", "loyaltyTier": "silver" }
+    },
+    {
+      "id": "engaged-visitor", "displayName": "Engaged visitor",
+      "values": { "previousResponses": 8, "visits": 10, "lifetimeValue": 250, "placement": "checkout", "loyaltyTier": "gold" }
+    },
+    {
+      "id": "boundary-profile", "displayName": "Exact threshold values",
+      "values": { "previousResponses": 5, "visits": 3, "lifetimeValue": 100, "placement": "product", "loyaltyTier": null }
+    }
+  ]
+}

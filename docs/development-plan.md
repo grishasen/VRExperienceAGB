@@ -1,0 +1,143 @@
+# Development plan
+
+Status: foundation completed; implementation milestones not started. Updated: 2026-09-27.
+
+## Delivery approach
+
+Prove the headset build first, then model semantics, then the complete interaction loop. Add environmental detail while keeping every milestone runnable on Quest 3. A desktop preview alone does not complete a VR milestone.
+
+Estimates below are working days for one developer familiar with Unity. They exclude account approval delays, learning Unity from scratch, procuring assets, store review, and resolving undocumented source-model behavior. Expect roughly 5–8 working weeks for the demonstration MVP, including integration contingency. Real AGB scoring may have an independent dependency on reference predictions.
+
+## M0 — Repository foundation
+
+**Status:** delivered by the initial repository creation.
+
+- [x] English scenario specification and visual direction.
+- [x] Mac installation and first-device-build instructions.
+- [x] Architecture, model contract, test strategy, and dependency status.
+- [x] Synthetic model, profiles, expected predictions, and local checks.
+- [x] Initial local Git repository.
+
+These checkboxes do not imply a Unity project or VR build exists.
+
+## M1 — Mac and Quest smoke test
+
+**Estimate:** 1–2 days. **Depends on:** M0, Unity/Meta accounts, Quest 3 and a data cable.
+
+- [ ] Install Unity Hub, a candidate Unity 6.3 LTS editor, and its Android modules.
+- [ ] Install and configure OpenXR plus Meta XR Core/Interaction SDK.
+- [ ] Create `unity/VRExperienceAGB` using Universal 3D.
+- [ ] Run project validation and configure the Android ARM64 player.
+- [ ] Create a scene with a tracked rig, floor, readable label, and selectable object.
+- [ ] Build, install, and run an APK on Quest 3.
+- [ ] Verify headset/controller tracking and a controller selection.
+- [ ] Disconnect the Mac and relaunch the application on the headset.
+- [ ] Record exact editor, package, Android-toolchain, and headset OS versions.
+- [ ] Commit generated project settings, package lock, assets, and `.meta` files.
+
+**Exit:** the standalone scene works on Quest 3. Capture the result in `artifacts/` locally and summarize the tested configuration in `docs/toolchain.md`. A simulator-only result does not pass this milestone.
+
+## M2 — Model evaluation and source-model verification
+
+**Estimate:** 3–5 days for the internal contract; source-model verification is dependency-driven. **Depends on:** M0; C# validation requires M1.
+
+- [ ] Implement the normalized model and profile types as plain C#.
+- [ ] Validate IDs, roots, child references, acyclicity, operators, feature types, and finite values.
+- [ ] Implement deterministic paths, leaf contributions, baseline handling, and output transformation.
+- [ ] Match the synthetic fixtures in `data/examples/`.
+- [ ] Support numeric `<`, categorical membership, and explicit missing-value predicates.
+- [ ] Implement a fail-closed AGB import adapter that rejects unsupported conditions.
+- [ ] Obtain trusted AGB predictions and leaf paths for representative profiles.
+- [ ] Confirm baseline, leaf-score scale, learning-rate treatment, missing behavior, and any calibration with the source model owner.
+- [ ] Resolve discrepancies before claiming real-model prediction fidelity.
+
+**Exit:** internal fixtures pass. Real exports have a separate verified/unsupported status; synthetic work can continue while source-model evidence is pending. No silent fallback parses an unknown split as a numeric condition.
+
+## M3 — One-tree vertical slice
+
+**Estimate:** 4–6 days. **Depends on:** M1 and the internal part of M2.
+
+- [ ] Build the seven-node synthetic tree in a small forest clearing.
+- [ ] Create split platforms, branch labels, leaf stations, and a data-drop actor.
+- [ ] Add controller pointing, selection feedback, and stable node inspection.
+- [ ] Implement manual exploration, leaf commitment, undo, restart, and pause.
+- [ ] Implement prepared-profile stepping and automatic playback on the same tree.
+- [ ] Keep user tracking independent of the drop's animation.
+- [ ] Display mode, tree, current condition, and score without clutter.
+- [ ] Verify the full loop on the headset in seated and standing use.
+
+**Exit:** a visitor can choose two different routes, undo one, replay a prepared profile, and explain the displayed leaf contribution. No duplicate score changes occur after repeated input.
+
+## M4 — Ensemble and profile takeover
+
+**Estimate:** 4–6 days. **Depends on:** M3.
+
+- [ ] Evaluate the complete synthetic ensemble and show baseline plus per-tree contributions.
+- [ ] Connect trees with deliberate transitions and a final output gate.
+- [ ] Add prepared-profile selection and editable profile copies.
+- [ ] Recompute all affected trees after an input edit.
+- [ ] Track manual route constraints; flag contradictions without removing free exploration.
+- [ ] Implement short and detailed tours with identical full-model results.
+- [ ] Add a persistent score display and an alternative to wrist-only UI.
+
+**Exit:** both interaction modes work end to end. Backtracking and switching modes preserve the documented semantics. A shortened tour never becomes a truncated prediction.
+
+## M5 — Diorama, depth, and environment
+
+**Estimate:** 4–6 days. **Depends on:** M4; visual work can start during M3.
+
+- [ ] Add forest overview, tree selection, bounded scaling, and immersive entry/return.
+- [ ] Preserve selected profile, path, and node when switching scale.
+- [ ] Lay out branches in readable depth with controlled occlusion.
+- [ ] Add collapsed-subtree summaries and a focused local view.
+- [ ] Integrate coherent materials, restrained lighting, distant scenery, and spatial audio.
+- [ ] Track licenses and provenance for any introduced external assets.
+- [ ] Add a short onboarding sequence and visible recovery controls.
+
+**Exit:** the full demonstration is understandable without the presenter operating a keyboard. Foreground text stays legible; decorative scenery does not obscure decisions.
+
+## M6 — Quest acceptance and demonstration package
+
+**Estimate:** 4–6 days. **Depends on:** M5.
+
+- [ ] Profile CPU/GPU frame time and memory on a standalone release build.
+- [ ] Meet the project target of sustained 72 FPS at 72 Hz in the agreed worst visible scene; assess 90 Hz after there is margin.
+- [ ] Test the full presentation duration and at least one 30-minute soak session.
+- [ ] Check headset removal, pause/resume, controller tracking loss, recentering, and fresh launch.
+- [ ] Test with at least three people unfamiliar with the controls; record comprehension and navigation issues.
+- [ ] Test casting separately if it is part of the live demonstration.
+- [ ] Build a clearly named APK, record its version and source commit, and write a short presenter guide.
+- [ ] Create a demo tag only after acceptance; keep APKs outside ordinary Git history.
+
+**Exit:** all blocking acceptance items in [Testing](testing.md) pass on Quest 3. The presenter can install and run the demo using the documented steps.
+
+## Extensions after the demonstration MVP
+
+| Feature | Prerequisite | Main work |
+| --- | --- | --- |
+| Predictor fireflies | Verified parsing and feature identities | Model-wide/path-only search, distant markers, navigation |
+| Full boosting trail | Stable ensemble/diorama | Iteration control, gain legend, intermediate profile scores |
+| Two-profile comparison | Independent profile sessions | Path divergence, contribution differences, comparison UI |
+| Audit environment | Reviewed audit definitions | Evidence-linked findings, severity, missing-evidence state |
+| Recorded guided review | Stable node IDs and scene navigation | Tour authoring, stop descriptions, replay |
+| Live guided review | Recorded review and network design | Multi-user state, roles, avatars, pointers, voice |
+| Hand tracking | Controller interactions validated | Input parity and accessibility testing |
+| Continuous riding | Core comfort testing | User-controlled speed, stopping, additional comfort options |
+| Learning-history terrain | Actual per-iteration metrics | Metric import and honest mapping to terrain |
+
+Do not expand the MVP by treating every slide idea as a launch requirement.
+
+## Dependencies that need explicit resolution
+
+| Decision or dependency | Default / next action | Blocks |
+| --- | --- | --- |
+| Exact Unity/SDK combination | Select in M1 and pin after a device build | Reliable Editor and APK builds |
+| Real AGB scoring semantics | Verify with authoritative predictions and paths | Claims about real customer probabilities |
+| Profile availability | Start with synthetic bundled profiles | Real-data demonstration only |
+| Outcome wording | “Response probability” for synthetic examples | Domain-specific copy |
+| Final package identifier | Use local prototype ID initially | Distribution configuration |
+| Artifact distribution | USB install initially | External testers/store release |
+
+## Working conventions
+
+Use short feature branches after the baseline. Make each implementation change reviewable with relevant acceptance evidence. Update documentation when behavior changes. Keep a runnable scene at each milestone boundary. Use actual failures or changed behavior to decide when to expand testing.

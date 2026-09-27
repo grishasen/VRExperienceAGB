@@ -1,0 +1,49 @@
+# macOS and editor state
+.DS_Store
+._*
+.idea/
+.vscode/*
+!.vscode/extensions.json
+
+# Unity generated state at any project depth
+**/[Ll]ibrary/
+**/[Tt]emp/
+**/[Oo]bj/
+**/[Bb]uild/
+**/[Bb]uilds/
+**/[Ll]ogs/
+**/[Uu]ser[Ss]ettings/
+**/[Mm]emoryCaptures/
+**/[Rr]ecordings/
+**/.vs/
+**/ExportedObj/
+*.csproj
+*.sln
+*.slnx
+*.suo
+*.user
+*.userprefs
+*.pidb
+*.booproj
+*.svd
+*.pdb
+*.mdb
+sysinfo.txt
+
+# Local exports, device logs, signing material, and local configuration
+data/private/
+artifacts/
+.env
+.env.*
+!.env.example
+*.keystore
+*.jks
+*.apk
+*.aab
+*.log
+
+# Python scratch state
+__pycache__/
+*.py[cod]
+.venv/
+.pytest_cache/
