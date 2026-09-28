@@ -1,6 +1,6 @@
 # Validation and acceptance
 
-Status: test strategy. Current executable coverage is limited to the synthetic fixture verifier. No Unity, Simulator, or Quest test has run yet.
+Status: test strategy. The synthetic fixture verifier passes. The [setup review](setup-review-2026-09-27.md) inspected the live Unity Editor, which reported no project compilation failure and zero discoverable tests. No Unity test suite, Simulator session, or Quest acceptance run was performed during that review; The subsequent development APK build and update installation succeeded on 2026-09-27; launch, tracking, interaction, and independent relaunch remain untested. Device acceptance remains pending.
 
 ## Current repository checks
 

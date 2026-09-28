@@ -2,6 +2,8 @@
 
 Checked against official documentation on 2026-09-27. Follow the linked release notes when a package's current requirements differ from this guide. The intended workflow is **Mac → Android APK → standalone Quest 3**.
 
+**Current progress:** a project was created at `BoostingExperience/` with Editor 6000.6.3f1. The [setup review](setup-review-2026-09-27.md) records verified settings and remaining gaps. On 2026-09-28 the user selected this existing path and Editor as the working baseline. Open the existing project; no second project or Editor migration is needed.
+
 ## 1. Current machine and prerequisites
 
 The initial read-only check found Apple Silicon (`arm64`), macOS 27.0, Git, Apple Command Line Tools, Homebrew, Python 3, and Visual Studio Code. Unity Hub, a Unity Editor, Meta Quest Developer Hub, and Meta XR Simulator were not found in the checked standard application locations. `adb` and `dotnet` were not on the command path. Nonstandard installations may exist.
@@ -28,7 +30,7 @@ brew install --cask unity-hub
 open -a 'Unity Hub'
 ```
 
-Sign in and activate the Unity license appropriate to your use. Select a stable **Unity 6.3 LTS Apple Silicon** editor patch as the initial candidate. Record the exact patch in [Toolchain](toolchain.md). Unity 6.3 is an actively supported LTS line; this is a project choice, not a claim that every SDK combination has already been tested. [Unity release support](https://unity.com/releases/unity-6/support)
+Sign in and activate the Unity license appropriate to your use. Use **Unity 6000.6.3f1 Apple Silicon**, the existing version accepted by the user on 2026-09-28. This replaces the original 6.3 LTS proposal. A development APK has built and installed successfully; headset behavior and performance remain unverified. Exact versions and evidence are in [Toolchain](toolchain.md).
 
 In Hub, add these modules to that same Editor installation:
 
@@ -65,18 +67,19 @@ macOS does not need the Windows Oculus ADB driver. A charge-only cable will not 
 
 Install **Meta Quest Developer Hub (MQDH)** from Meta's [developer tools page](https://developers.meta.com/horizon/develop/). It is useful for device discovery, APK deployment, logs, and performance tooling. Confirm the connected headset appears in its Device Manager. Prefer a direct USB connection for the first build.
 
-## 5. Create the Unity project in this repository
+## 5. Open the canonical Unity project
 
-In Unity Hub, create a project using **Universal 3D**. Set:
+In Unity Hub, add/open the existing Universal 3D project with these values:
 
 | Setting | Value |
 | --- | --- |
-| Project name | `VRExperienceAGB` |
-| Location (parent directory) | `/Users/gregory/Documents/VRExperienceAGB/unity` |
-| Resulting project directory | `/Users/gregory/Documents/VRExperienceAGB/unity/VRExperienceAGB` |
-| Editor | The candidate Apple Silicon Editor selected in step 2 |
+| Project directory name | `BoostingExperience` |
+| Application product name | `VRExperienceAGB` |
+| Repository root | `/Users/gregory/Documents/VRExperienceAGB` |
+| Existing Editor project | `/Users/gregory/Documents/VRExperienceAGB/BoostingExperience` |
+| Editor | Unity 6000.6.3f1 Apple Silicon |
 
-Confirm the final path before creating it. The repository root is a documentation/scaffolding repository, not currently an Editor project. Do not ask Hub to open it as an existing Unity project.
+The repository root contains documentation and the Unity subdirectory. Open `BoostingExperience/`, not the parent root, in Hub. Do not create a duplicate under the former `unity/VRExperienceAGB/` path. See [Repository consolidation](repository-consolidation.md) for history and recovery.
 
 Use Git already initialized at the repository root. Do not create another repository or enable an additional version-control service for the nested Unity directory.
 
@@ -197,6 +200,7 @@ bash scripts/check-mac.sh --devices
 | --- | --- |
 | Unity is not detected | Confirm its location; set `VRAGB_EDITOR_DIR` for a custom installation |
 | Several Editors are installed | Open the version recorded by the project; the checker uses `ProjectVersion.txt` when present |
+| Checking a different project | Set `VRAGB_PROJECT_DIR` explicitly; the default is this repository's `BoostingExperience/` |
 | Android target is missing | Add Android modules to the selected Editor through Hub |
 | `adb` shows `unauthorized` | Put on the awake headset and accept its debugging prompt |
 | No device appears | Check Developer Mode, data cable, direct connection, and MQDH |

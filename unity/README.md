@@ -1,19 +1,20 @@
 # Unity workspace
 
-Create the Unity Editor project at `unity/VRExperienceAGB` using the Universal 3D template and the verified editor version. Follow [Mac setup](../docs/macos-setup.md).
+The canonical Unity Editor project is [`../BoostingExperience/`](../BoostingExperience/), selected by the user on 2026-09-28. Open that directory in **Unity 6000.6.3f1 Apple Silicon**. This `unity/` directory is an instructions placeholder, not an Editor project; do not create a second project here.
 
-This directory is currently a placeholder, not an openable Unity project. Unity will generate these files and directories:
+Manage Git from the parent `VRExperienceAGB/` repository. The earlier nested Git history and original working files are preserved as described in [Repository consolidation](../docs/repository-consolidation.md).
 
 ```text
 VRExperienceAGB/
-  Assets/
-  Packages/
-    manifest.json
-    packages-lock.json
-  ProjectSettings/
-    ProjectVersion.txt
+  .git/
+  docs/
+  BoostingExperience/
+    Assets/
+    Packages/
+      manifest.json
+      packages-lock.json
+    ProjectSettings/
+      ProjectVersion.txt
 ```
 
-Keep the Git repository at the parent repository root. Do not initialize a second repository inside the Unity project.
-
-After the headset smoke test, introduce project-owned content under `Assets/VRExperienceAGB/`. Create or move assets through Unity so their `.meta` files remain paired with them. See [Architecture](../docs/architecture.md) for the planned boundaries.
+Follow [Mac setup](../docs/macos-setup.md). Create and move project-owned Unity content under `Assets/VRExperienceAGB/` through the Editor, preserving `.meta` identities. See [Architecture](../docs/architecture.md) for module boundaries.

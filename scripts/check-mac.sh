@@ -10,6 +10,7 @@ case "${1:-}" in
     --help|-h)
         printf 'Usage: bash scripts/check-mac.sh [--devices]\n'
         printf 'Optional VRAGB_EDITOR_DIR selects a custom Unity Hub editor directory.\n'
+        printf 'Optional VRAGB_PROJECT_DIR selects an explicit project; defaults to BoostingExperience.\n'
         exit 0 ;;
     *) printf 'Unknown argument: %s\n' "$1" >&2; exit 2 ;;
 esac
@@ -48,7 +49,8 @@ for app in '/Applications/Unity Hub.app' "$HOME/Applications/Unity Hub.app"; do
 done
 if "$hub_found"; then ok 'Unity Hub found'; else need 'Unity Hub not found in standard locations'; fi
 
-version_file="$repo_dir/unity/VRExperienceAGB/ProjectSettings/ProjectVersion.txt"
+project_dir="${VRAGB_PROJECT_DIR:-$repo_dir/BoostingExperience}"
+version_file="$project_dir/ProjectSettings/ProjectVersion.txt"
 editor_dir="${VRAGB_EDITOR_DIR:-}"
 if [ -z "$editor_dir" ] && [ -f "$version_file" ]; then
     editor_version="$(awk '/^m_EditorVersion: / {print $2; exit}' "$version_file" | tr -d '\r')"
@@ -93,16 +95,16 @@ fi
 if [ -n "$adb_bin" ]; then ok "ADB: $adb_bin"; else need 'ADB unavailable'; fi
 
 if [ -f "$version_file" ]; then
-    ok 'Unity project version file found'
+    ok "Unity project: $project_dir"
     for file in manifest.json packages-lock.json; do
-        if [ -f "$repo_dir/unity/VRExperienceAGB/Packages/$file" ]; then
+        if [ -f "$project_dir/Packages/$file" ]; then
             ok "Unity package file: $file"
         else
             need "Unity package file missing: $file"
         fi
     done
 else
-    need 'Unity project not created yet; follow docs/macos-setup.md'
+    need "Unity project version file missing: $version_file; see docs/macos-setup.md"
 fi
 
 for name in 'Visual Studio Code' 'Meta Quest Developer Hub' 'Meta XR Simulator'; do

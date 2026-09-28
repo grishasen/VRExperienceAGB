@@ -1,0 +1,12 @@
+# Use the parent repository's text and binary policy.
+# Add LFS rules deliberately when licensed art assets are introduced.
+*.asmdef text eol=lf
+*.asmref text eol=lf
+*.inputactions text eol=lf
+*.shadergraph text eol=lf
+*.shadersubgraph text eol=lf
+*.mat text eol=lf
+*.controller text eol=lf
+*.renderTexture text eol=lf
+Assets/Plugins/** linguist-generated
+Packages/packages-lock.json linguist-generated

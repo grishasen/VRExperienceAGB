@@ -1,6 +1,8 @@
 # Development plan
 
-Status: foundation completed; implementation milestones not started. Updated: 2026-09-27.
+Status: foundation completed; M1 setup started but incomplete; application implementation milestones not started. Updated: 2026-09-28. See the [setup review](setup-review-2026-09-27.md) for the existing `BoostingExperience/` project's configuration and outstanding work.
+
+The [delivery backlog](backlog.md) expands M1–M6 into six business-facing epics and 48 user stories. Each epic maps every checklist item below to its stories and defines acceptance evidence. These are planned requirements, not completed test results.
 
 ## Delivery approach
 
@@ -24,16 +26,16 @@ These checkboxes do not imply a Unity project or VR build exists.
 
 **Estimate:** 1–2 days. **Depends on:** M0, Unity/Meta accounts, Quest 3 and a data cable.
 
-- [ ] Install Unity Hub, a candidate Unity 6.3 LTS editor, and its Android modules.
+- [x] Install Unity Hub, Unity 6000.6.3f1 Apple Silicon (user-accepted baseline), and its Android modules.
 - [ ] Install and configure OpenXR plus Meta XR Core/Interaction SDK.
-- [ ] Create `unity/VRExperienceAGB` using Universal 3D.
+- [x] Establish the Universal 3D project at the user-selected `BoostingExperience/` location under the parent repository.
 - [ ] Run project validation and configure the Android ARM64 player.
 - [ ] Create a scene with a tracked rig, floor, readable label, and selectable object.
-- [ ] Build, install, and run an APK on Quest 3.
+- [ ] Build, install, and run an APK on Quest 3. Build and update installation succeeded on 2026-09-27; launch and interaction remain untested.
 - [ ] Verify headset/controller tracking and a controller selection.
 - [ ] Disconnect the Mac and relaunch the application on the headset.
 - [ ] Record exact editor, package, Android-toolchain, and headset OS versions.
-- [ ] Commit generated project settings, package lock, assets, and `.meta` files.
+- [x] Record generated project settings, package lock, assets, and `.meta` files together in the parent repository. This is a configuration snapshot; headset acceptance remains pending.
 
 **Exit:** the standalone scene works on Quest 3. Capture the result in `artifacts/` locally and summarize the tested configuration in `docs/toolchain.md`. A simulator-only result does not pass this milestone.
 
@@ -131,7 +133,7 @@ Do not expand the MVP by treating every slide idea as a launch requirement.
 
 | Decision or dependency | Default / next action | Blocks |
 | --- | --- | --- |
-| Exact Unity/SDK combination | Select in M1 and pin after a device build | Reliable Editor and APK builds |
+| Exact Unity/SDK combination | Unity 6000.6.3f1 accepted; current packages recorded after successful development APK build/install; runtime qualification remains in M1 | Reliable headset behavior |
 | Real AGB scoring semantics | Verify with authoritative predictions and paths | Claims about real customer probabilities |
 | Profile availability | Start with synthetic bundled profiles | Real-data demonstration only |
 | Outcome wording | “Response probability” for synthetic examples | Domain-specific copy |

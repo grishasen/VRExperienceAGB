@@ -33,6 +33,12 @@ sysinfo.txt
 # Local exports, device logs, signing material, and local configuration
 data/private/
 artifacts/
+**/.codegraph/
+# Development connection credentials are generated locally by the Unity tooling.
+BoostingExperience/Assets/Resources/DevAgentSettings.asset
+BoostingExperience/Assets/Resources/DevAgentSettings.asset.meta
+BoostingExperience/.vscode/*
+!BoostingExperience/.vscode/extensions.json
 .env
 .env.*
 !.env.example
