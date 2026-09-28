@@ -6,7 +6,7 @@
 
 **Business value:** prove the core teaching moment before expanding to a whole forest.
 
-**Status:** not started. **Priority:** Must. **Dependencies:** accepted M1 and M2's synthetic contract; real AGB verification is not required. **Owner role:** Unity/XR developer with UX tester. **Planning range:** 4–6 working days.
+**Status:** In progress: session, presentation, scene-generator and test sources written. Unity import/scene generation and Editor/PlayMode verification are blocked by the TMP package trust dialog; see the [progress record](../m3-progress-2026-09-28.md). No M3 story is accepted. **Priority:** Must. **Dependencies:** accepted M1 and M2's synthetic contract; real AGB verification is not required. **Owner role:** Unity/XR developer with UX tester. **Planning range:** 4–6 working days.
 
 ```mermaid
 flowchart TD
