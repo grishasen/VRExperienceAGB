@@ -6,7 +6,7 @@
 
 **Business value:** prove the core teaching moment before expanding to a whole forest.
 
-**Status:** In progress: session, presentation, scene-generator and test sources written. Unity import/scene generation and Editor/PlayMode verification are blocked by the TMP package trust dialog; see the [progress record](../m3-progress-2026-09-28.md). No M3 story is accepted. **Priority:** Must. **Dependencies:** accepted M1 and M2's synthetic contract; real AGB verification is not required. **Owner role:** Unity/XR developer with UX tester. **Planning range:** 4–6 working days.
+**Status:** Playable Editor slice: 102 EditMode and 5 PlayMode tests pass; see the [implementation record](../m3-progress-2026-09-28.md). Quest acceptance remains open. **Priority:** Must. **Dependencies:** accepted M1 and M2's synthetic contract; real AGB verification is not required. **Owner role:** Unity/XR developer with UX tester. **Planning range:** 4–6 working days.
 
 ```mermaid
 flowchart TD
@@ -24,7 +24,7 @@ flowchart TD
 
 **User story:** As a first-time visitor, I want one small tree laid out clearly so that I can understand where a decision begins, which branches follow it, and where a route ends.
 
-**Priority:** Must. **Status:** Not started. **Owner role:** Unity presentation developer. **Depends on:** M1-09, M2-01, M2-05.
+**Priority:** Must. **Status:** Implemented for the Editor slice; device-specific acceptance pending. **Owner role:** Unity presentation developer. **Depends on:** M1-09, M2-01, M2-05.
 
 **Acceptance criteria**
 
@@ -41,7 +41,7 @@ flowchart TD
 
 **User story:** As a visitor using controllers, I want obvious pointing and selection feedback so that I know which branch or node I am about to choose.
 
-**Priority:** Must. **Status:** Not started. **Owner role:** XR interaction developer. **Depends on:** M3-01, M1-04.
+**Priority:** Must. **Status:** Canvas input configured and guarded UI events tested; controller parity, haptics and node inspection remain open. **Owner role:** XR interaction developer. **Depends on:** M3-01, M1-04.
 
 **Acceptance criteria**
 
@@ -58,7 +58,7 @@ flowchart TD
 
 **User story:** As a curious visitor, I want to choose either branch without first completing a profile so that I can explore how different routes reach different leaves.
 
-**Priority:** Must. **Status:** Not started. **Owner role:** Application/session developer. **Depends on:** M3-02, M2-03, M2-04.
+**Priority:** Must. **Status:** Implemented for the Editor slice; device-specific acceptance pending. **Owner role:** Application/session developer. **Depends on:** M3-02, M2-03, M2-04.
 
 **Acceptance criteria**
 
@@ -75,7 +75,7 @@ flowchart TD
 
 **User story:** As a visitor, I want to go back, pause, or restart safely so that I can learn by trying alternatives without worrying that the score is wrong.
 
-**Priority:** Must. **Status:** Not started. **Owner role:** Application/session developer. **Depends on:** M3-03.
+**Priority:** Must. **Status:** Implemented for the Editor slice; device-specific acceptance pending. **Owner role:** Application/session developer. **Depends on:** M3-03.
 
 **Acceptance criteria**
 
@@ -92,7 +92,7 @@ flowchart TD
 
 **User story:** As a business viewer, I want to see a prepared profile's value beside each condition so that I understand why the model follows one branch rather than the other.
 
-**Priority:** Must. **Status:** Not started. **Owner role:** Application/presentation developer. **Depends on:** M2-05, M3-01, M3-02, M3-04.
+**Priority:** Must. **Status:** Implemented for the Editor slice; device-specific acceptance pending. **Owner role:** Application/presentation developer. **Depends on:** M2-05, M3-01, M3-02, M3-04.
 
 **Acceptance criteria**
 
@@ -109,7 +109,7 @@ flowchart TD
 
 **User story:** As a seated or standing visitor, I want the data drop to move while my viewpoint stays under my control so that the explanation does not force uncomfortable head motion.
 
-**Priority:** Must. **Status:** Not started. **Owner role:** XR developer. **Depends on:** M3-03–M3-05.
+**Priority:** Must. **Status:** Implemented for the Editor slice; device-specific acceptance pending. **Owner role:** XR developer. **Depends on:** M3-03–M3-05.
 
 **Acceptance criteria**
 
@@ -126,7 +126,7 @@ flowchart TD
 
 **User story:** As a visitor unfamiliar with machine learning, I want to know where I am and what the score means so that I can follow the experience without a presenter translating every screen.
 
-**Priority:** Must. **Status:** Not started. **Owner role:** UX/presentation developer. **Depends on:** M3-03, M3-05.
+**Priority:** Must. **Status:** Implemented for the Editor slice; device-specific acceptance pending. **Owner role:** UX/presentation developer. **Depends on:** M3-03, M3-05.
 
 **Acceptance criteria**
 

@@ -1,0 +1,6 @@
+{
+  "name": "VRExperienceAGB.Presentation.Tests",
+  "references": ["VRExperienceAGB.Domain", "VRExperienceAGB.Application", "VRExperienceAGB.Import", "VRExperienceAGB.Presentation", "Unity.TextMeshPro", "Unity.ugui"],
+  "optionalUnityReferences": ["TestAssemblies"],
+  "autoReferenced": false
+}

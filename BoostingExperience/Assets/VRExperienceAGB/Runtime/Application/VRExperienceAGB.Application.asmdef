@@ -1,0 +1,6 @@
+{
+  "name": "VRExperienceAGB.Application",
+  "references": ["VRExperienceAGB.Domain"],
+  "autoReferenced": true,
+  "noEngineReferences": true
+}

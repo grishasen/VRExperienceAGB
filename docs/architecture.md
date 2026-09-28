@@ -1,6 +1,6 @@
 # Architecture
 
-Status: Domain and normalized synthetic Import implemented for M2-01–M2-05; 84 EditMode tests pass. Application/session, presentation, XR integration, and environment modules below remain planned. See [implementation record](m2-foundation-2026-09-28.md).
+Status: Domain and normalized synthetic Import implemented for M2-01–M2-05; 84 EditMode tests pass. A one-tree Application/session layer and Presentation scene are now implemented and Editor-tested; full-ensemble sessions, advanced presentation, XR hardware qualification and environment polish remain planned. See the [M3 record](m3-progress-2026-09-28.md). See [implementation record](m2-foundation-2026-09-28.md).
 
 ## Boundaries
 

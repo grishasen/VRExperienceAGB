@@ -12,7 +12,7 @@ namespace VRExperienceAGB.Tests
 {
     internal static class Fixtures
     {
-        public static string Read(string name) => File.ReadAllText(Path.GetFullPath(Path.Combine(Application.dataPath, "../../data/examples", name)));
+        public static string Read(string name) => File.ReadAllText(Path.GetFullPath(Path.Combine(UnityEngine.Application.dataPath, "../../data/examples", name)));
         public static ModelDefinition Model() => Require(NormalizedModelJson.ReadModel(Read("demo-model.json")));
         public static ProfileSet Profiles(ModelDefinition model) => Require(NormalizedModelJson.ReadProfiles(Read("demo-profiles.json"), model));
         public static T Require<T>(Outcome<T> outcome) where T : class

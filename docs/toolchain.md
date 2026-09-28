@@ -36,7 +36,7 @@ The historical inventory above describes repository creation. The [refreshed liv
 | Unity OpenXR: Meta | 2.6.1 |
 | Meta XR Core / Interaction / OVR integration | 207.0.0 / 207.0.0 / 207.0.0 registered |
 | Validation | No issues returned by Android OpenXR query; no outstanding Required Meta setup tasks; two conditional Platform-service recommendations |
-| Test Framework / Visual Studio Editor | 1.8.0 direct dependency / 2.0.28; 84 M2 EditMode tests pass on 2026-09-28 |
+| Test Framework / Visual Studio Editor | 1.8.0 direct dependency / 2.0.28; 102 EditMode and 5 M3 PlayMode tests pass on 2026-09-28 |
 | Newtonsoft JSON | 3.2.2, existing installed version now pinned as direct dependency; normalized-reader tests pass |
 | Android tools | Installed and resolved to this Editor: NDK 27.2.12479018, JDK 17.0.18+8; SDK platforms include 34/36/37.0 and build tools 36.0.0 |
 | Android player | IL2CPP, ARM64, min API 32, target 34, Vulkan, `com.vrexperienceagb.prototype`; compile API 34 confirmed in the successful APK |
@@ -62,7 +62,7 @@ Input handling was corrected by the user; the follow-up built and installed a de
 | XR Plug-in Management / Input System | Compatible Unity Registry versions | Pending M1 |
 | Meta XR Core SDK | Stable supported release | Pending M1 |
 | Meta XR Interaction SDK | Compatible with Core and its declared dependencies | Pending M1 |
-| Test Framework | Compatible Unity Registry version | 1.8.0: 84 M2 EditMode tests passed; no device test claim |
+| Test Framework | Compatible Unity Registry version | 1.8.0: 102 EditMode and 5 PlayMode tests passed; no device test claim |
 | Visual Studio Editor | At least 2.0.20 for the documented VS Code integration | Pending M1 |
 | Android SDK/NDK/JDK | Bundled with the selected Editor | Pending M1 |
 | Android min / target API | Initial recommendation 32 / 34; recheck Meta requirements before release | Pending M1 |

@@ -59,6 +59,8 @@ These checkboxes do not imply a Unity project or VR build exists.
 
 ## M3 — One-tree vertical slice
 
+**Current implementation:** the saved one-tree scene and session logic are playable in the Editor. 102 EditMode and 5 PlayMode tests pass; see the [M3 record](m3-progress-2026-09-28.md). Controller hardware, haptics, comfort, readability and M3-08 acceptance remain open.
+
 **Estimate:** 4–6 days. **Depends on:** M1 and the internal part of M2.
 
 - [ ] Build the seven-node synthetic tree in a small forest clearing.
