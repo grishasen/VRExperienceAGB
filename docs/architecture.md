@@ -1,13 +1,13 @@
-# Planned architecture
+# Architecture
 
-Status: design, not implemented Unity code.
+Status: Domain and normalized synthetic Import implemented for M2-01–M2-05; 84 EditMode tests pass. Application/session, presentation, XR integration, and environment modules below remain planned. See [implementation record](m2-foundation-2026-09-28.md).
 
 ## Boundaries
 
 | Module | Responsibility | Must not own |
 | --- | --- | --- |
 | Domain | Model, profiles, validation, evaluation, route constraints | Scene objects or headset APIs |
-| Import | AGB parsing and normalization | Guessing unknown operators or scoring semantics |
+| Import | Normalized synthetic JSON v1 implemented; AGB parsing/normalization planned | Guessing unknown operators or scoring semantics |
 | Application | Session state, commands, undo, playback progression | Rendering or input-device details |
 | Presentation | Layout, nodes, paths, drop animation, score view | Prediction truth |
 | XR | Controller actions, tracked rig, comfort transitions | Model evaluation |
@@ -18,7 +18,7 @@ Use the same domain and session state for desktop inspection and the XR scene. I
 
 ## Planned Unity organization
 
-Create this structure through Unity once M1 succeeds:
+Domain, Import and EditMode tests now exist and were imported by Unity. Add the remaining folders when their implementation needs them:
 
 ```text
 Assets/VRExperienceAGB/

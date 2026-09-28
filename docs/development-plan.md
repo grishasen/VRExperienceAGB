@@ -1,6 +1,6 @@
 # Development plan
 
-Status: source/configuration foundation recorded; M1 headset acceptance deferred; application implementation milestones not started. Updated: 2026-09-28. See the [setup review](setup-review-2026-09-27.md) for the existing `BoostingExperience/` project's configuration and outstanding work.
+Status: source/configuration foundation recorded; M1 headset acceptance deferred; M2-01–M2-05 implemented and verified by 84 Unity EditMode tests; scene implementation and real-model verification remain open. Updated: 2026-09-28. See the [setup review](setup-review-2026-09-27.md) for the existing `BoostingExperience/` project's configuration and outstanding work.
 
 The [delivery backlog](backlog.md) expands M1–M6 into six business-facing epics and 48 user stories. Each epic maps every checklist item below to its stories and defines acceptance evidence. These are planned requirements, not completed test results.
 
@@ -43,15 +43,17 @@ These checkboxes do not imply a Unity project or VR build exists.
 
 **Estimate:** 3–5 days for the internal contract; source-model verification is dependency-driven. **Depends on:** M0; C# validation requires M1.
 
-- [ ] Implement the normalized model and profile types as plain C#.
-- [ ] Validate IDs, roots, child references, acyclicity, operators, feature types, and finite values.
-- [ ] Implement deterministic paths, leaf contributions, baseline handling, and output transformation.
-- [ ] Match the synthetic fixtures in `data/examples/`.
-- [ ] Support numeric `<`, categorical membership, and explicit missing-value predicates.
+- [x] Implement the normalized model and profile types as plain C#.
+- [x] Validate IDs, roots, child references, acyclicity, operators, feature types, and finite values.
+- [x] Implement deterministic paths, leaf contributions, baseline handling, and output transformation.
+- [x] Match the synthetic fixtures in `data/examples/`.
+- [x] Support numeric `<`, categorical membership, and explicit missing-value predicates.
 - [ ] Implement a fail-closed AGB import adapter that rejects unsupported conditions.
 - [ ] Obtain trusted AGB predictions and leaf paths for representative profiles.
 - [ ] Confirm baseline, leaf-score scale, learning-rate treatment, missing behavior, and any calibration with the source model owner.
 - [ ] Resolve discrepancies before claiming real-model prediction fidelity.
+
+**Evidence (2026-09-28):** [M2 foundation record](m2-foundation-2026-09-28.md), 84 passing EditMode tests in 6000.6.3f1. No new evaluator APK/device run is claimed.
 
 **Exit:** internal fixtures pass. Real exports have a separate verified/unsupported status; synthetic work can continue while source-model evidence is pending. No silent fallback parses an unknown split as a numeric condition.
 

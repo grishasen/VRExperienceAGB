@@ -1,0 +1,7 @@
+{
+  "name": "VRExperienceAGB.Domain",
+  "rootNamespace": "VRExperienceAGB.Domain",
+  "references": [],
+  "autoReferenced": true,
+  "noEngineReferences": true
+}

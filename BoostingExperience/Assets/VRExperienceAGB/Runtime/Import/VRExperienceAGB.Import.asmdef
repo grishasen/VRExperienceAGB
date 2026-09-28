@@ -1,0 +1,9 @@
+{
+  "name": "VRExperienceAGB.Import",
+  "rootNamespace": "VRExperienceAGB.Import",
+  "references": ["VRExperienceAGB.Domain"],
+  "overrideReferences": true,
+  "precompiledReferences": ["Newtonsoft.Json.dll"],
+  "autoReferenced": true,
+  "noEngineReferences": true
+}

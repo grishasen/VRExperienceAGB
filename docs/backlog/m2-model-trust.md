@@ -6,7 +6,7 @@
 
 **Business value:** the presenter can explain why a result appears and identify the boundary between a synthetic example and a verified real prediction.
 
-**Status:** not started in C#; Python synthetic fixtures pass. **Priority:** Must for the synthetic contract; real-data claims are conditional. **Dependencies:** M0; M1 for C# qualification. **Owner role:** Model developer with model-owner review. **Planning range:** 3–5 days for the internal contract; external verification has no committed duration.
+**Status:** M2-01–M2-05 implemented; 84 Unity EditMode tests pass. Synthetic logic gate verified in the Editor; M1 device qualification and the real-model track remain open. See [evidence and reproduction](../m2-foundation-2026-09-28.md). **Priority:** Must for the synthetic contract; real-data claims are conditional. **Dependencies:** M0; M1 for C# qualification. **Owner role:** Model developer with model-owner review. **Planning range:** 3–5 days for the internal contract; external verification has no committed duration.
 
 ```mermaid
 flowchart LR
@@ -18,13 +18,15 @@ flowchart LR
     B --> X["Explicit rejection when unsupported"]
 ```
 
+**Qualification boundary:** M1-09 remains a dependency for accepted device execution. The current record proves scene-independent C# behavior in the Editor. Actual presentation budgets, session invalidation UI, and Quest execution must be checked when their integration exists.
+
 **Epic acceptance:** the normalized C# evaluator matches all independent synthetic expectations and fails clearly on invalid inputs. Real-model support has a separate evidence-backed status. A real-data dependency cannot be waived by passing synthetic tests.
 
 ## M2-01 — Represent models and profiles consistently
 
 **User story:** As a presenter, I want the same model and profile to mean the same thing throughout the experience so that a change of view cannot change the explanation.
 
-**Priority:** Must. **Status:** Not started. **Owner role:** Model developer. **Depends on:** M0; M1-09 for accepted Unity execution.
+**Priority:** Must. **Status:** Implemented; EditMode verified on 2026-09-28. **Owner role:** Model developer. **Depends on:** M0; M1-09 for accepted Unity execution.
 
 **Acceptance criteria**
 
@@ -41,7 +43,7 @@ flowchart LR
 
 **User story:** As a presenter, I want invalid models and profiles rejected with useful explanations so that I do not demonstrate a plausible but incorrect result.
 
-**Priority:** Must. **Status:** Not started. **Owner role:** Model developer. **Depends on:** M2-01.
+**Priority:** Must. **Status:** Implemented; EditMode verified on 2026-09-28. **Owner role:** Model developer. **Depends on:** M2-01.
 
 **Acceptance criteria**
 
@@ -58,7 +60,7 @@ flowchart LR
 
 **User story:** As a visitor, I want a profile's branch choice explained by its actual value so that I can understand and verify every decision.
 
-**Priority:** Must. **Status:** Not started. **Owner role:** Model developer. **Depends on:** M2-02.
+**Priority:** Must. **Status:** Implemented; EditMode verified on 2026-09-28. **Owner role:** Model developer. **Depends on:** M2-02.
 
 **Acceptance criteria**
 
@@ -75,7 +77,7 @@ flowchart LR
 
 **User story:** As a business viewer, I want the final output reconciled to the baseline and every tree's contribution so that I can see where the number comes from.
 
-**Priority:** Must. **Status:** Not started. **Owner role:** Model developer. **Depends on:** M2-03.
+**Priority:** Must. **Status:** Implemented; EditMode verified on 2026-09-28. **Owner role:** Model developer. **Depends on:** M2-03.
 
 **Acceptance criteria**
 
@@ -93,7 +95,7 @@ flowchart LR
 
 **User story:** As a reviewer, I want fixed reference cases that prove the Unity evaluator's behavior so that future changes cannot quietly alter the demonstration's meaning.
 
-**Priority:** Must. **Status:** Not started in C#; Python reference checks pass. **Owner role:** Model developer and independent reviewer. **Depends on:** M2-03, M2-04.
+**Priority:** Must. **Status:** Implemented; EditMode verified on 2026-09-28. **Owner role:** Model developer and independent reviewer. **Depends on:** M2-03, M2-04.
 
 **Acceptance criteria**
 

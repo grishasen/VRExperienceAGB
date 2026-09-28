@@ -1,6 +1,6 @@
 # Validation and acceptance
 
-Status: test strategy. The synthetic fixture verifier passes. The [setup review](setup-review-2026-09-27.md) inspected the live Unity Editor, which reported no project compilation failure and zero discoverable tests. No Unity test suite, Simulator session, or Quest acceptance run was performed during that review; The subsequent development APK build and update installation succeeded on 2026-09-27; launch, tracking, interaction, and independent relaunch remain untested. Device acceptance remains pending.
+Status: M2-01–M2-05 have **84 passing Unity EditMode tests** in 6000.6.3f1, with no compilation errors. The independent Python fixture verifier also passes. See the [M2 evidence and reproduction record](m2-foundation-2026-09-28.md). The earlier setup review found zero tests; this implementation adds the first project suite. No new evaluator APK, Simulator session, or Quest acceptance run was performed. Earlier APK build/install success does not establish launch, tracking, interaction, or independent relaunch; device acceptance remains pending.
 
 ## Scheduling decision — 2026-09-28
 
@@ -15,9 +15,9 @@ python3 scripts/verify-examples.py
 
 The environment check reports missing setup as expected until installation is complete. The example verifier validates the bundled model/profile structure and compares paths, leaves, contributions, raw scores, and probabilities with the expected fixtures. It also checks representative malformed-input rejection. It uses no third-party Python packages.
 
-## Planned C# EditMode tests
+## C# EditMode tests
 
-Test user-visible semantics independently of rendering:
+The current `VRExperienceAGB.Domain.Tests` assembly covers synthetic evaluation, validation, immutable copies, import round trips, large/deep structures, and assembly independence. Session/undo/manual-constraint tests below remain planned for M3–M4. Test user-visible semantics independently of rendering:
 
 - Numeric values below, equal to, and above a threshold.
 - Categorical membership, unsupported categories, explicit missing values, and absent required values.
