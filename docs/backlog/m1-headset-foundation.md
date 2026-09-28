@@ -6,7 +6,7 @@
 
 **Business value:** a repeatable starting point for every later demonstration, with fewer surprises during feature development.
 
-**Status:** partially configured; not accepted. **Priority:** Must. **Dependencies:** M0, appropriate Unity/Meta accounts, Quest 3, controllers, and a USB data cable. **Suggested accountable role:** Unity/XR developer. **Planning range:** 1–2 working days excluding external delays and baseline reconciliation.
+**Status:** configuration checkpoint recorded; headset acceptance deferred to main development at the user's request. **Priority:** Must. **Dependencies:** M0, appropriate Unity/Meta accounts, Quest 3, controllers, and a USB data cable. **Suggested accountable role:** Unity/XR developer. **Planning range:** 1–2 working days excluding external delays and baseline reconciliation.
 
 **In scope:** canonical project/repository, Android toolchain, URP, Meta/OpenXR, one interaction scene, first APK, independent relaunch, and evidence. **Outside this epic:** tree evaluation, forest gameplay, store distribution, and performance acceptance.
 
@@ -75,7 +75,7 @@ flowchart LR
 
 **User story:** As a visitor, I want my headset and controllers to drive one consistent interaction system so that pointing and selecting behave predictably.
 
-**Priority:** Must. **Status:** Partially configured; Android OpenXR/Meta SDKs now present, required checks clear; scope, warnings, and device behavior pending. **Owner role:** XR developer. **Depends on:** M1-02, M1-03.
+**Priority:** Must. **Status:** D07 scope configuration completed and Android required checks clear; duplicate-settings diagnostics and runtime behavior deferred. **Owner role:** XR developer. **Depends on:** M1-02, M1-03.
 
 **Acceptance criteria**
 
@@ -94,7 +94,7 @@ flowchart LR
 
 **User story:** As a presenter, I want the correct application built for standalone Quest 3 so that installing it does not depend on desktop streaming.
 
-**Priority:** Must. **Status:** Development APK built and installed; identity, ARM64, and merged manifest inspected. Permissions scope and runtime acceptance remain pending. **Owner role:** Unity build developer. **Depends on:** M1-02–M1-04.
+**Priority:** Must. **Status:** D07 APK built; identity, ARM64, Quest 3 declaration and final permissions verified. New APK deployment/runtime acceptance deferred. **Owner role:** Unity build developer. **Depends on:** M1-02–M1-04.
 
 **Acceptance criteria**
 
@@ -146,7 +146,7 @@ flowchart LR
 
 **User story:** As a presenter, I want the same simple interaction to work before and after disconnecting the Mac so that I know the demonstration is truly standalone.
 
-**Priority:** Must. **Status:** In progress; second APK build and update installation succeeded on 2026-09-27 after the user corrected input handling. Launch/tracking/selection/relaunch checks remain untested; user requested proceeding to D03. **Owner role:** XR tester. **Depends on:** M1-05–M1-07.
+**Priority:** Must. **Status:** Deferred to main development. The September 27 build was installed; the changed D07 APK built on September 28 has not been installed/run. Launch/tracking/selection/relaunch remain untested. **Owner role:** XR tester. **Depends on:** M1-05–M1-07.
 
 **Acceptance criteria**
 
@@ -164,7 +164,7 @@ flowchart LR
 
 **User story:** As a future developer or presenter, I want a reproducible checkpoint and honest setup record so that I can rebuild the working foundation and understand its limits.
 
-**Priority:** Must. **Status:** Partially recorded; unified repository configuration and recovery history preserved. Accepted device results and fresh-checkout reproduction remain missing. **Owner role:** Project maintainer. **Depends on:** M1-01, M1-08.
+**Priority:** Must. **Status:** D10 configuration record completed: source commit, package/settings/asset hashes, APK identity and manifest evidence preserved. Accepted device results and fresh-checkout reproduction are deferred, so the full story remains unaccepted. **Owner role:** Project maintainer. **Depends on:** M1-01, M1-08.
 
 **Acceptance criteria**
 

@@ -4,7 +4,7 @@ Updated: 2026-09-28. Planning baseline: [development plan](development-plan.md),
 
 **Outcome:** a presenter can give a reliable, understandable standalone Quest 3 demonstration of how a boosted-tree model reaches an outcome. Visitors can both choose branches themselves and follow a prepared synthetic profile. These are equally required experiences.
 
-**Current position:** M1 is partially configured and blocked by the gaps in the [setup review](setup-review-2026-09-27.md). M2–M6 are not implemented. The existing Python fixture checks pass; they do not complete a Unity story. No story below is marked Done.
+**Current position:** D07 scope cleanup and D10 source/build checkpoint are complete for the starting configuration. The user requested deferring the remaining checks to main development; M1 headset acceptance remains open. See the [checkpoint and deferred-check list](configuration-checkpoint-2026-09-28.md). M2–M6 are not implemented. The existing Python fixture checks pass; they do not complete a Unity story. No story below is marked Done.
 
 This backlog contains **six epics and 48 user stories**. Acceptance criteria are proposed delivery requirements, not test results. Story ownership identifies a role; no person has been assigned. Estimates remain the original milestone planning ranges, not commitments derived from story count.
 
@@ -94,12 +94,12 @@ This table uses the refreshed live snapshot, approximately 18:46 UTC on 2026-09-
 | Android OpenXR and validation | Now enabled; no OpenXR issues or Required Meta task failures found | Device checks in M1-04, M1-08 |
 | Active target/player settings | Android, IL2CPP/ARM64, API 32–34, Vulkan, prototype ID; successful development APK confirms compile SDK 34 | Permissions scope/runtime acceptance in M1-05, M1-08 |
 | Input handling Both blocked Android build | User switched to Input System Package (New); second build succeeded | Runtime checks remain in M1-04, M1-08 |
-| XR simulation singleton warning; historical Touch-profile fix failures | Warning not repeated after restart, but two loaded runtime settings assets remain; D06 decision pending. Touch currently enabled | M1-04, M1-08 |
-| Comprehensive rig and broad XR features | Hands/locomotion and optional AR/space-warp features present; source manifest broader than minimal scope | M1-04–M1-06, M3-06 |
+| XR simulation singleton warning; historical Touch-profile fix failures | Two runtime settings assets remain; D06 deferred to main development by user request | M1-04, M1-08 |
+| Comprehensive rig and broad XR features | D07 configured: inactive hand/locomotion branches retained for reuse; optional AR/SpaceWarp off; Quest 3-only APK with unused permissions removed | Runtime checks deferred in M1-04–M1-06; product navigation still required in M3–M5 |
 | Saved smoke scene and build list | Now present; no missing scripts; feedback/readability untested on device | M1-06, M1-08 |
 | Connected Quest | Follow-up at 19:05 UTC: Quest 3 authorized over USB; device queries succeed | M1-07; runtime checks remain in M1-08 |
-| APK build/update installation | Succeeded on 2026-09-27; about 92 MB, ARM64. Launch and independent relaunch remain untested | M1-08 |
-| Toolchain qualification and repository checkpoint | Installed versions recorded; device evidence/checkpoint incomplete | M1-09 |
+| APK build/update installation | Previous build installed September 27; cleaned-up APK built September 28, not installed/run. Further checks deferred | M1-08 |
+| Toolchain qualification and repository checkpoint | D10 source/build record complete; exact commit, APK hash and final manifest recorded. Device qualification/reproduction deferred | M1-09 |
 | Checker project-path detection | Corrected to `BoostingExperience/`; real-project pass and explicit missing-project failure verified | M1-01 |
 | Test Framework | Now direct dependency; zero discoverable tests | M2 and later behavioral stories |
 | Optional Meta Platform recommendations | Conditional DUC/app-ID tasks; no Platform SDK registered | Revisit M1-04 only if Platform API scope is added |

@@ -2,6 +2,10 @@
 
 Status: test strategy. The synthetic fixture verifier passes. The [setup review](setup-review-2026-09-27.md) inspected the live Unity Editor, which reported no project compilation failure and zero discoverable tests. No Unity test suite, Simulator session, or Quest acceptance run was performed during that review; The subsequent development APK build and update installation succeeded on 2026-09-27; launch, tracking, interaction, and independent relaunch remain untested. Device acceptance remains pending.
 
+## Scheduling decision — 2026-09-28
+
+The user requested completing D07 and D10 and postponing all other outstanding checks until main development. The [configuration checkpoint](configuration-checkpoint-2026-09-28.md) records the successful changed APK build, final permissions and exact source identity. The changed APK has not been installed or run. D02/D08 headset checks, D06 diagnostics, fresh-checkout reproduction and later M6 acceptance stay open; begin revisiting them with main development. No check is waived or marked passed by this scheduling decision.
+
 ## Current repository checks
 
 ```sh

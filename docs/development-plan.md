@@ -1,12 +1,12 @@
 # Development plan
 
-Status: foundation completed; M1 setup started but incomplete; application implementation milestones not started. Updated: 2026-09-28. See the [setup review](setup-review-2026-09-27.md) for the existing `BoostingExperience/` project's configuration and outstanding work.
+Status: source/configuration foundation recorded; M1 headset acceptance deferred; application implementation milestones not started. Updated: 2026-09-28. See the [setup review](setup-review-2026-09-27.md) for the existing `BoostingExperience/` project's configuration and outstanding work.
 
 The [delivery backlog](backlog.md) expands M1–M6 into six business-facing epics and 48 user stories. Each epic maps every checklist item below to its stories and defines acceptance evidence. These are planned requirements, not completed test results.
 
 ## Delivery approach
 
-Prove the headset build first, then model semantics, then the complete interaction loop. Add environmental detail while keeping every milestone runnable on Quest 3. A desktop preview alone does not complete a VR milestone.
+The Android build is proven. On 2026-09-28 the user requested completing D07/D10 and revisiting the remaining checks when main development begins. Use the [configuration checkpoint](configuration-checkpoint-2026-09-28.md), then develop model semantics and the complete interaction loop while collecting the deferred acceptance evidence. Add environmental detail while keeping every milestone runnable on Quest 3. A desktop preview alone does not complete a VR milestone.
 
 Estimates below are working days for one developer familiar with Unity. They exclude account approval delays, learning Unity from scratch, procuring assets, store review, and resolving undocumented source-model behavior. Expect roughly 5–8 working weeks for the demonstration MVP, including integration contingency. Real AGB scoring may have an independent dependency on reference predictions.
 
@@ -29,12 +29,12 @@ These checkboxes do not imply a Unity project or VR build exists.
 - [x] Install Unity Hub, Unity 6000.6.3f1 Apple Silicon (user-accepted baseline), and its Android modules.
 - [ ] Install and configure OpenXR plus Meta XR Core/Interaction SDK.
 - [x] Establish the Universal 3D project at the user-selected `BoostingExperience/` location under the parent repository.
-- [ ] Run project validation and configure the Android ARM64 player.
+- [x] Run Android configuration validation and configure the ARM64 player; D07 controller-only offline APK built and merged permissions verified on 2026-09-28.
 - [ ] Create a scene with a tracked rig, floor, readable label, and selectable object.
 - [ ] Build, install, and run an APK on Quest 3. Build and update installation succeeded on 2026-09-27; launch and interaction remain untested.
 - [ ] Verify headset/controller tracking and a controller selection.
 - [ ] Disconnect the Mac and relaunch the application on the headset.
-- [ ] Record exact editor, package, Android-toolchain, and headset OS versions.
+- [x] Record exact Editor, package and Android toolchain versions, last observed headset Android build, and source/APK identity. Runtime qualification is deferred.
 - [x] Record generated project settings, package lock, assets, and `.meta` files together in the parent repository. This is a configuration snapshot; headset acceptance remains pending.
 
 **Exit:** the standalone scene works on Quest 3. Capture the result in `artifacts/` locally and summarize the tested configuration in `docs/toolchain.md`. A simulator-only result does not pass this milestone.

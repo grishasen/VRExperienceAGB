@@ -23,7 +23,7 @@ Updated: 2026-09-28. “Proposed” is not “installed”, and “installed” 
 
 The installed macOS version still needs qualification with the selected Editor and Meta tools. The inventory is not a compatibility guarantee.
 
-## Current observed installation — 2026-09-27, refreshed approximately 18:46 UTC
+## Current installation and checkpoint — 2026-09-28
 
 The historical inventory above describes repository creation. The [refreshed live setup review](setup-review-2026-09-27.md) supersedes it for current status. **M1 remains incomplete: build and USB update installation passed, while runtime behavior and performance remain unverified.** Concurrent setup work resolved the initial missing-module/package/rendering gaps during the review.
 
@@ -45,9 +45,11 @@ The historical inventory above describes repository creation. The [refreshed liv
 | Simulator / headset | Simulator not found in standard locations; Quest 3 USB access verified at 19:05 UTC; application behavior not yet tested |
 | Headset device build | Android 14 / API 34; `UP1A.231005.007.A1`; incremental `52433670048800520`. Horizon OS release label not inferred |
 | Build follow-up | User corrected Both input handling to Input System Package (New). Second development APK succeeded at 19:15 UTC; update installation on Quest 3 succeeded at 19:16 UTC. APK about 92 MB, ARM64, compile/target API 34, min API 32. Launch/controller/offline checks remain untested |
-| Remaining cautions | XR simulation warning; comprehensive rig/optional XR features exceed the minimal controller-first scope; see review |
+| D07 scope | Controller-only stationary smoke scene; hands/sample locomotion and optional AR/SpaceWarp disabled. Quest 3-only merged manifest, unused permissions absent |
+| D10 checkpoint | Source `76defad516a5e15d0a41d12727df1b72e3580001`; changed development APK built on 2026-09-28, not installed/run. [Full record](configuration-checkpoint-2026-09-28.md) |
+| Remaining cautions | D06 duplicate settings and advisory warnings unchanged; other checks deferred to main development by the user |
 
-Input handling was corrected by the user; the follow-up built and installed a development APK. Dependencies are unchanged. On 2026-09-28 the user authorized consolidating repository ownership and retaining the installed Editor baseline; see [recovery record](repository-consolidation.md). Exact installed versions are available in `BoostingExperience/ProjectSettings/ProjectVersion.txt` and `BoostingExperience/Packages/packages-lock.json`; installation and validation are not device compatibility or performance acceptance.
+Input handling was corrected by the user; the follow-up built and installed a development APK. Dependencies are unchanged. D07 subsequently narrowed the smoke-scene capabilities, device declaration and merged permissions; this does not remove the product's planned M3–M5 navigation. On 2026-09-28 the user authorized consolidating repository ownership and retaining the installed Editor baseline; see [recovery record](repository-consolidation.md). Exact installed versions are available in `BoostingExperience/ProjectSettings/ProjectVersion.txt` and `BoostingExperience/Packages/packages-lock.json`; installation and validation are not device compatibility or performance acceptance.
 
 ## Selected baseline and qualification
 
@@ -70,9 +72,9 @@ Input handling was corrected by the user; the follow-up built and installed a de
 
 The tracked `BoostingExperience/ProjectSettings/ProjectVersion.txt` and `BoostingExperience/Packages/packages-lock.json` define exact versions. Keep manifest, lock, settings, assets, and metadata together in Git. Change dependencies as an explicit maintenance task, then repeat the affected validation.
 
-## First verified configuration record
+## Configuration checkpoint and later device record
 
-Complete this after a real device run:
+The [2026-09-28 checkpoint](configuration-checkpoint-2026-09-28.md) records exact source/build identity, settings, manifest results, limitations and the deferred checks. Complete the device acceptance record below during main development:
 
 ```text
 Verification date:

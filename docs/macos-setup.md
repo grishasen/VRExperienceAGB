@@ -132,7 +132,7 @@ Initial project choices:
 
 IL2CPP/ARM64 follow Meta's [player configuration guidance](https://developers.meta.com/horizon/documentation/unity/unity-prepare-for-publish/). API recommendations are date-sensitive; recheck the [manifest requirements](https://developers.meta.com/horizon/resources/publish-mobile-manifest/) before release. Do not apply a desktop Simulator graphics setting to the Android build without checking it.
 
-Do not add camera, microphone, storage, or network permissions unless a feature actually requires them. Keep signing keys and passwords outside Git. Local debug signing is sufficient for the first smoke test; distribution signing is a later task.
+The current controller-only smoke baseline explicitly removes unused Internet and foreground/media-projection service permissions contributed by dependencies; D07 verified the merged APK. Hands and the sample locomotor are inactive for this scene; planned product navigation remains in M3–M5. See the [configuration checkpoint](configuration-checkpoint-2026-09-28.md). Do not add camera, microphone, storage, or network permissions unless a feature actually requires them. Keep signing keys and passwords outside Git. Local debug signing is sufficient for the first smoke test; distribution signing is a later task.
 
 ## 8. Build the first scene and run it
 

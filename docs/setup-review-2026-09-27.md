@@ -11,17 +11,17 @@ Reviewed `BoostingExperience/` against the [Mac setup guide](macos-setup.md), [d
 | ID / priority | Finding and impact | Required next step / story |
 | --- | --- | --- |
 | D01 / Resolved | At 19:05 UTC, ADB reports one authorized Quest 3 in `device` state and read-only device queries succeed. Android 14 / API 34, build `UP1A.231005.007.A1`, incremental `52433670048800520`. Developer Mode was confirmed by the user. | USB detection/authorization is resolved. Actual tracking, selection, deployment, and relaunch remain under D02/D08; remaining M1-07 checks are not automatically passed. |
-| D02 / P1; partially resolved | The second development APK build succeeded at 19:15 UTC and an update installation succeeded at 19:16 UTC on 2026-09-27. APK identity, ARM64, and merged manifest were inspected. Launch was not executed because automatic approval review could not complete due to a usage limit. | Verify immersive launch, both controllers/head tracking, disconnect the Mac, and relaunch offline. The user chose to continue with D03 before these checks. M1-08. |
+| D02 / Deferred; build/install partly proven | September 27 APK built and installed. Changed D07 APK built successfully September 28 but was not installed/run. | User requested revisiting deployment, immersive launch, tracking, interaction and offline relaunch at the start of main development. M1-08 remains unaccepted. |
 | D03 / Resolved | User retained `BoostingExperience/` and selected one parent repository. Original inner history is imported as `codex/boostingexperience-history`; original Git metadata and 107 project files are backed up and verified. The Editor scene/package references remain intact. | Use the updated opening instructions and [recovery record](repository-consolidation.md). Device acceptance and reproducibility remain in M1-09. |
 | D04 / Decision resolved | User explicitly accepted installed **6000.6.3f1** on 2026-09-28. Development build and update installation passed; no Editor migration is planned. | Keep this baseline and complete runtime compatibility/performance checks. Acceptance of the version is not evidence of headset behavior. M1-02, M1-08. |
 | D05 / Build blocker resolved | The first Android build rejected **Both** input handling. The user changed it to **Input System Package (New)** and restarted Unity. A live check confirmed `activeInputHandler = 1`; the second build succeeded. | Runtime controller checks remain under D02/D08; successful compilation/build does not prove interaction behavior. M1-04, M1-05, M1-08. |
-| D06 / P2 | No new duplicate-singleton warning appears in the current post-restart Console, but live inspection still finds two loaded `XRSimulationRuntimeSettings` assets: one in `Assets/XR/Settings/`, another in `Assets/XR/Resources/`. Their serialized settings are identical; EditorBuildSettings references the Settings copy. | Decide whether to consolidate the duplicate through Unity, preserving references, then repeat affected validation. The earlier Touch-profile fix errors remain historical unless reproduced. M1-04, M1-08. |
-| D07 / P2 | Configuration is broader than the controller-first offline scope: the comprehensive rig includes hands and locomotion; Android features include passthrough, scene/mesh/anchor/occlusion, colocation, and space warp. The source Android manifest requests hand-tracking permission and advertises devices beyond Quest 3. | Disable unused capabilities or document why they are needed, confirm a stable observer/no forced motion, and inspect the merged APK permissions/device declarations. Presence alone is not proof these features execute or cause a performance problem. M1-04–M1-06, M3-06. |
-| D08 / P2 | The smoke scene is saved and structurally populated, but actual grab/select feedback, label readability, controller parity, comfort, and interruption behavior remain untested on Quest. It contains 1,677 scene objects, including the comprehensive rig's variants. | Run the simple scene first and review whether all rig content is necessary. Use measured device cost rather than object count alone to decide simplification. M1-06, M1-08. |
+| D06 / Deferred | Two identical loaded simulation runtime settings assets remain; EditorBuildSettings references the Settings copy. No new duplicate warning appeared after restart. | User deferred diagnosis/consolidation until main development. No D06 assets changed in D07 cleanup. |
+| D07 / Configuration resolved | Controller-only Quest 3 smoke scene: sample hand and locomotion branches disabled, 11 optional XR features disabled, head tracking and both controller rays retained. New APK has no unused MR/hand/network/foreground-service permissions. Future M3–M5 navigation remains planned. | Runtime behavior and comfort checks deferred by the user. [Exact scope/build record](configuration-checkpoint-2026-09-28.md). |
+| D08 / Deferred | Smoke scene remains saved with controller rays, cube, floor and label; inactive sample hand/locomotion structure is retained. Headset selection, readability, controller parity, comfort and recovery are untested. | User deferred these checks until main development. Use device evidence to decide later rig simplification. M1-06, M1-08. |
 | D09 / Resolved | The checker now defaults to canonical `BoostingExperience/`, reads its pinned Editor, and supports explicit `VRAGB_PROJECT_DIR`. The actual project passes local checks; a deliberately missing path fails with its exact missing version-file path. | Keep this read-only prerequisite check separate from device acceptance. M1-01. |
-| D10 / P2 | Verified configuration/checkpoint is incomplete. Current versions are observed, but tested APK identity, independent relaunch results, and an accepted parent-repository project commit are still missing. The device build was subsequently recorded through ADB. | Complete the device record and commit verified manifest, lock, settings, assets, and `.meta` files together in the agreed repository. M1-09. |
+| D10 / Configuration checkpoint resolved | Exact source `76defad516a5e15d0a41d12727df1b72e3580001`, toolchain, APK hash and merged manifest are recorded; source assets/settings/metadata and package files are in the parent repository. | New APK deployment, headset qualification and fresh-checkout reproduction are explicitly deferred, not passed. [Checkpoint](configuration-checkpoint-2026-09-28.md). |
 | D11 / P2 | Zero Unity tests are discoverable; there is no project-owned application/evaluator implementation. Existing scene/package components do not deliver manual tree exploration or deterministic profile playback. | Implement and validate M2–M5; the passing Python fixture checker is only a reference contract. |
-| D12 / P2 | The intended 72 Hz/native 72 FPS target, release performance, duration/soak, recovery, and new-user comprehension have no accepted device evidence. | Complete the M6 hardware acceptance stories; desktop measurements cannot substitute. |
+| D12 / Deferred | 72 Hz/native 72 FPS, release performance, soak, recovery and comprehension have no accepted device evidence. | Start planning/measurement during main development and complete M6 on representative headset scenes. No desktop substitution or inferred pass. |
 
 P1 items prevent the first accepted headset demonstration. P2 items require resolution or explicit qualification as part of the relevant milestone. These priorities do not imply that every project-scope decision blocks a local experimental APK.
 
@@ -86,13 +86,9 @@ The checker's earlier false project-path failure was corrected on 2026-09-28. It
 
 These changes were observed during the refresh; they are not attributed to this review. Earlier snapshots remain local evidence of the first inspection.
 
-## Next acceptance sequence
+## Current next steps
 
-1. Review unused features, warnings, input handling, stationary-observer behavior, and scope/device declarations.
-2. Retain the user-selected Unity 6000.6.3f1 and `BoostingExperience/` path; use the unified parent repository and preserved recovery history.
-3. Build the configured development APK and inspect the generated manifest and build result.
-4. Use the now-authorized Quest 3 to verify tracked head/controllers and visible selection/grab feedback, disconnect the Mac, and relaunch offline.
-5. Record exact build/toolchain/headset results and preserve the verified project checkpoint. Continue through the detailed M2–M6 backlog.
+D07 and D10 are recorded in the [2026-09-28 configuration checkpoint](configuration-checkpoint-2026-09-28.md). The user requested postponing other checks until main development. Start that work from the recorded source; revisit D02/D08 headset behavior, D06 diagnostics, reproducibility and later M6 acceptance at the documented triggers. This scheduling decision does not mark M1 accepted.
 
 ## D01 follow-up — 19:05 UTC
 
@@ -115,7 +111,7 @@ The second build succeeded in 40.9 seconds with zero errors and four warnings. T
 - Update installation returned Success at 19:16:53 UTC, preserving the existing app's data. No uninstall was performed.
 - Evidence: `artifacts/smoke-test-2026-09-27/build-attempt-02-summary.json`, `apk-manifest.txt`, and `installation.json`.
 
-The merged manifest requests hand tracking, Internet, foreground/media-projection services, scene/anchor access, boundary visibility, map import/export, and colocation discovery. These extend D07's evidence; their presence does not establish that the features execute. Device support is broader than Quest 3. Review their necessity before accepting M1-05.
+The September 27 APK manifest requested hand tracking, Internet, foreground/media-projection services, scene/anchor access, boundary visibility, map import/export, and colocation discovery, with support broader than Quest 3. This historical evidence was superseded by the September 28 D07 APK: those permissions are absent and the device declaration is Quest 3 only.
 
 The attempted launch command was **not executed**: automatic approval review could not complete because of a usage limit, not because the action was judged unsafe. Launch, head tracking, controller interaction, readability, comfort, independent relaunch, and offline behavior remain **not tested**. On 2026-09-28 the user requested moving to the next finding; this does not mark those checks passed.
 
@@ -131,4 +127,10 @@ The user selected the recommended consolidation and explicitly accepted the inst
 
 The prerequisite checker passes for the canonical location and correctly fails for a missing explicit location. D09 is therefore resolved together with D03. D04 is resolved as a baseline decision; headset behavior and performance are still not accepted.
 
-D06 remains the next user decision: two equal simulation runtime settings assets are still loaded, even though the warning has not recurred after restart. No simulation assets were changed during consolidation.
+D06 remains unresolved: two equal simulation runtime settings assets are still loaded, even though the warning has not recurred after restart. No simulation assets were changed during consolidation. The user subsequently deferred this check to main development.
+
+## D07 / D10 completion and deferral — 2026-09-28
+
+The user authorized D07/D10 fixes and requested leaving other checks for main development. The controller-only offline APK built successfully, its final manifest was inspected, and source commit `76defad516a5e15d0a41d12727df1b72e3580001` records the changed configuration. The [checkpoint](configuration-checkpoint-2026-09-28.md) contains artifact identity, retained/disabled capabilities, warnings and an explicit deferred-check table.
+
+The hand and locomotion components are preserved but inactive in this initial smoke scene. Required M3–M5 navigation is still in scope; hand tracking remains a deferred extension under the original plan. New APK installation and runtime testing were not performed.
