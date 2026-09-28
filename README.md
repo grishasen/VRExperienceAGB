@@ -1,5 +1,6 @@
 # VRExperienceAGB
 
+Current fixture revision: the AGB-like example replaces the earlier teaching data. Python checks pass; the previously recorded Unity results predate this replacement and do not qualify it until rerun.
 An immersive explanation of adaptive gradient boosted decision trees for Meta Quest 3.
 
 Explore a miniature forest, enter a tree, choose branches yourself, or follow a prepared customer profile. Watch each selected leaf contribute to the ensemble score in a twilight forest with luminous paths inspired by the existing AGB Grid Drive prototype.
@@ -15,6 +16,8 @@ All project documentation, code, comments, identifiers, commit messages, and ini
 3. Work through [Development plan](docs/development-plan.md), starting with the headset smoke test.
 4. Use [Testing](docs/testing.md) to decide whether a milestone is complete.
 5. Use the [M1–M6 delivery backlog](docs/backlog.md) for six epics, detailed user stories, acceptance criteria, dependencies, and required evidence.
+
+The [model contract and solution design](docs/model-contract.md) explains AGB structure, scoring semantics, the fictional example, and the production verification backlog.
 
 ## Local checks available now
 

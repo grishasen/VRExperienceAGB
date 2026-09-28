@@ -1,38 +1,126 @@
 {
   "schemaVersion": 1,
-  "modelId": "synthetic-response-demo-v1",
+  "modelId": "fictional-web-response-agb-v2",
   "cases": [
     {
       "profileId": "new-visitor",
-      "paths": [["t1-root", "t1-visits", "t1-new"], ["t2-root", "t2-browsing"], ["t3-root", "t3-missing"]],
-      "leaves": ["t1-new", "t2-browsing", "t3-missing"],
-      "contributions": [-0.4, -0.1, -0.2],
-      "rawScore": -2.2,
-      "probability": 0.09975048911968513
+      "paths": [
+        [
+          "t1-root",
+          "t1-visits",
+          "t1-new"
+        ],
+        [
+          "t2-root",
+          "t2-browsing"
+        ],
+        [
+          "t3-root",
+          "t3-missing"
+        ]
+      ],
+      "leaves": [
+        "t1-new",
+        "t2-browsing",
+        "t3-missing"
+      ],
+      "contributions": [
+        -3.8,
+        -0.1,
+        -0.2
+      ],
+      "rawScore": -4.1,
+      "probability": 0.016302499371440946
     },
     {
       "profileId": "returning-visitor",
-      "paths": [["t1-root", "t1-visits", "t1-returning"], ["t2-root", "t2-checkout"], ["t3-root", "t3-present"]],
-      "leaves": ["t1-returning", "t2-checkout", "t3-present"],
-      "contributions": [0.2, 0.5, 0.1],
-      "rawScore": -0.7,
-      "probability": 0.3318122278318339
+      "paths": [
+        [
+          "t1-root",
+          "t1-visits",
+          "t1-returning"
+        ],
+        [
+          "t2-root",
+          "t2-checkout"
+        ],
+        [
+          "t3-root",
+          "t3-present"
+        ]
+      ],
+      "leaves": [
+        "t1-returning",
+        "t2-checkout",
+        "t3-present"
+      ],
+      "contributions": [
+        -3.2,
+        0.5,
+        0.1
+      ],
+      "rawScore": -2.6,
+      "probability": 0.06913842034334682
     },
     {
       "profileId": "engaged-visitor",
-      "paths": [["t1-root", "t1-value", "t1-engaged"], ["t2-root", "t2-checkout"], ["t3-root", "t3-present"]],
-      "leaves": ["t1-engaged", "t2-checkout", "t3-present"],
-      "contributions": [0.8, 0.5, 0.1],
-      "rawScore": -0.1,
-      "probability": 0.47502081252106
+      "paths": [
+        [
+          "t1-root",
+          "t1-value",
+          "t1-engaged"
+        ],
+        [
+          "t2-root",
+          "t2-checkout"
+        ],
+        [
+          "t3-root",
+          "t3-present"
+        ]
+      ],
+      "leaves": [
+        "t1-engaged",
+        "t2-checkout",
+        "t3-present"
+      ],
+      "contributions": [
+        -2.6,
+        0.5,
+        0.1
+      ],
+      "rawScore": -2.0,
+      "probability": 0.11920292202211755
     },
     {
       "profileId": "boundary-profile",
-      "paths": [["t1-root", "t1-value", "t1-engaged"], ["t2-root", "t2-browsing"], ["t3-root", "t3-missing"]],
-      "leaves": ["t1-engaged", "t2-browsing", "t3-missing"],
-      "contributions": [0.8, -0.1, -0.2],
-      "rawScore": -1.0,
-      "probability": 0.2689414213699951
+      "paths": [
+        [
+          "t1-root",
+          "t1-value",
+          "t1-engaged"
+        ],
+        [
+          "t2-root",
+          "t2-browsing"
+        ],
+        [
+          "t3-root",
+          "t3-missing"
+        ]
+      ],
+      "leaves": [
+        "t1-engaged",
+        "t2-browsing",
+        "t3-missing"
+      ],
+      "contributions": [
+        -2.6,
+        -0.1,
+        -0.2
+      ],
+      "rawScore": -2.9,
+      "probability": 0.05215356307841774
     }
   ]
 }

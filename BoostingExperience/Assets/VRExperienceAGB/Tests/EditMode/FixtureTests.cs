@@ -41,10 +41,10 @@ namespace VRExperienceAGB.Tests
             var result = Fixtures.Require(ModelEvaluator.Evaluate(model, profile));
             Assert.That(result.Trees.Select(t => t.TreeId), Is.EqualTo(model.Trees.Select(t => t.Id)));
             Assert.That(result.Trees.Select(t => t.LeafId), Is.EqualTo(expected["leaves"].Values<string>()));
-            Assert.That(result.BaseScore, Is.EqualTo(-1.5));
+            Assert.That(result.BaseScore, Is.EqualTo(0));
             Assert.That(result.RawScore, Is.EqualTo((double)expected["rawScore"]).Within(ModelEvaluator.ReferenceTolerance));
             Assert.That(result.Probability, Is.EqualTo((double)expected["probability"]).Within(ModelEvaluator.ReferenceTolerance));
-            var running = -1.5;
+            var running = 0.0;
             for (var i = 0; i < result.Trees.Count; i++)
             {
                 var tree = result.Trees[i]; var contribution = (double)expected["contributions"][i];
@@ -74,11 +74,11 @@ namespace VRExperienceAGB.Tests
             var modelJson = Fixtures.Require(NormalizedModelJson.WriteModel(model));
             var restored = Fixtures.Require(NormalizedModelJson.ReadModel(modelJson));
             Assert.That(Fixtures.Require(NormalizedModelJson.WriteModel(restored)), Is.EqualTo(modelJson));
-            var absent = profiles.Profiles[0].WithValue("loyaltyTier", ProfileValue.NotSupplied);
+            var absent = profiles.Profiles[0].WithValue("Customer.LoyaltyTier", ProfileValue.NotSupplied);
             var set = new ProfileSet(1, model.Id, new[] { absent, profiles.Profiles[1] });
             var json = Fixtures.Require(NormalizedModelJson.WriteProfiles(set, model));
             var reread = Fixtures.Require(NormalizedModelJson.ReadProfiles(json, restored));
-            Assert.That(reread.Profiles[0].GetValue("loyaltyTier").Kind, Is.EqualTo(ValueKind.NotSupplied));
+            Assert.That(reread.Profiles[0].GetValue("Customer.LoyaltyTier").Kind, Is.EqualTo(ValueKind.NotSupplied));
             foreach (var p in reread.Profiles)
             {
                 var original = set.Profiles.Single(x => x.Id == p.Id);
@@ -86,7 +86,7 @@ namespace VRExperienceAGB.Tests
                     Is.EqualTo(Fixtures.Require(ModelEvaluator.Evaluate(model, original)).RawScore));
             }
             var explicitNull = Fixtures.Require(NormalizedModelJson.ReadProfiles(Fixtures.Read("demo-profiles.json"), restored));
-            Assert.That(explicitNull.Profiles[0].GetValue("loyaltyTier").Kind, Is.EqualTo(ValueKind.Missing));
+            Assert.That(explicitNull.Profiles[0].GetValue("Customer.LoyaltyTier").Kind, Is.EqualTo(ValueKind.Missing));
         }
 
         [Test]

@@ -1,5 +1,6 @@
 # Validation and acceptance
 
+Current fixture revision: the AGB-like example replaces the earlier teaching data. Python checks pass; the previously recorded Unity results predate this replacement and do not qualify it until rerun.
 Status: The combined M2/M3 suite has **102 passing Unity EditMode tests and 5 passing PlayMode tests** in 6000.6.3f1, with no compilation errors. The independent Python fixture verifier also passes. See the [M2 evidence record](m2-foundation-2026-09-28.md) and [M3 evidence and reproduction record](m3-progress-2026-09-28.md). The earlier setup review found zero tests; this implementation adds the first project suite. No new evaluator APK, Simulator session, or Quest acceptance run was performed. Earlier APK build/install success does not establish launch, tracking, interaction, or independent relaunch; device acceptance remains pending.
 
 ## Scheduling decision — 2026-09-28
@@ -11,9 +12,10 @@ The user requested completing D07 and D10 and postponing all other outstanding c
 ```sh
 bash scripts/check-mac.sh
 python3 scripts/verify-examples.py
+python3 scripts/inspect-agb-structure.py data/examples/demo-agb-export.json
 ```
 
-The environment check reports missing setup as expected until installation is complete. The example verifier validates the bundled model/profile structure and compares paths, leaves, contributions, raw scores, and probabilities with the expected fixtures. It also checks representative malformed-input rejection. It uses no third-party Python packages.
+The environment check reports missing setup as expected until installation is complete. The example verifier validates the bundled model/profile structure and compares paths, leaves, contributions, raw scores, and probabilities with the expected fixtures. It also checks representative malformed-input rejection. It also checks nested-to-normalized equivalence and bundled Unity data-copy equality. The structural inspector checks the fictional export metadata. Both use only the Python standard library.
 
 ## C# EditMode tests
 
@@ -60,7 +62,7 @@ The initial project target is sustained native rendering at 72 FPS with a 72 Hz 
 
 Measure CPU/GPU times, dropped frames, and memory on the actual Quest using Meta device performance tools and targeted Unity profiling. Final measurements use a release build without script debugging. Simulator or Editor FPS cannot stand in for device measurements.
 
-Agree a worst visible scene with documented counts of active trees, nodes, text labels, and effects. Include a large-model case. Budget active detail explicitly rather than assuming that all 13,576 nodes from the reviewed large export must render with full labels simultaneously.
+Agree a worst visible scene with documented counts of active trees, nodes, text labels, and effects. Include a large-model case. Budget active detail explicitly and use generated large ensembles to verify that rendering limits never truncate scoring.
 
 For later distribution, recheck [Meta's current performance VRC](https://developers.meta.com/horizon/resources/vrc-quest-performance-1/), which distinguishes display refresh rate, rendering rate, and exceptions.
 

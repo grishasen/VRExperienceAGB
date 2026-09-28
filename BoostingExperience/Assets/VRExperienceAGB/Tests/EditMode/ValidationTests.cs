@@ -56,12 +56,12 @@ namespace VRExperienceAGB.Tests
                 case "weight": first.Remove("weight"); break;
                 case "score": ((JObject)nodes[3]).Remove("score"); break;
                 case "threshold": root.Remove("threshold"); break;
-                case "policy": ((JObject)doc["features"]["visits"]).Remove("allowMissing"); break;
+                case "policy": ((JObject)doc["features"]["Customer.DigitalVisits30Days"]).Remove("allowMissing"); break;
                 case "unknown-field": doc["learningRate"] = 0.1; break;
                 case "empty-features": doc["features"] = new JObject(); break;
-                case "feature-type": doc["features"]["visits"]["type"] = "bool"; break;
-                case "range": doc["features"]["visits"]["maximum"] = -1; break;
-                case "categories": doc["features"]["placement"]["values"] = new JArray("home", "home"); break;
+                case "feature-type": doc["features"]["Customer.DigitalVisits30Days"]["type"] = "bool"; break;
+                case "range": doc["features"]["Customer.DigitalVisits30Days"]["maximum"] = -1; break;
+                case "categories": doc["features"]["pyTreatment"]["values"] = new JArray("Welcome Banner", "Welcome Banner"); break;
                 case "empty-trees": trees.Clear(); break;
                 case "tree-id": trees[1]["id"] = trees[0]["id"].DeepClone(); break;
                 case "node-id": nodes[3]["id"] = root["id"].DeepClone(); break;
@@ -74,9 +74,9 @@ namespace VRExperienceAGB.Tests
                 case "node-kind": root["kind"] = "oblique"; break;
                 case "operator": root["operator"] = "lte"; break;
                 case "feature": root["feature"] = "unknown"; break;
-                case "numeric-category": root["feature"] = "placement"; break;
+                case "numeric-category": root["feature"] = "pyTreatment"; break;
                 case "unknown-category": trees[1]["nodes"][0]["values"] = new JArray("unknown"); break;
-                case "missing-policy": doc["features"]["loyaltyTier"]["allowMissing"] = false; break;
+                case "missing-policy": doc["features"]["Customer.LoyaltyTier"]["allowMissing"] = false; break;
                 default: Assert.Fail("Unimplemented test mutation"); break;
             }
             Fixtures.Reject(NormalizedModelJson.ReadModel(doc.ToString()), code);
@@ -106,15 +106,15 @@ namespace VRExperienceAGB.Tests
                 case "model": doc["modelId"] = "other-model"; break;
                 case "duplicate": profiles[3]["id"] = profiles[0]["id"].DeepClone(); break;
                 case "empty": profiles.Clear(); break;
-                case "missing": values.Remove("visits"); break;
-                case "null": values["visits"] = null; break;
-                case "numeric-string": values["visits"] = "3"; break;
-                case "boolean": values["visits"] = true; break;
-                case "object": values["visits"] = new JObject(); break;
-                case "fraction": values["visits"] = 1.5; break;
-                case "range": values["visits"] = -1; break;
-                case "category-case": values["placement"] = "Cart"; break;
-                case "category-number": values["placement"] = 1; break;
+                case "missing": values.Remove("Customer.DigitalVisits30Days"); break;
+                case "null": values["Customer.DigitalVisits30Days"] = null; break;
+                case "numeric-string": values["Customer.DigitalVisits30Days"] = "3"; break;
+                case "boolean": values["Customer.DigitalVisits30Days"] = true; break;
+                case "object": values["Customer.DigitalVisits30Days"] = new JObject(); break;
+                case "fraction": values["Customer.DigitalVisits30Days"] = 1.5; break;
+                case "range": values["Customer.DigitalVisits30Days"] = -1; break;
+                case "category-case": values["pyTreatment"] = "savings card"; break;
+                case "category-number": values["pyTreatment"] = 1; break;
                 case "unknown-feature": values["invented"] = 1; break;
                 default: Assert.Fail("Unimplemented test mutation"); break;
             }
@@ -140,7 +140,7 @@ namespace VRExperienceAGB.Tests
             Fixtures.Reject(ModelEvaluator.Evaluate(With(invalid, model.Trees), profile), "InvalidBaseline");
             Fixtures.Reject(ModelEvaluator.Evaluate(With(0, new[] { new ModelTree("tree", "leaf", invalid, new[] { new LeafNode("leaf", 0) }) }), profile), "InvalidWeight");
             Fixtures.Reject(ModelEvaluator.Evaluate(With(0, new[] { new ModelTree("tree", "leaf", 1, new[] { new LeafNode("leaf", invalid) }) }), profile), "InvalidLeafScore");
-            Fixtures.Reject(ModelEvaluator.Evaluate(model, profile.WithValue("visits", ProfileValue.FromNumber(invalid))), "InvalidNumericValue");
+            Fixtures.Reject(ModelEvaluator.Evaluate(model, profile.WithValue("Customer.DigitalVisits30Days", ProfileValue.FromNumber(invalid))), "InvalidNumericValue");
             var doc = JObject.Parse(Fixtures.Read("demo-model.json")); doc["baseScore"] = new JValue(invalid);
             Assert.That(NormalizedModelJson.ReadModel(doc.ToString()).IsSuccess, Is.False);
         }
@@ -153,8 +153,8 @@ namespace VRExperienceAGB.Tests
             var trees = model.Trees.ToList(); trees.Add(new ModelTree("invalid-final", "absent", 1, new[] { new LeafNode("leaf", 1) }));
             var invalid = new ModelDefinition(1, model.Id, model.Provenance, model.Objective, model.OutcomeLabel, model.BaseScore, model.Features, trees);
             Fixtures.Reject(ModelEvaluator.Evaluate(invalid, profile), "InvalidRoot");
-            Fixtures.Reject(ModelEvaluator.Evaluate(model, profile.WithValue("visits", ProfileValue.Missing)), "MissingRequiredValue");
-            Assert.That(previous.RawScore, Is.EqualTo(-2.2).Within(ModelEvaluator.ReferenceTolerance));
+            Fixtures.Reject(ModelEvaluator.Evaluate(model, profile.WithValue("Customer.DigitalVisits30Days", ProfileValue.Missing)), "MissingRequiredValue");
+            Assert.That(previous.RawScore, Is.EqualTo(-4.1).Within(ModelEvaluator.ReferenceTolerance));
             Assert.That(Fixtures.Require(ModelEvaluator.Evaluate(model, profile)).RawScore, Is.EqualTo(previous.RawScore));
         }
 
@@ -162,19 +162,19 @@ namespace VRExperienceAGB.Tests
         public void DiagnosticsIdentifyContextWithoutIncludingProfileValues()
         {
             const string privateValue = "PRIVATE_PROFILE_VALUE";
-            var model = Fixtures.Model(); var profile = Fixtures.Profiles(model).Profiles[0].WithValue("placement", ProfileValue.FromCategory(privateValue));
+            var model = Fixtures.Model(); var profile = Fixtures.Profiles(model).Profiles[0].WithValue("pyTreatment", ProfileValue.FromCategory(privateValue));
             var failure = ModelEvaluator.Evaluate(model, profile);
             Fixtures.Reject(failure, "InvalidCategoryValue");
-            Assert.That(failure.Diagnostics[0].ModelId, Is.EqualTo(model.Id)); Assert.That(failure.Diagnostics[0].FeatureId, Is.EqualTo("placement"));
+            Assert.That(failure.Diagnostics[0].ModelId, Is.EqualTo(model.Id)); Assert.That(failure.Diagnostics[0].FeatureId, Is.EqualTo("pyTreatment"));
             Assert.That(string.Join(" ", failure.Diagnostics.Select(d => d.Message + d.Location)), Does.Not.Contain(privateValue));
             var json = "{\"schemaVersion\":1,\"modelId\":\"" + model.Id + "\",\"profiles\":[\"" + privateValue + "\"]}";
             var importFailure = NormalizedModelJson.ReadProfiles(json, model);
             Assert.That(importFailure.IsSuccess, Is.False);
             Assert.That(string.Join(" ", importFailure.Diagnostics.Select(d => d.Message + d.Location)), Does.Not.Contain(privateValue));
             var bad = new ModelDefinition(1, model.Id, model.Provenance, model.Objective, model.OutcomeLabel, 0, model.Features,
-                new[] { new ModelTree("broken-tree", "node", 1, new ModelNode[] { new SplitNode("node", "visits", new SplitCondition((DecisionOperator)999), "a", "b"), new LeafNode("a", 0), new LeafNode("b", 0) }) });
+                new[] { new ModelTree("broken-tree", "node", 1, new ModelNode[] { new SplitNode("node", "Customer.DigitalVisits30Days", new SplitCondition((DecisionOperator)999), "a", "b"), new LeafNode("a", 0), new LeafNode("b", 0) }) });
             var diagnostic = ModelValidator.Validate(bad).Single(d => d.Code == "UnsupportedOperator");
-            Assert.That(diagnostic.TreeId, Is.EqualTo("broken-tree")); Assert.That(diagnostic.NodeId, Is.EqualTo("node")); Assert.That(diagnostic.FeatureId, Is.EqualTo("visits"));
+            Assert.That(diagnostic.TreeId, Is.EqualTo("broken-tree")); Assert.That(diagnostic.NodeId, Is.EqualTo("node")); Assert.That(diagnostic.FeatureId, Is.EqualTo("Customer.DigitalVisits30Days"));
         }
 
         [Test]

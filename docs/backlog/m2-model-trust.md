@@ -20,6 +20,8 @@ flowchart LR
 
 **Qualification boundary:** M1-09 remains a dependency for accepted device execution. The current record proves scene-independent C# behavior in the Editor. Actual presentation budgets, session invalidation UI, and Quest execution must be checked when their integration exists.
 
+**Current example revision:** fictional AGB-like data, nested/normalized equivalence, and Unity data-copy checks pass in Python. Updated C# assemblies compile in the standalone compiler. Editor test rerun is pending: the running Editor has no reachable Pipeline connection and UI access is unavailable. Earlier Editor counts below describe the prior fixture revision.
+
 **Epic acceptance:** the normalized C# evaluator matches all independent synthetic expectations and fails clearly on invalid inputs. Real-model support has a separate evidence-backed status. A real-data dependency cannot be waived by passing synthetic tests.
 
 ## M2-01 — Represent models and profiles consistently
@@ -100,7 +102,7 @@ flowchart LR
 **Acceptance criteria**
 
 1. Load the tracked model/profiles and compare every path, leaf, effective contribution, raw score, and probability with `expected-predictions.json`.
-2. Verify raw scores for new, returning, engaged, and boundary profiles are respectively -2.2, -0.7, -0.1, and -1.0 within declared tolerance.
+2. Verify raw scores for new, returning, engaged, and boundary profiles are respectively -4.1, -2.6, -2.0, and -2.9 within declared tolerance.
 3. The boundary profile with previous responses 5 and lifetime value 100 follows the false branches of both strict less-than tests.
 4. Expected values remain independent fixtures; do not regenerate expected answers from the implementation under test.
 5. Run meaningful EditMode tests in the pinned Editor and preserve the result report. Add rejection, weight, missing-value, and stability cases beyond the four happy paths.
@@ -112,7 +114,7 @@ flowchart LR
 
 **User story:** As a model owner, I want supported exports normalized with transparent limitations so that unsupported split syntax cannot be mistaken for a correct prediction.
 
-**Priority:** Must for the planned adapter; real-model usage remains conditional on M2-08. **Status:** Not started. **Owner role:** Import/model developer. **Depends on:** M2-01–M2-04 and representative export grammar evidence.
+**Priority:** Must for the planned adapter; real-model usage remains conditional on M2-08. **Status:** Fictional export/normalized mapping fixture added; production adapter not started. **Owner role:** Import/model developer. **Depends on:** M2-01–M2-04 and representative export grammar evidence.
 
 **Acceptance criteria**
 
@@ -121,7 +123,8 @@ flowchart LR
 3. Reject unknown or ambiguous grammar and missing scoring semantics. Never treat every split as numeric or infer a baseline from success rate/root scores.
 4. Validate all trees, preserve the complete ensemble, and report unsupported constructs with their locations. No renderer-driven tree cap or silent partial import is allowed.
 5. Keep the adapter separate from scene objects and from the normalized evaluator, so parsing errors can be reproduced without VR.
-6. Use synthetic representative exports in tracked tests. Approved real exports remain under ignored `data/private/` unless separately cleared for sharing.
+6. Use fictional representative exports in tracked tests. The bundled nested example and normalized counterpart now exist; general production parsing remains unimplemented. Preserve original split text, audit metadata, and deterministic tree/path addresses. Add stump, scientific-notation, escaping, ambiguous-membership and unsupported-condition cases before accepting the adapter.
+7. Approved real exports remain under ignored `data/private/` unless separately cleared for sharing.
 
 **Evidence required:** supported-format statement, independent parser/negative tests, and examples of actionable rejection diagnostics. Import success alone must not be labeled real scoring verification.
 
@@ -129,13 +132,13 @@ flowchart LR
 
 **User story:** As a business sponsor, I want the assumptions behind real predictions confirmed by the model owner so that the presentation does not overstate its accuracy.
 
-**Priority:** Conditional for real-data claims; required work item in the plan. **Status:** Blocked externally pending source evidence. **Owner role:** Model owner with model developer. **Depends on:** agreed real-model scope; can begin alongside M2-01.
+**Priority:** Conditional for real-data claims; required work item in the plan. **Status:** Scoring design defined; externally dependent on approved profiles, paths, served predictions and versioned platform evidence. See [model contract](../model-contract.md). **Owner role:** Model owner with model developer. **Depends on:** agreed real-model scope; can begin alongside M2-01.
 
 **Acceptance criteria**
 
 1. Obtain an approved model export and representative profiles with trusted full predictions and, where available, visited leaves/paths.
 2. Cover strict boundaries, membership, missing values, and ordinary profiles that distinguish competing interpretations of the source semantics.
-3. Confirm whether baseline is explicit or encoded in a tree, whether leaf values already include learning rate, and whether additional weighting applies.
+3. Verify the designed zero separate baseline, already-scaled leaf scores, unit normalized weights and sigmoid against trusted source predictions; record platform/version evidence. Structural checks alone cannot certify scoring.
 4. Confirm feature preparation/derived-feature rules, categorical escaping, branch direction, output link, calibration, tree order, and whether all trees contribute.
 5. Record source/version/provenance and unresolved questions. Missing path evidence or incomplete documentation remains a visible limitation, not an inferred answer.
 6. Store sensitive inputs and detailed predictions locally under `data/private/`; keep only non-sensitive verification summaries in tracked documents.
@@ -172,3 +175,9 @@ flowchart LR
 | Trusted predictions and paths | M2-07 |
 | Confirm baseline/scaling/missing/calibration | M2-07 |
 | Resolve discrepancies before real prediction claims | M2-08 |
+
+## Audit and configuration follow-up
+
+Keep audit analysis independent of the scoring evaluator. Before adding audit overlays, implement complete-file integrity checks and a reproducible metric manifest; inventory unsupported conditions instead of dropping them. Test node-score averaging and count non-conservation without treating either as an individual prediction. Preserve the distinction between gain and SHAP influence, observed positives and heuristic expected positives, and outer score bounds and reachable profiles.
+
+Obtain configured limits, outcome definitions, symbolic routing and upstream-score provenance through M2-07. Snapshot comparisons require compatible identities and evidence before claiming pruning or drift; wall-clock age, exposure bias, leakage, fairness and predictive quality cannot be certified from structure alone. See the solution design for formulas and interpretation limits.

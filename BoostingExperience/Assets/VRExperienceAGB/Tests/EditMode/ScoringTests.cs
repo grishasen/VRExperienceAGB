@@ -25,16 +25,16 @@ namespace VRExperienceAGB.Tests
         }
 
         [TestCase(99.999, "t1-active")] [TestCase(100, "t1-engaged")] [TestCase(100.001, "t1-engaged")]
-        public void LifetimeThresholdIsStrict(double value, string leaf)
+        public void RelationshipThresholdIsStrict(double value, string leaf)
         {
-            var model = Fixtures.Model(); var profile = Fixtures.Profiles(model).Profiles[3].WithValue("lifetimeValue", ProfileValue.FromNumber(value));
+            var model = Fixtures.Model(); var profile = Fixtures.Profiles(model).Profiles[3].WithValue("Customer.RelationshipMonths", ProfileValue.FromNumber(value));
             Assert.That(Fixtures.Require(ModelEvaluator.Evaluate(model, profile)).Trees[0].LeafId, Is.EqualTo(leaf));
         }
 
-        [TestCase("cart", true)] [TestCase("checkout", true)] [TestCase("home", false)] [TestCase("product", false)]
+        [TestCase("Savings Card", true)] [TestCase("Service Banner", true)] [TestCase("Welcome Banner", false)] [TestCase("Discovery Card", false)]
         public void CategoriesUseExactDomainMembership(string value, bool expected)
         {
-            var model = Fixtures.Model(); var profile = Fixtures.Profiles(model).Profiles[0].WithValue("placement", ProfileValue.FromCategory(value));
+            var model = Fixtures.Model(); var profile = Fixtures.Profiles(model).Profiles[0].WithValue("pyTreatment", ProfileValue.FromCategory(value));
             Assert.That(Fixtures.Require(ModelEvaluator.Evaluate(model, profile)).Trees[1].Decisions[0].Matched, Is.EqualTo(expected));
         }
 

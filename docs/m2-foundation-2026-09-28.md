@@ -1,5 +1,6 @@
 # M2 synthetic model foundation — implementation and verification
 
+Current fixture revision: the AGB-like example replaces the earlier teaching data. Python checks pass; the previously recorded Unity results predate this replacement and do not qualify it until rerun.
 Date: 2026-09-28. Stories: **M2-01 through M2-05 implemented and verified in Unity EditMode**. The synthetic logic gate passes in the pinned Editor. M1 device qualification remains open; this record does not accept M1 or the complete M2 real-model track.
 
 ## Delivered behavior
@@ -59,16 +60,11 @@ ShowSyntheticExplanation(evaluation.Value);
 - `python3 scripts/verify-examples.py` passed as an independent supplementary fixture check. Its console warning about unverified Unity is the verifier's scope statement; it does not inspect this separate C# test run.
 - All ten new source/assembly-definition files have Unity-generated `.meta` files.
 
-| Profile | Raw score | Synthetic probability |
-| --- | ---: | ---: |
-| New visitor | -2.2 | 0.09975048911968513 |
-| Returning visitor | -0.7 | 0.3318122278318339 |
-| Engaged visitor | -0.1 | 0.47502081252106 |
-| Exact threshold values | -1.0 | 0.2689414213699951 |
+Current example paths and outputs are maintained in `data/examples/expected-predictions.json`; historical test reports below describe the earlier fixture revision.
 
 Absolute numeric comparison tolerance is `1e-12`, independent of presentation rounding.
 
-The full per-test report is local and ignored: `artifacts/m2-foundation-2026-09-28/editmode-results.json`. SHA-256: `762cf94825ed02489554358424961fbdb4024d9383e7c7e58b421f47f5c45be4`. Source/package/fixture hashes are saved alongside it in `source-hashes.json`. The tracked test suite and original expected fixtures provide reproducible evidence after checkout.
+The full per-test report is local and ignored: `artifacts/m2-foundation-2026-09-28/editmode-results.json`. SHA-256: `762cf94825ed02489554358424961fbdb4024d9383e7c7e58b421f47f5c45be4`. Source/package/fixture hashes are saved alongside it in `source-hashes.json`. The saved hashes identify that historical run. Rerun the tracked test suite against the current fixture revision.
 
 ## Reproduce
 

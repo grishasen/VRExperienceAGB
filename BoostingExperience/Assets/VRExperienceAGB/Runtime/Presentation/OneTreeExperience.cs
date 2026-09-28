@@ -61,6 +61,17 @@ namespace VRExperienceAGB.Presentation
                 var node = model.Trees[0].Nodes.Single(n => n.Id == view.nodeId);
                 view.title.text = node is SplitNode split ? Condition(split, true) : "LEAF  " + Number(((LeafNode)node).Score * model.Trees[0].Weight);
             }
+            // The fixed teaching layout serializes branch canvases in split order, true then false.
+            // Refresh their copy with the fixture, just as node titles are refreshed above.
+            var branchLabels = presentationRoot.GetComponentsInChildren<TMP_Text>(true)
+                .Where(label => label.name == "Meaning" && label.transform.parent.name == "BranchMeaning").ToArray();
+            var splits = model.Trees[0].Nodes.OfType<SplitNode>().ToArray();
+            if (branchLabels.Length != splits.Length * 2) return Fail("The scene's branch labels do not match the model.");
+            for (var i = 0; i < splits.Length; i++)
+            {
+                branchLabels[i * 2].text = "TRUE\n" + Condition(splits[i], true);
+                branchLabels[i * 2 + 1].text = "FALSE\n" + Condition(splits[i], false);
+            }
             return Replace(TreeSession.CreateManual(model, model.Trees[0].Id), true);
         }
 

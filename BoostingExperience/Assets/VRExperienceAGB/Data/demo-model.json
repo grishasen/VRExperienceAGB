@@ -1,44 +1,159 @@
 {
   "schemaVersion": 1,
-  "modelId": "synthetic-response-demo-v1",
-  "provenance": "Synthetic development fixture; not trained or exported from a business system.",
+  "modelId": "fictional-web-response-agb-v2",
+  "provenance": "Synthetic AGB-like teaching model. All predictors, treatments, scores and evidence counts are invented; not trained and not a production export.",
   "objective": "binary_logistic",
-  "outcomeLabel": "Response probability",
-  "baseScore": -1.5,
+  "outcomeLabel": "Click probability (fictional example)",
+  "baseScore": 0.0,
   "features": {
-    "previousResponses": { "type": "number", "integer": true, "minimum": 0, "allowMissing": false },
-    "visits": { "type": "number", "integer": true, "minimum": 0, "allowMissing": false },
-    "lifetimeValue": { "type": "number", "minimum": 0, "allowMissing": false },
-    "placement": { "type": "category", "values": ["home", "product", "cart", "checkout"], "allowMissing": false },
-    "loyaltyTier": { "type": "category", "values": ["silver", "gold"], "allowMissing": true }
+    "IH.Web.Inbound.Clicked.pyHistoricalOutcomeCount": {
+      "type": "number",
+      "integer": true,
+      "minimum": 0,
+      "allowMissing": false,
+      "displayName": "Previous clicks"
+    },
+    "Customer.DigitalVisits30Days": {
+      "type": "number",
+      "integer": true,
+      "minimum": 0,
+      "allowMissing": false,
+      "displayName": "Visits in 30 days"
+    },
+    "Customer.RelationshipMonths": {
+      "type": "number",
+      "minimum": 0,
+      "allowMissing": false,
+      "displayName": "Relationship months"
+    },
+    "pyTreatment": {
+      "type": "category",
+      "values": [
+        "Welcome Banner",
+        "Discovery Card",
+        "Savings Card",
+        "Service Banner"
+      ],
+      "allowMissing": false,
+      "displayName": "Treatment"
+    },
+    "Customer.LoyaltyTier": {
+      "type": "category",
+      "values": [
+        "silver",
+        "gold"
+      ],
+      "allowMissing": true,
+      "displayName": "Loyalty tier"
+    }
   },
   "trees": [
     {
-      "id": "tree-01", "rootId": "t1-root", "weight": 1.0,
+      "id": "tree-01",
+      "rootId": "t1-root",
+      "weight": 1.0,
       "nodes": [
-        { "id": "t1-root", "kind": "split", "feature": "previousResponses", "operator": "lt", "threshold": 5, "trueChild": "t1-visits", "falseChild": "t1-value" },
-        { "id": "t1-visits", "kind": "split", "feature": "visits", "operator": "lt", "threshold": 3, "trueChild": "t1-new", "falseChild": "t1-returning" },
-        { "id": "t1-value", "kind": "split", "feature": "lifetimeValue", "operator": "lt", "threshold": 100, "trueChild": "t1-active", "falseChild": "t1-engaged" },
-        { "id": "t1-new", "kind": "leaf", "score": -0.4 },
-        { "id": "t1-returning", "kind": "leaf", "score": 0.2 },
-        { "id": "t1-active", "kind": "leaf", "score": 0.3 },
-        { "id": "t1-engaged", "kind": "leaf", "score": 0.8 }
+        {
+          "id": "t1-root",
+          "kind": "split",
+          "feature": "IH.Web.Inbound.Clicked.pyHistoricalOutcomeCount",
+          "operator": "lt",
+          "threshold": 5,
+          "trueChild": "t1-visits",
+          "falseChild": "t1-value"
+        },
+        {
+          "id": "t1-visits",
+          "kind": "split",
+          "feature": "Customer.DigitalVisits30Days",
+          "operator": "lt",
+          "threshold": 3,
+          "trueChild": "t1-new",
+          "falseChild": "t1-returning"
+        },
+        {
+          "id": "t1-value",
+          "kind": "split",
+          "feature": "Customer.RelationshipMonths",
+          "operator": "lt",
+          "threshold": 100,
+          "trueChild": "t1-active",
+          "falseChild": "t1-engaged"
+        },
+        {
+          "id": "t1-new",
+          "kind": "leaf",
+          "score": -3.8
+        },
+        {
+          "id": "t1-returning",
+          "kind": "leaf",
+          "score": -3.2
+        },
+        {
+          "id": "t1-active",
+          "kind": "leaf",
+          "score": -2.9
+        },
+        {
+          "id": "t1-engaged",
+          "kind": "leaf",
+          "score": -2.6
+        }
       ]
     },
     {
-      "id": "tree-02", "rootId": "t2-root", "weight": 1.0,
+      "id": "tree-02",
+      "rootId": "t2-root",
+      "weight": 1.0,
       "nodes": [
-        { "id": "t2-root", "kind": "split", "feature": "placement", "operator": "in", "values": ["cart", "checkout"], "trueChild": "t2-checkout", "falseChild": "t2-browsing" },
-        { "id": "t2-checkout", "kind": "leaf", "score": 0.5 },
-        { "id": "t2-browsing", "kind": "leaf", "score": -0.1 }
+        {
+          "id": "t2-root",
+          "kind": "split",
+          "feature": "pyTreatment",
+          "operator": "in",
+          "values": [
+            "Savings Card",
+            "Service Banner"
+          ],
+          "trueChild": "t2-checkout",
+          "falseChild": "t2-browsing"
+        },
+        {
+          "id": "t2-checkout",
+          "kind": "leaf",
+          "score": 0.5
+        },
+        {
+          "id": "t2-browsing",
+          "kind": "leaf",
+          "score": -0.1
+        }
       ]
     },
     {
-      "id": "tree-03", "rootId": "t3-root", "weight": 1.0,
+      "id": "tree-03",
+      "rootId": "t3-root",
+      "weight": 1.0,
       "nodes": [
-        { "id": "t3-root", "kind": "split", "feature": "loyaltyTier", "operator": "is_missing", "trueChild": "t3-missing", "falseChild": "t3-present" },
-        { "id": "t3-missing", "kind": "leaf", "score": -0.2 },
-        { "id": "t3-present", "kind": "leaf", "score": 0.1 }
+        {
+          "id": "t3-root",
+          "kind": "split",
+          "feature": "Customer.LoyaltyTier",
+          "operator": "is_missing",
+          "trueChild": "t3-missing",
+          "falseChild": "t3-present"
+        },
+        {
+          "id": "t3-missing",
+          "kind": "leaf",
+          "score": -0.2
+        },
+        {
+          "id": "t3-present",
+          "kind": "leaf",
+          "score": 0.1
+        }
       ]
     }
   ]

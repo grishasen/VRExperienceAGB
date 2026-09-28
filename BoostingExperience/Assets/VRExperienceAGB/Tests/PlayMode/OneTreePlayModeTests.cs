@@ -36,15 +36,20 @@ namespace VRExperienceAGB.Tests
         [UnityTest]
         public IEnumerator SceneMapsAllSevenNodesAndMouseOrControllerEventsReachSession()
         {
+            var branchText = view.presentationRoot.GetComponentsInChildren<TMPro.TMP_Text>(true)
+                .Where(t => t.name == "Meaning" && t.transform.parent.name == "BranchMeaning").Select(t => t.text).ToArray();
+            Assert.That(branchText, Is.EqualTo(new[] { "TRUE\nPrevious clicks < 5", "FALSE\nPrevious clicks >= 5",
+                "TRUE\nVisits in 30 days < 3", "FALSE\nVisits in 30 days >= 3",
+                "TRUE\nRelationship months < 100", "FALSE\nRelationship months >= 100" }));
             Assert.That(view.nodeViews.Length,Is.EqualTo(7)); Assert.That(view.nodeViews.Select(v=>v.nodeId).Distinct().Count(),Is.EqualTo(7));
             Assert.That(Object.FindObjectsByType<EventSystem>().Length,Is.EqualTo(1));
             Assert.That(view.controls.All(c=>c.GetComponent<UnityEngine.UI.Image>().raycastTarget),Is.True);
             Click(TreeAction.Manual); Click(TreeAction.TrueBranch); Arrive(); Click(TreeAction.TrueBranch); Arrive();
-            Assert.That(view.Session.State.NodeId,Is.EqualTo("t1-new")); Assert.That(view.Session.State.RouteTotal,Is.EqualTo(-1.9));
+            Assert.That(view.Session.State.NodeId,Is.EqualTo("t1-new")); Assert.That(view.Session.State.RouteTotal,Is.EqualTo(-3.8));
             Assert.That(view.score.text,Does.Contain("Manual route score")); Assert.That(view.score.text,Does.Contain("Not the full prediction"));
             Click(TreeAction.Back); Assert.That(view.Session.State.Contribution,Is.Zero);
             Click(TreeAction.FalseBranch); Arrive(); Assert.That(view.Session.State.NodeId,Is.EqualTo("t1-returning"));
-            Assert.That(view.Session.State.RouteTotal,Is.EqualTo(-1.3));
+            Assert.That(view.Session.State.RouteTotal,Is.EqualTo(-3.2));
             Assert.That(Vector3.Distance(view.drop.position,view.nodeViews.Single(n=>n.nodeId=="t1-returning").dropAnchor.position),Is.LessThan(.001f));
             yield return null;
         }

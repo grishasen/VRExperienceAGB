@@ -20,21 +20,21 @@ namespace VRExperienceAGB.Tests
             var s=session.State; Assert.That(session.StepProfile(s.Revision,s.NodeId).Accepted,Is.True);
             Assert.That(session.CompleteMove(session.State.PendingDecision.EventId).Accepted,Is.True);
         }
-        [TestCase(true,true,"t1-new",-.4)] [TestCase(true,false,"t1-returning",.2)]
-        [TestCase(false,true,"t1-active",.3)] [TestCase(false,false,"t1-engaged",.8)]
+        [TestCase(true,true,"t1-new",-3.8)] [TestCase(true,false,"t1-returning",-3.2)]
+        [TestCase(false,true,"t1-active",-2.9)] [TestCase(false,false,"t1-engaged",-2.6)]
         public void ManualRoutesCommitExactlyOneLeaf(bool first,bool second,string leaf,double contribution)
         {
             var session=Manual(); Choose(session,first);
             Assert.That(session.State.Contribution,Is.Zero);
             Choose(session,second);
             Assert.That(session.State.NodeId,Is.EqualTo(leaf)); Assert.That(session.State.Contribution,Is.EqualTo(contribution));
-            Assert.That(session.State.RouteTotal,Is.EqualTo(-1.5+contribution)); Assert.That(session.State.ScoreMeaning,Is.EqualTo("Manual route score"));
+            Assert.That(session.State.RouteTotal,Is.EqualTo(contribution)); Assert.That(session.State.ScoreMeaning,Is.EqualTo("Manual route score"));
             var atLeaf=session.State;
             Assert.That(session.ChooseBranch(atLeaf.Revision,atLeaf.NodeId,true).Accepted,Is.False);
             Assert.That(session.State.RouteTotal,Is.EqualTo(atLeaf.RouteTotal));
             Assert.That(atLeaf.Decisions.Select(d=>d.EventId).Distinct().Count(),Is.EqualTo(2));
         }
-        [TestCase(0,"t1-new",-.4)] [TestCase(1,"t1-returning",.2)] [TestCase(2,"t1-engaged",.8)] [TestCase(3,"t1-engaged",.8)]
+        [TestCase(0,"t1-new",-3.8)] [TestCase(1,"t1-returning",-3.2)] [TestCase(2,"t1-engaged",-2.6)] [TestCase(3,"t1-engaged",-2.6)]
         public void ProfilesReplayExactPathsWithoutPartialProbability(int profileIndex,string leaf,double contribution)
         {
             var model=Fixtures.Model(); var profile=Fixtures.Profiles(model).Profiles[profileIndex];
@@ -76,7 +76,7 @@ namespace VRExperienceAGB.Tests
             s=session.State; session.ChooseBranch(s.Revision,s.NodeId,false); var second=session.State.PendingDecision.EventId;
             Assert.That(second,Is.Not.EqualTo(token)); session.Restart(); Assert.That(session.CompleteMove(second).Accepted,Is.False);
             Choose(session,true); Choose(session,true); session.Back(); Choose(session,false);
-            Assert.That(session.State.NodeId,Is.EqualTo("t1-returning")); Assert.That(session.State.RouteTotal,Is.EqualTo(-1.3));
+            Assert.That(session.State.NodeId,Is.EqualTo("t1-returning")); Assert.That(session.State.RouteTotal,Is.EqualTo(-3.2));
         }
         [Test]
         public void PauseBlocksMovementAndDecisionsWithoutChangingAcceptedState()
@@ -105,7 +105,7 @@ namespace VRExperienceAGB.Tests
             Choose(session,true); Choose(session,false); session.SetPaused(true); session.ReturnToOverview();
             for(var i=0;i<3;i++)
             {
-                session.Restart(); Assert.That(session.State.RouteTotal,Is.EqualTo(-1.5)); Assert.That(session.State.Path.Count,Is.EqualTo(1));
+                session.Restart(); Assert.That(session.State.RouteTotal,Is.EqualTo(0)); Assert.That(session.State.Path.Count,Is.EqualTo(1));
                 Assert.That(session.State.PendingDecision,Is.Null); Assert.That(session.State.Paused||session.State.Playing||session.State.Overview,Is.False);
             }
         }
@@ -116,7 +116,7 @@ namespace VRExperienceAGB.Tests
             var session=Fixtures.Require(TreeSession.CreatePrepared(model,model.Trees[0].Id,profile));
             session.SetPlaying(true); Choose(session,branch);
             Assert.That(session.State.Mode,Is.EqualTo(ExperienceMode.Manual)); Assert.That(session.State.Playing,Is.False);
-            Assert.That(session.CurrentProfileDecision,Is.Null); Assert.That(profile.GetValue("previousResponses").Number,Is.Zero);
+            Assert.That(session.CurrentProfileDecision,Is.Null); Assert.That(profile.GetValue("IH.Web.Inbound.Clicked.pyHistoricalOutcomeCount").Number,Is.Zero);
             Assert.That(session.SetPlaying(true).Accepted,Is.False);
         }
         [Test]
@@ -145,7 +145,7 @@ namespace VRExperienceAGB.Tests
             var m=Fixtures.Model();
             Fixtures.Reject(TreeSession.CreateManual(null,"x"),"ModelRequired"); Fixtures.Reject(TreeSession.CreateManual(m,"absent"),"UnknownTree");
             Fixtures.Reject(TreeSession.CreatePrepared(m,m.Trees[0].Id,null),"ProfileRequired");
-            var p=Fixtures.Profiles(m).Profiles[0].WithValue("visits",ProfileValue.Missing);
+            var p=Fixtures.Profiles(m).Profiles[0].WithValue("Customer.DigitalVisits30Days",ProfileValue.Missing);
             Fixtures.Reject(TreeSession.CreatePrepared(m,m.Trees[0].Id,p),"MissingRequiredValue");
         }
     }

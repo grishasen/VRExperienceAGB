@@ -65,7 +65,7 @@ Trees stand along a trail in boosting order. The user can jump to an iteration, 
 
 Use total gain as a possible size encoding, with a legend and a bounded visual scale. Profile-specific contribution is shown separately by a signed marker or halo. A tree has no universal positive or negative contribution independent of the profile.
 
-The actual values determine the landscape. Later trees need not be smaller than earlier trees. A loss or validation learning curve requires per-iteration training history, which is not present in the reviewed model exports. Without it, call the view “ensemble progression”, not a reconstruction of learning quality.
+The actual values determine the landscape. Later trees need not be smaller than earlier trees. A loss or validation learning curve requires per-iteration training history, which is not part of the scoring-export contract. Without it, call the view “ensemble progression”, not a reconstruction of learning quality.
 
 **Acceptance:** iteration order remains stable, every displayed metric names its meaning, and a user can distinguish model-level gain from a profile's contribution.
 
