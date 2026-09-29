@@ -1,0 +1,6 @@
+{
+  "name": "VRExperienceAGB.Editor",
+  "references": ["VRExperienceAGB.Domain", "VRExperienceAGB.Import", "VRExperienceAGB.Presentation", "Unity.TextMeshPro", "Unity.ugui", "Oculus.Interaction"],
+  "includePlatforms": ["Editor"],
+  "autoReferenced": true
+}

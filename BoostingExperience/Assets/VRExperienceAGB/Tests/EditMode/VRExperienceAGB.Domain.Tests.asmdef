@@ -1,0 +1,21 @@
+{
+  "name": "VRExperienceAGB.Domain.Tests",
+  "rootNamespace": "VRExperienceAGB.Tests",
+  "references": [
+    "VRExperienceAGB.Domain",
+    "VRExperienceAGB.Import",
+    "VRExperienceAGB.Application"
+  ],
+  "includePlatforms": [
+    "Editor"
+  ],
+  "overrideReferences": true,
+  "precompiledReferences": [
+    "nunit.framework.dll",
+    "Newtonsoft.Json.dll"
+  ],
+  "optionalUnityReferences": [
+    "TestAssemblies"
+  ],
+  "autoReferenced": false
+}

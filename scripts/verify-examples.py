@@ -147,6 +147,32 @@ def main():
     for document in (profile_file, expected_file):
         require(document["schemaVersion"] == 1, "Fixture schema mismatch")
         require(document["modelId"] == model["modelId"], "Fixture model mismatch")
+    export = read("demo-agb-export.json")
+    require(export["type"] == "AdaptiveBoostScoringModel" and export["algorithm"] == "GRADIENT_BOOST", "Export shape mismatch")
+    require(model["baseScore"] == 0 and all(t["weight"] == 1 for t in model["trees"]), "AGB example scaling mismatch")
+    require(len(export["model"]["booster"]["trees"]) == len(model["trees"]), "Export tree count mismatch")
+    for tree, root in zip(model["trees"], export["model"]["booster"]["trees"]):
+        nodes = {n["id"]: n for n in tree["nodes"]}
+        def compare(node_id, nested):
+            node = nodes[node_id]
+            if node["kind"] == "leaf":
+                require("split" not in nested and nested["score"] == node["score"] and nested["gain"] == 0, "Export leaf mismatch")
+                return
+            feature, operator = node["feature"], node["operator"]
+            if operator == "lt":
+                condition = feature + " < " + str(float(node["threshold"]))
+            elif operator == "in":
+                condition = feature + " in { " + ", ".join(node["values"]) + " }"
+            else:
+                condition = feature + " is Missing"
+            require(nested["split"] == condition, "Export condition mismatch")
+            compare(node["trueChild"], nested["left"])
+            compare(node["falseChild"], nested["right"])
+        compare(tree["rootId"], root)
+    unity_data = directory.parents[1] / "BoostingExperience/Assets/VRExperienceAGB/Data"
+    for name, expected in (("demo-model.json", model), ("demo-profiles.json", profile_file)):
+        require(json.loads((unity_data / name).read_text()) == expected, "Unity data copy differs: " + name)
+    print("PASS nested/normalized mapping and Unity data-copy equality")
     profiles = {p["id"]: p["values"] for p in profile_file["profiles"]}
     require(len(profiles) == len(profile_file["profiles"]), "Duplicate profile ID")
     cases = expected_file["cases"]
@@ -171,18 +197,18 @@ def main():
     nonfinite["trees"][0]["nodes"][3]["score"] = float("nan")
     expect_rejection("non-finite score", lambda: validate_model(nonfinite))
     missing = dict(profiles["new-visitor"])
-    del missing["visits"]
+    del missing["Customer.DigitalVisits30Days"]
     expect_rejection("missing numeric input", lambda: evaluate(model, missing))
-    unknown = dict(profiles["new-visitor"], placement="unknown")
+    unknown = dict(profiles["new-visitor"], **{"pyTreatment": "unknown"})
     expect_rejection("unknown category", lambda: evaluate(model, unknown))
-    boolean = dict(profiles["new-visitor"], previousResponses=True)
+    boolean = dict(profiles["new-visitor"], **{"IH.Web.Inbound.Clicked.pyHistoricalOutcomeCount": True})
     expect_rejection("boolean as numeric input", lambda: evaluate(model, boolean))
     absent = dict(profiles["new-visitor"])
-    del absent["loyaltyTier"]
+    del absent["Customer.LoyaltyTier"]
     require(evaluate(model, absent) == evaluate(model, profiles["new-visitor"]), "Absent/null missing mismatch")
     weighted = copy.deepcopy(model)
     weighted["trees"][1]["weight"] = 0.5
-    require(math.isclose(evaluate(weighted, profiles["returning-visitor"])["rawScore"], -0.95, abs_tol=1e-12),
+    require(math.isclose(evaluate(weighted, profiles["returning-visitor"])["rawScore"], -2.85, abs_tol=1e-12),
             "Weighted contribution mismatch")
     require(sigmoid(-1000) == 0 and sigmoid(1000) == 1, "Unstable sigmoid")
     print("PASS rejection, missing-value, weight, and numeric-stability checks")

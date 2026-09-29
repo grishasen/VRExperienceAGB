@@ -54,3 +54,7 @@ __pycache__/
 *.py[cod]
 .venv/
 .pytest_cache/
+
+# Unity automatic recovery scenes are local backups, not authored content.
+BoostingExperience/Assets/_Recovery/
+BoostingExperience/Assets/_Recovery.meta

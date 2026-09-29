@@ -36,7 +36,8 @@ The historical inventory above describes repository creation. The [refreshed liv
 | Unity OpenXR: Meta | 2.6.1 |
 | Meta XR Core / Interaction / OVR integration | 207.0.0 / 207.0.0 / 207.0.0 registered |
 | Validation | No issues returned by Android OpenXR query; no outstanding Required Meta setup tasks; two conditional Platform-service recommendations |
-| Test Framework / Visual Studio Editor | 1.8.0 direct dependency / 2.0.28; zero discoverable Unity tests |
+| Test Framework / Visual Studio Editor | 1.8.0 direct dependency / 2.0.28; 102 EditMode and 5 M3 PlayMode tests pass on 2026-09-28 |
+| Newtonsoft JSON | 3.2.2, existing installed version now pinned as direct dependency; normalized-reader tests pass |
 | Android tools | Installed and resolved to this Editor: NDK 27.2.12479018, JDK 17.0.18+8; SDK platforms include 34/36/37.0 and build tools 36.0.0 |
 | Android player | IL2CPP, ARM64, min API 32, target 34, Vulkan, `com.vrexperienceagb.prototype`; compile API 34 confirmed in the successful APK |
 | Active target / scene | Android Development Build, script debugging off; saved `SmokeTest.unity` with rig/floor/label/ray-grabbable cube included |
@@ -49,7 +50,7 @@ The historical inventory above describes repository creation. The [refreshed liv
 | D10 checkpoint | Source `76defad516a5e15d0a41d12727df1b72e3580001`; changed development APK built on 2026-09-28, not installed/run. [Full record](configuration-checkpoint-2026-09-28.md) |
 | Remaining cautions | D06 duplicate settings and advisory warnings unchanged; other checks deferred to main development by the user |
 
-Input handling was corrected by the user; the follow-up built and installed a development APK. Dependencies are unchanged. D07 subsequently narrowed the smoke-scene capabilities, device declaration and merged permissions; this does not remove the product's planned M3–M5 navigation. On 2026-09-28 the user authorized consolidating repository ownership and retaining the installed Editor baseline; see [recovery record](repository-consolidation.md). Exact installed versions are available in `BoostingExperience/ProjectSettings/ProjectVersion.txt` and `BoostingExperience/Packages/packages-lock.json`; installation and validation are not device compatibility or performance acceptance.
+Input handling was corrected by the user; the follow-up built and installed a development APK. The initial build dependencies were unchanged. The M2 implementation subsequently made the already-installed Newtonsoft JSON 3.2.2 a direct dependency; see the [M2 record](m2-foundation-2026-09-28.md). D07 subsequently narrowed the smoke-scene capabilities, device declaration and merged permissions; this does not remove the product's planned M3–M5 navigation. On 2026-09-28 the user authorized consolidating repository ownership and retaining the installed Editor baseline; see [recovery record](repository-consolidation.md). Exact installed versions are available in `BoostingExperience/ProjectSettings/ProjectVersion.txt` and `BoostingExperience/Packages/packages-lock.json`; installation and validation are not device compatibility or performance acceptance.
 
 ## Selected baseline and qualification
 
@@ -61,7 +62,7 @@ Input handling was corrected by the user; the follow-up built and installed a de
 | XR Plug-in Management / Input System | Compatible Unity Registry versions | Pending M1 |
 | Meta XR Core SDK | Stable supported release | Pending M1 |
 | Meta XR Interaction SDK | Compatible with Core and its declared dependencies | Pending M1 |
-| Test Framework | Compatible Unity Registry version | Pending M1 |
+| Test Framework | Compatible Unity Registry version | 1.8.0: 102 EditMode and 5 PlayMode tests passed; no device test claim |
 | Visual Studio Editor | At least 2.0.20 for the documented VS Code integration | Pending M1 |
 | Android SDK/NDK/JDK | Bundled with the selected Editor | Pending M1 |
 | Android min / target API | Initial recommendation 32 / 34; recheck Meta requirements before release | Pending M1 |

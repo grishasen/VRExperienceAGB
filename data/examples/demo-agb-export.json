@@ -1,0 +1,89 @@
+{
+  "type": "AdaptiveBoostScoringModel",
+  "modelVersion": "00000000-0000-4000-8000-000000000002",
+  "algorithm": "GRADIENT_BOOST",
+  "factoryUpdateTime": "2026-01-01T00:00:00Z",
+  "trainingStats": {
+    "positiveCount": 4000,
+    "negativeCount": 96000,
+    "totalCount": 100000
+  },
+  "successRate": 0.04,
+  "auc": 0.75,
+  "model": {
+    "booster": {
+      "trees": [
+        {
+          "score": -3.418518518518519,
+          "gain": 180.0,
+          "sampleCount": 100000,
+          "split": "IH.Web.Inbound.Clicked.pyHistoricalOutcomeCount < 5.0",
+          "left": {
+            "score": -3.6,
+            "gain": 65.0,
+            "sampleCount": 70000,
+            "split": "Customer.DigitalVisits30Days < 3.0",
+            "left": {
+              "score": -3.8,
+              "gain": 0.0,
+              "sampleCount": 40000
+            },
+            "right": {
+              "score": -3.2,
+              "gain": 0.0,
+              "sampleCount": 20000
+            }
+          },
+          "right": {
+            "score": -2.783333333333333,
+            "gain": 42.0,
+            "sampleCount": 20000,
+            "split": "Customer.RelationshipMonths < 100.0",
+            "left": {
+              "score": -2.9,
+              "gain": 0.0,
+              "sampleCount": 11000
+            },
+            "right": {
+              "score": -2.6,
+              "gain": 0.0,
+              "sampleCount": 7000
+            }
+          }
+        },
+        {
+          "score": 0.0,
+          "gain": 25.0,
+          "sampleCount": 80000,
+          "split": "pyTreatment in { Savings Card, Service Banner }",
+          "left": {
+            "score": 0.5,
+            "gain": 0.0,
+            "sampleCount": 12000
+          },
+          "right": {
+            "score": -0.1,
+            "gain": 0.0,
+            "sampleCount": 60000
+          }
+        },
+        {
+          "score": 0.045454545454545456,
+          "gain": 12.0,
+          "sampleCount": 60000,
+          "split": "Customer.LoyaltyTier is Missing",
+          "left": {
+            "score": -0.2,
+            "gain": 0.0,
+            "sampleCount": 10000
+          },
+          "right": {
+            "score": 0.1,
+            "gain": 0.0,
+            "sampleCount": 45000
+          }
+        }
+      ]
+    }
+  }
+}

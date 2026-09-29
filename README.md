@@ -1,20 +1,23 @@
 # VRExperienceAGB
 
+Current development: deep-tree focus, ensemble navigation, profile editing and a basic forest overview are implemented. See the [September 29 development record](docs/development-progress-2026-09-29.md).
 An immersive explanation of adaptive gradient boosted decision trees for Meta Quest 3.
 
 Explore a miniature forest, enter a tree, choose branches yourself, or follow a prepared customer profile. Watch each selected leaf contribute to the ensemble score in a twilight forest with luminous paths inspired by the existing AGB Grid Drive prototype.
 
-**Status: Unity setup in progress.** A project now exists at `BoostingExperience/` and opens in Unity 6000.6.3f1. The refreshed [setup review](docs/setup-review-2026-09-27.md) confirms Android tools, active URP, Meta SDKs, Android OpenXR, and a saved smoke-test scene. A development APK was built and installed on Quest 3 on 2026-09-27; launch, tracking, interaction, and standalone relaunch remain unverified. The user accepted the existing Editor baseline and project location on 2026-09-28. D07 scope cleanup and the [D10 configuration checkpoint](docs/configuration-checkpoint-2026-09-28.md) are recorded. Remaining checks are deferred to main development at the user's request. The specification, synthetic fixture, and local checks remain available.
+**Status: implementation underway.** The synthetic model/session foundation and scene now have **111 passing EditMode tests and twelve passing PlayMode tests** in Unity 6000.6.3f1. The prior moonlit build installed and launched on Quest 3, and the user reported a successful first interaction test. The combined September 29 M3 candidate is ready for the [headset checklist](docs/m3-device-check-2026-09-29.md); device acceptance and actual performance measurements remain pending. Real AGB verification remains pending. Open `BoostingExperience/Assets/VRExperienceAGB/Scenes/OneTreeLearning.unity` and press Play for the mouse preview. Both manual exploration and deterministic prepared-profile playback remain available.
 
 All project documentation, code, comments, identifiers, commit messages, and initial application copy are in English.
 
 ## Start here
 
 1. Read [Experience scenarios](docs/experience-scenarios.md) for the product behavior.
-2. Follow [Mac setup](docs/macos-setup.md) to install the tools and create the Unity project.
+2. Follow [Mac setup](docs/macos-setup.md) or [Windows setup](docs/windows-setup.md) to install the tools and open the existing Unity project.
 3. Work through [Development plan](docs/development-plan.md), starting with the headset smoke test.
 4. Use [Testing](docs/testing.md) to decide whether a milestone is complete.
 5. Use the [M1–M6 delivery backlog](docs/backlog.md) for six epics, detailed user stories, acceptance criteria, dependencies, and required evidence.
+
+The [model contract and solution design](docs/model-contract.md) explains AGB structure, scoring semantics, the fictional example, and the production verification backlog.
 
 ## Local checks available now
 
@@ -38,6 +41,7 @@ The environment checker uses `BoostingExperience/` and its pinned Editor version
 | `docs/backlog.md` and `docs/backlog/` | Six delivery epics and 48 detailed user stories with visual flows |
 | `docs/setup-review-2026-09-27.md` | Observed project setup, discrepancies, missing items, and verification limits |
 | `docs/macos-setup.md` | Mac installation, packages, device setup, first APK, troubleshooting |
+| `docs/windows-setup.md` | Windows installation, PowerShell checks, Quest drivers, APK deployment, troubleshooting |
 | `docs/toolchain.md` | Proposed dependencies and actual verification status |
 | `docs/architecture.md` | Planned Unity modules and state ownership |
 | `docs/model-contract.md` | Data semantics and the boundary between exploration and prediction |

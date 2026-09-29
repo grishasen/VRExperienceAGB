@@ -17,7 +17,7 @@ The original project is `/Users/gregory/Documents/AGBVisualizer`.
 | `VR_Forest_Explorer_Slides/slide-7.png` | Diorama/immersion; Predictor Fireflies; Audit as Weather; Guided Review |
 | `VR_Forest_Explorer_Slides/slide-8.png` | Comfort and performance considerations |
 
-The reviewed sample contains 12 trees and 120 nodes. The larger export contains 100 trees and 13,576 nodes. These observations motivate scale switching and separate visibility/evaluation budgets. No original export or real customer data is copied into this repository.
+Scale testing uses generated fictional ensembles. Visibility and evaluation budgets are independent; no customer model or record belongs in tracked examples.
 
 The original slides discuss WebXR and other technologies. The user selected Unity/C#/OpenXR for this project; the scenarios carry over conceptually, while implementation must be built for the new stack.
 

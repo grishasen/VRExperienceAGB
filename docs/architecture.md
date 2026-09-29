@@ -1,13 +1,15 @@
-# Planned architecture
+# Architecture
 
-Status: design, not implemented Unity code.
+**Current update — 2026-09-29:** deep-tree focus, smoother stone shading/foliage edges, ensemble navigation, profile editing and a basic forest overview are implemented; 111 EditMode and eleven PlayMode tests passed. The prior build had a successful first Quest test reported by the user. The new build's headset and performance acceptance remain open. See [current evidence and remaining scope](development-progress-2026-09-29.md). Earlier dated status paragraphs and milestone estimates below are historical planning records, not the latest completion counts.
+
+Status: Domain and normalized synthetic Import implemented for M2-01–M2-05; 84 EditMode tests pass. A one-tree Application/session layer and Presentation scene are now implemented and Editor-tested; full-ensemble sessions, advanced presentation, XR hardware qualification and environment polish remain planned. See the [M3 record](m3-progress-2026-09-28.md). See [implementation record](m2-foundation-2026-09-28.md).
 
 ## Boundaries
 
 | Module | Responsibility | Must not own |
 | --- | --- | --- |
 | Domain | Model, profiles, validation, evaluation, route constraints | Scene objects or headset APIs |
-| Import | AGB parsing and normalization | Guessing unknown operators or scoring semantics |
+| Import | Normalized synthetic JSON v1 implemented; AGB parsing/normalization planned | Guessing unknown operators or scoring semantics |
 | Application | Session state, commands, undo, playback progression | Rendering or input-device details |
 | Presentation | Layout, nodes, paths, drop animation, score view | Prediction truth |
 | XR | Controller actions, tracked rig, comfort transitions | Model evaluation |
@@ -18,7 +20,7 @@ Use the same domain and session state for desktop inspection and the XR scene. I
 
 ## Planned Unity organization
 
-Create this structure through Unity once M1 succeeds:
+Domain, Import and EditMode tests now exist and were imported by Unity. Add the remaining folders when their implementation needs them:
 
 ```text
 Assets/VRExperienceAGB/

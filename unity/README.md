@@ -17,4 +17,4 @@ VRExperienceAGB/
       ProjectVersion.txt
 ```
 
-Follow [Mac setup](../docs/macos-setup.md). Create and move project-owned Unity content under `Assets/VRExperienceAGB/` through the Editor, preserving `.meta` identities. See [Architecture](../docs/architecture.md) for module boundaries.
+Follow [Mac setup](../docs/macos-setup.md) or [Windows setup](../docs/windows-setup.md). On Windows, install the Windows build of the same pinned Editor version. Create and move project-owned Unity content under `Assets/VRExperienceAGB/` through the Editor, preserving `.meta` identities. See [Architecture](../docs/architecture.md) for module boundaries.

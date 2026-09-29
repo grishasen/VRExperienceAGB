@@ -6,7 +6,7 @@
 
 **Business value:** connect the immersive journey to the complete model result, while making the limits of free exploration and hypothetical edits explicit.
 
-**Status:** not started. **Priority:** Must. **Dependencies:** accepted M3 and M2 synthetic evaluator. **Owner role:** Application developer with model reviewer. **Planning range:** 4–6 working days.
+**Status:** preliminary ensemble navigation and profile editing implemented in the M3 development branch; remaining M4 acceptance work is next. See the [handoff](../development-progress-2026-09-29.md). **Priority:** Must. **Dependencies:** accepted M3 and M2 synthetic evaluator. **Owner role:** Application developer with model reviewer. **Planning range:** 4–6 working days.
 
 ```mermaid
 flowchart LR

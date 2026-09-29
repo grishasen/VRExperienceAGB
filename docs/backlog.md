@@ -1,10 +1,12 @@
 # Delivery backlog — M1 to M6
 
+**Current update — 2026-09-29:** deep-tree focus, smoother stone shading/foliage edges, ensemble navigation, profile editing and a basic forest overview are implemented; 111 EditMode and eleven PlayMode tests passed. The prior build had a successful first Quest test reported by the user. The new build's headset and performance acceptance remain open. See [current evidence and remaining scope](development-progress-2026-09-29.md). Earlier dated status paragraphs and milestone estimates below are historical planning records, not the latest completion counts.
+
 Updated: 2026-09-28. Planning baseline: [development plan](development-plan.md), [experience scenarios](experience-scenarios.md), [model contract](model-contract.md), [architecture](architecture.md), and [acceptance strategy](testing.md).
 
 **Outcome:** a presenter can give a reliable, understandable standalone Quest 3 demonstration of how a boosted-tree model reaches an outcome. Visitors can both choose branches themselves and follow a prepared synthetic profile. These are equally required experiences.
 
-**Current position:** D07 scope cleanup and D10 source/build checkpoint are complete for the starting configuration. The user requested deferring the remaining checks to main development; M1 headset acceptance remains open. See the [checkpoint and deferred-check list](configuration-checkpoint-2026-09-28.md). M2–M6 are not implemented. The existing Python fixture checks pass; they do not complete a Unity story. No story below is marked Done.
+**Current position:** D07 scope cleanup and D10 source/build checkpoint are complete for the starting configuration. The user requested deferring the remaining checks to main development; M1 headset acceptance remains open. See the [checkpoint and deferred-check list](configuration-checkpoint-2026-09-28.md). M2-01–M2-05 are implemented and verified by 84 passing Unity EditMode tests; see the [M2 evidence record](m2-foundation-2026-09-28.md). This completes the synthetic logic gate in the Editor, not M1 device qualification or real AGB verification. M2-06–M2-08 and M3–M6 remain open. The [M3 one-tree slice](m3-progress-2026-09-28.md) is playable in the Editor; 102 EditMode and 5 PlayMode tests pass. Device acceptance remains open.
 
 This backlog contains **six epics and 48 user stories**. Acceptance criteria are proposed delivery requirements, not test results. Story ownership identifies a role; no person has been assigned. Estimates remain the original milestone planning ranges, not commitments derived from story count.
 
@@ -13,8 +15,8 @@ This backlog contains **six epics and 48 user stories**. Acceptance criteria are
 | Epic | Business outcome | Stories | Starting status | Planning range |
 | --- | --- | --- | --- | --- |
 | [M1 — A dependable first headset experience](backlog/m1-headset-foundation.md) | A visitor can put on Quest 3 and select an object in an app that works without the Mac. | M1-01–M1-09 | Partially configured; not accepted | 1–2 working days |
-| [M2 — Results that can be explained and trusted](backlog/m2-model-trust.md) | Every shown route and contribution has a repeatable, checkable meaning. | M2-01–M2-08 | Not started in C# | 3–5 days for synthetic contract; real-model verification depends on evidence |
-| [M3 — Understand one tree by exploring it](backlog/m3-one-tree.md) | A first-time visitor understands a fork, a leaf contribution, and undo in one small forest clearing. | M3-01–M3-08 | Not started | 4–6 days |
+| [M2 — Results that can be explained and trusted](backlog/m2-model-trust.md) | Every shown route and contribution has a repeatable, checkable meaning. | M2-01–M2-08 | Synthetic foundation implemented; 84 EditMode tests pass; real-model track open | 3–5 days for synthetic contract; real-model verification depends on evidence |
+| [M3 — Understand one tree by exploring it](backlog/m3-one-tree.md) | A first-time visitor understands a fork, a leaf contribution, and undo in one small forest clearing. | M3-01–M3-08 | Playable Editor slice; Quest acceptance pending | 4–6 days |
 | [M4 — Explain the complete prediction and try a change](backlog/m4-ensemble.md) | A visitor sees how all trees contribute and how a hypothetical profile edit changes the result. | M4-01–M4-08 | Not started | 4–6 days |
 | [M5 — Navigate an understandable forest](backlog/m5-forest-experience.md) | Visitors move between overview and detail without losing their place or needing keyboard help. | M5-01–M5-07 | Not started | 4–6 days |
 | [M6 — A demonstration ready for an audience](backlog/m6-demo-readiness.md) | The presenter receives a tested, comfortable, reproducible headset build and clear operating instructions. | M6-01–M6-08 | Not started | 4–6 days |
@@ -64,6 +66,7 @@ Each story contains a business user statement, suggested accountable role, prior
 - **Must:** required to accept the relevant epic and deliver the stated demonstration.
 - **Conditional:** required only when its stated feature or data scope is selected. Its prerequisite cannot be silently assumed.
 - **Partially configured:** some settings or tools exist; the story's acceptance evidence is incomplete.
+- **Implemented / EditMode verified:** the scoped C# behavior has passing automated evidence; device and scene dependencies remain separately tracked.
 - **Not started:** no accepted implementation evidence was found during the review.
 - **Blocked externally:** the team needs a device, account action, trusted reference data, or another explicitly identified external input.
 
@@ -101,10 +104,10 @@ This table uses the refreshed live snapshot, approximately 18:46 UTC on 2026-09-
 | APK build/update installation | Previous build installed September 27; cleaned-up APK built September 28, not installed/run. Further checks deferred | M1-08 |
 | Toolchain qualification and repository checkpoint | D10 source/build record complete; exact commit, APK hash and final manifest recorded. Device qualification/reproduction deferred | M1-09 |
 | Checker project-path detection | Corrected to `BoostingExperience/`; real-project pass and explicit missing-project failure verified | M1-01 |
-| Test Framework | Now direct dependency; zero discoverable tests | M2 and later behavioral stories |
+| Test Framework | 1.8.0 direct dependency; 84 project EditMode tests pass on 2026-09-28 | M2 and later behavioral stories |
 | Optional Meta Platform recommendations | Conditional DUC/app-ID tasks; no Platform SDK registered | Revisit M1-04 only if Platform API scope is added |
 | Simulator | Not found in standard locations; optional | Optional aid within M1-04 |
-| Model/session/tree experience | Not implemented in project-owned code | M2–M5 |
+| Model/session/tree experience | Synthetic model foundation implemented and EditMode verified; session and tree experience remain open | M2–M5 |
 | Hardware performance, recovery, soak, comprehension | No accepted evidence | M6-01–M6-08 |
 
 See the [setup review](setup-review-2026-09-27.md) for D01–D12, installed versions, warnings, and evidence limits. Account/license suitability, host qualification, and final merged-APK behavior remain unverified. At 19:05 UTC the user confirmed Developer Mode and the follow-up verified authorized Quest 3 USB debugging.
