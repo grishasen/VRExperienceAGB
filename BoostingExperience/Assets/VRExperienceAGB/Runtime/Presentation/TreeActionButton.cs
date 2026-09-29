@@ -6,7 +6,7 @@ using UnityEngine.EventSystems;
 
 namespace VRExperienceAGB.Presentation
 {
-    public enum TreeAction { TrueBranch, FalseBranch, Step, Play, Pause, Back, Restart, Overview, Manual, Profile, NextProfile, Seated }
+    public enum TreeAction { TrueBranch, FalseBranch, Step, Play, Pause, Back, Restart, Overview, Manual, Profile, NextProfile, Seated, DeepExample, TreeMap, PreviousTree, NextTree, EditProfile, NextFeature, DecreaseValue, IncreaseValue, RestoreProfile, CloseEdit, Menu, InspectNodes, NextNode, CloseInspect }
 
     /// <summary>Captures the decision at press time so delayed releases cannot act on a different node.</summary>
     [RequireComponent(typeof(UnityEngine.UI.Button))]
@@ -28,8 +28,11 @@ namespace VRExperienceAGB.Presentation
         {
             if (!presses.TryGetValue(data.pointerId, out var press)) return;
             presses.Remove(data.pointerId);
-            if (ReferenceEquals(press.session, experience.Session) && button.IsInteractable() && data.button == PointerEventData.InputButton.Left)
+            if (ReferenceEquals(press.session, experience.Session) && experience.Session.State.Revision == press.revision && button.IsInteractable() && data.button == PointerEventData.InputButton.Left)
+                {
                 experience.Execute(action, press.revision, press.node);
+                ControllerSelectionFeedback.Pulse(data.pointerId);
+            }
         }
         public void OnPointerEnter(PointerEventData data) { if (button.IsInteractable()) transform.localScale = originalScale * 1.035f; }
         public void OnPointerExit(PointerEventData data) { transform.localScale = originalScale; presses.Remove(data.pointerId); }

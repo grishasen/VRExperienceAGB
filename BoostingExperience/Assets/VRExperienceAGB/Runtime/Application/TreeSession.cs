@@ -143,6 +143,8 @@ namespace VRExperienceAGB.Application
             return Accept("Previous decision restored; the leaf contribution has been removed.");
         }
 
+        public void UseManualMode() { Mode = ExperienceMode.Manual; Playing = false; Pending = null; Revision++; }
+
         public CommandReply Restart()
         {
             Pending = null; History.Clear(); Paused = false; Playing = false; Overview = false;

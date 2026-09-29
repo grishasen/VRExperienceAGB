@@ -1,11 +1,11 @@
 # VRExperienceAGB
 
-Current fixture revision: the AGB-like example replaces the earlier teaching data. Python checks pass; the previously recorded Unity results predate this replacement and do not qualify it until rerun.
+Current development: deep-tree focus, ensemble navigation, profile editing and a basic forest overview are implemented. See the [September 29 development record](docs/development-progress-2026-09-29.md).
 An immersive explanation of adaptive gradient boosted decision trees for Meta Quest 3.
 
 Explore a miniature forest, enter a tree, choose branches yourself, or follow a prepared customer profile. Watch each selected leaf contribute to the ensemble score in a twilight forest with luminous paths inspired by the existing AGB Grid Drive prototype.
 
-**Status: implementation underway.** M2-01–M2-05 now provide immutable model/profile data, validation, deterministic full-ensemble evaluation, and normalized synthetic JSON loading. **102 Unity EditMode tests and 5 PlayMode tests pass** in Unity 6000.6.3f1; see the [M2](docs/m2-foundation-2026-09-28.md) and [M3 verification records](docs/m3-progress-2026-09-28.md). The project remains at `BoostingExperience/`. D07 cleanup and the [D10 configuration checkpoint](docs/configuration-checkpoint-2026-09-28.md) are recorded, but M1 headset acceptance remains open. The earlier APK was built/installed; launch, tracking, interaction, and standalone relaunch remain unverified. The [M3 one-tree scene](docs/m3-progress-2026-09-28.md) now supports manual choices, undo, pause, overview return and prepared-profile playback, verified in the Editor. Open `OneTreeLearning.unity` and press Play for the mouse preview. Quest acceptance remains open. Real AGB verification remains pending.
+**Status: implementation underway.** The synthetic model/session foundation and scene now have **111 passing EditMode tests and twelve passing PlayMode tests** in Unity 6000.6.3f1. The prior moonlit build installed and launched on Quest 3, and the user reported a successful first interaction test. The combined September 29 M3 candidate is ready for the [headset checklist](docs/m3-device-check-2026-09-29.md); device acceptance and actual performance measurements remain pending. Real AGB verification remains pending. Open `BoostingExperience/Assets/VRExperienceAGB/Scenes/OneTreeLearning.unity` and press Play for the mouse preview. Both manual exploration and deterministic prepared-profile playback remain available.
 
 All project documentation, code, comments, identifiers, commit messages, and initial application copy are in English.
 

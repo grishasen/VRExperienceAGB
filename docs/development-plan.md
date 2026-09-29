@@ -1,5 +1,7 @@
 # Development plan
 
+**Current update — 2026-09-29:** deep-tree focus, smoother stone shading/foliage edges, ensemble navigation, profile editing and a basic forest overview are implemented; 111 EditMode and eleven PlayMode tests passed. The prior build had a successful first Quest test reported by the user. The new build's headset and performance acceptance remain open. See [current evidence and remaining scope](development-progress-2026-09-29.md). Earlier dated status paragraphs and milestone estimates below are historical planning records, not the latest completion counts.
+
 Status: source/configuration foundation recorded; M1 headset acceptance deferred; M2-01–M2-05 implemented and verified by 84 Unity EditMode tests; scene implementation and real-model verification remain open. Updated: 2026-09-28. See the [setup review](setup-review-2026-09-27.md) for the existing `BoostingExperience/` project's configuration and outstanding work.
 
 The [delivery backlog](backlog.md) expands M1–M6 into six business-facing epics and 48 user stories. Each epic maps every checklist item below to its stories and defines acceptance evidence. These are planned requirements, not completed test results.
@@ -59,7 +61,7 @@ These checkboxes do not imply a Unity project or VR build exists.
 
 ## M3 — One-tree vertical slice
 
-**Current implementation:** the saved one-tree scene and session logic are playable in the Editor. 102 EditMode and 5 PlayMode tests pass; see the [M3 record](m3-progress-2026-09-28.md). Controller hardware, haptics, comfort, readability and M3-08 acceptance remain open.
+**Current implementation:** the saved one-tree scene and session logic are playable in the Editor. 111 EditMode and 11 PlayMode tests pass; see the [current record](development-progress-2026-09-29.md). Inspection, profile preview, score breakdown and haptic dispatch are implemented. Controller hardware, haptic sensation, comfort, readability and M3-08 acceptance remain open in the [combined checklist](m3-device-check-2026-09-29.md).
 
 **Estimate:** 4–6 days. **Depends on:** M1 and the internal part of M2.
 

@@ -1,5 +1,7 @@
 # Architecture
 
+**Current update — 2026-09-29:** deep-tree focus, smoother stone shading/foliage edges, ensemble navigation, profile editing and a basic forest overview are implemented; 111 EditMode and eleven PlayMode tests passed. The prior build had a successful first Quest test reported by the user. The new build's headset and performance acceptance remain open. See [current evidence and remaining scope](development-progress-2026-09-29.md). Earlier dated status paragraphs and milestone estimates below are historical planning records, not the latest completion counts.
+
 Status: Domain and normalized synthetic Import implemented for M2-01–M2-05; 84 EditMode tests pass. A one-tree Application/session layer and Presentation scene are now implemented and Editor-tested; full-ensemble sessions, advanced presentation, XR hardware qualification and environment polish remain planned. See the [M3 record](m3-progress-2026-09-28.md). See [implementation record](m2-foundation-2026-09-28.md).
 
 ## Boundaries

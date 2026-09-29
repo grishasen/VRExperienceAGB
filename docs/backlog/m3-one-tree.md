@@ -6,7 +6,7 @@
 
 **Business value:** prove the core teaching moment before expanding to a whole forest.
 
-**Status:** Playable Editor slice: 102 EditMode and 5 PlayMode tests pass; see the [implementation record](../m3-progress-2026-09-28.md). Quest acceptance remains open. **Priority:** Must. **Dependencies:** accepted M1 and M2's synthetic contract; real AGB verification is not required. **Owner role:** Unity/XR developer with UX tester. **Planning range:** 4–6 working days.
+**Status:** Software implementation ready for combined Quest acceptance: 111 EditMode and 11 PlayMode tests pass. See the [current implementation record](../development-progress-2026-09-29.md) and [device checklist](../m3-device-check-2026-09-29.md). Quest acceptance remains open. **Priority:** Must. **Dependencies:** accepted M1 and M2's synthetic contract; real AGB verification is not required. **Owner role:** Unity/XR developer with UX tester. **Planning range:** 4–6 working days.
 
 ```mermaid
 flowchart TD
@@ -41,7 +41,7 @@ flowchart TD
 
 **User story:** As a visitor using controllers, I want obvious pointing and selection feedback so that I know which branch or node I am about to choose.
 
-**Priority:** Must. **Status:** Canvas input configured and guarded UI events tested; controller parity, haptics and node inspection remain open. **Owner role:** XR interaction developer. **Depends on:** M3-01, M1-04.
+**Priority:** Must. **Status:** Guarded canvas input, stable read-only node inspection and pointer-specific haptic dispatch implemented; physical controller parity, haptic sensation and target comfort await Quest acceptance. **Owner role:** XR interaction developer. **Depends on:** M3-01, M1-04.
 
 **Acceptance criteria**
 
@@ -143,7 +143,7 @@ flowchart TD
 
 **User story:** As a product owner, I want the full loop proven by a visitor on the headset so that the next milestone expands something understandable and reliable.
 
-**Priority:** Must. **Status:** Not started. **Owner role:** UX/QA tester. **Depends on:** M3-01–M3-07.
+**Priority:** Must. **Status:** Combined build and dated checklist prepared; physical acceptance pending. **Owner role:** UX/QA tester. **Depends on:** M3-01–M3-07.
 
 **Acceptance criteria**
 

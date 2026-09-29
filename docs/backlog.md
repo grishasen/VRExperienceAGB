@@ -1,5 +1,7 @@
 # Delivery backlog — M1 to M6
 
+**Current update — 2026-09-29:** deep-tree focus, smoother stone shading/foliage edges, ensemble navigation, profile editing and a basic forest overview are implemented; 111 EditMode and eleven PlayMode tests passed. The prior build had a successful first Quest test reported by the user. The new build's headset and performance acceptance remain open. See [current evidence and remaining scope](development-progress-2026-09-29.md). Earlier dated status paragraphs and milestone estimates below are historical planning records, not the latest completion counts.
+
 Updated: 2026-09-28. Planning baseline: [development plan](development-plan.md), [experience scenarios](experience-scenarios.md), [model contract](model-contract.md), [architecture](architecture.md), and [acceptance strategy](testing.md).
 
 **Outcome:** a presenter can give a reliable, understandable standalone Quest 3 demonstration of how a boosted-tree model reaches an outcome. Visitors can both choose branches themselves and follow a prepared synthetic profile. These are equally required experiences.
