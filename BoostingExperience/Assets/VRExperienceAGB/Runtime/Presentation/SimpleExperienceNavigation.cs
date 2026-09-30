@@ -17,6 +17,8 @@ namespace VRExperienceAGB.Presentation
         private readonly List<GameObject> rows = new List<GameObject>();
         private readonly GameObject previous, next;
         private int listPage;
+        public bool TreeMenuOpen { get; private set; }
+        private bool pausedBeforeTreeMenu;
         private const int PageSize = 6;
         public NavigationPage Page { get; private set; } = NavigationPage.Home;
         public NavigationPage ReturnPage { get; private set; } = NavigationPage.TreeList;
@@ -56,6 +58,7 @@ namespace VRExperienceAGB.Presentation
         public void ReturnFromTree() => Show(ReturnPage);
         private void Show(NavigationPage page)
         {
+            if(TreeMenuOpen) { TreeMenuOpen=false; View.Session.SetPaused(pausedBeforeTreeMenu); }
             Page=page;Revision++;
             View.ShowNavigationOverview();
             Refresh();Place();
@@ -103,21 +106,69 @@ namespace VRExperienceAGB.Presentation
             pageLabel.text=(listPage*PageSize+1)+"–"+Mathf.Min((listPage+1)*PageSize,garden.PlotCount)+" of "+garden.PlotCount;
             if(Page==NavigationPage.Tree)SimplifyTreeControls();
         }
+        public void ToggleTreeMenu()
+        {
+            if(Page!=NavigationPage.Tree)return;
+            if(!TreeMenuOpen) { pausedBeforeTreeMenu=View.Session.State.Paused; View.Session.SetPaused(true); }
+            else View.Session.SetPaused(pausedBeforeTreeMenu);
+            TreeMenuOpen=!TreeMenuOpen;Revision++;View.NameTooltip?.Hide();View.RefreshNavigationTree();
+        }
+        public void RestartTree()
+        {
+            View.Session.Restart();pausedBeforeTreeMenu=false;
+            if(TreeMenuOpen)View.Session.SetPaused(true);
+            View.RefreshNavigationTree();
+        }
         private void SimplifyTreeControls()
         {
+            // Lower the diagram instead of moving tracking. Keep the table's base at floor level in either posture.
+            View.presentationRoot.localPosition=new Vector3(0,View.IsSeated?-.4f:0,0);
+            var console=View.explanation.transform.parent;
+            console.localPosition=new Vector3(0,.85f,3.25f);
+            var stone=View.presentationRoot.Find("ConsoleStone");
+            if(stone!=null) { stone.localPosition=new Vector3(0,View.IsSeated?.75f:.55f,3.93f);stone.localScale=new Vector3(3.3f,View.IsSeated?.618f:1.03f,.52f); }
+            View.presentationRoot.Find("TrueChoiceStone")?.gameObject.SetActive(false);
+            View.presentationRoot.Find("FalseChoiceStone")?.gameObject.SetActive(false);
             foreach(var control in View.controls)
             {
-                bool show=control.action==TreeAction.TrueBranch||control.action==TreeAction.FalseBranch||control.action==TreeAction.Back||control.action==TreeAction.Restart||control.action==TreeAction.Overview||control.action==TreeAction.Menu;
-                control.gameObject.SetActive(show && ((control.action!=TreeAction.TrueBranch&&control.action!=TreeAction.FalseBranch)||!View.Session.State.AtLeaf));
-                if(control.action==TreeAction.Overview) { control.label.text=ReturnPage==NavigationPage.Forest?"Back to forest":"Back to tree list";control.GetComponent<UnityEngine.UI.Button>().interactable=true;((RectTransform)control.transform).anchoredPosition=new Vector2(-260,-110); }
-                if(control.action==TreeAction.Menu)control.label.text="Cases";
-                if(control.action==TreeAction.Restart)control.label.text="Restart tree";
+                bool branch=control.action==TreeAction.TrueBranch||control.action==TreeAction.FalseBranch;
+                bool show=TreeMenuOpen ? control.action==TreeAction.Restart||control.action==TreeAction.Seated||control.action==TreeAction.Overview||control.action==TreeAction.Menu : branch&&!View.Session.State.AtLeaf||control.action==TreeAction.Back||control.action==TreeAction.Menu;
+                control.gameObject.SetActive(show);
+                if(!show)continue;
+                control.GetComponent<UnityEngine.UI.Image>().color=new Color(.045f,.17f,.21f,.98f);
+                var rect=(RectTransform)control.transform;
+                rect.sizeDelta=new Vector2(280,54);
+                control.label.enableAutoSizing=true;control.label.fontSizeMin=16;control.label.fontSizeMax=21;
+                control.label.rectTransform.sizeDelta=rect.sizeDelta-new Vector2(16,8);
+                switch(control.action)
+                {
+                    case TreeAction.TrueBranch:rect.anchoredPosition=new Vector2(-160,25);control.label.text="TRUE";break;
+                    case TreeAction.FalseBranch:rect.anchoredPosition=new Vector2(160,25);control.label.text="FALSE";break;
+                    case TreeAction.Back:rect.anchoredPosition=new Vector2(-160,-52);control.label.text="Back";break;
+                    case TreeAction.Menu:rect.anchoredPosition=new Vector2(160,-52);control.label.text=TreeMenuOpen?"Close menu":"Menu";break;
+                    case TreeAction.Restart:rect.anchoredPosition=new Vector2(-160,25);control.label.text="Restart tree";break;
+                    case TreeAction.Seated:rect.anchoredPosition=new Vector2(160,25);control.label.text=View.IsSeated?"Use standing layout":"Use seated layout";break;
+                    case TreeAction.Overview:rect.anchoredPosition=new Vector2(-160,-52);control.label.text=ReturnPage==NavigationPage.Forest?"Back to forest":"Back to tree list";break;
+                }
+                if(!branch)control.GetComponent<UnityEngine.UI.Button>().interactable=true;
             }
-            View.status.text="";
-            View.menuBackdrop?.SetActive(false);
-            View.feedback.text=View.Session.State.AtLeaf?"Leaf reached. Go back to try another branch, or return to explore another tree.":"Choose TRUE or FALSE. Point at a name to read the full condition.";
-            View.feedback.gameObject.SetActive(true);
-            View.score.text="Tree "+(View.Ensemble.Index+1)+" / "+garden.PlotCount+" · "+(View.Session.State.AtLeaf?"Leaf score "+View.Session.State.Contribution.ToString("0.###",System.Globalization.CultureInfo.InvariantCulture):"Explore the decisions")+"\nStructure preview · No profile probability";
+            View.status.text="";View.feedback.gameObject.SetActive(false);
+            if(View.menuBackdrop!=null)
+            {
+                View.menuBackdrop.SetActive(true);
+                View.menuBackdrop.GetComponent<UnityEngine.UI.Image>().raycastTarget=false;
+                var rect=(RectTransform)View.menuBackdrop.transform;rect.anchoredPosition=new Vector2(0,-5);rect.sizeDelta=new Vector2(720,285);
+            }
+            View.explanation.gameObject.SetActive(true);
+            View.explanation.rectTransform.anchoredPosition=new Vector2(0,110);
+            View.explanation.rectTransform.sizeDelta=new Vector2(740,72);
+            View.explanation.enableAutoSizing=true;View.explanation.fontSizeMin=18;View.explanation.fontSizeMax=24;
+            View.explanation.text=TreeMenuOpen ? "TREE MENU · "+(View.IsSeated?"Seated":"Standing") :
+                View.Session.CurrentNode is VRExperienceAGB.Domain.SplitNode split ? View.Condition(split,true)+"?" : "Leaf reached";
+            View.explanation.raycastTarget=!TreeMenuOpen;
+            View.score.rectTransform.anchoredPosition=new Vector2(0,-118);View.score.rectTransform.sizeDelta=new Vector2(740,50);View.score.fontSize=18;
+            View.score.text="Tree "+(View.Ensemble.Index+1)+" / "+garden.PlotCount+" · "+(View.Session.State.AtLeaf?"Leaf score "+View.Session.State.Contribution.ToString("0.###",System.Globalization.CultureInfo.InvariantCulture):"Point at a label for its full condition")+"\nStructure preview · No profile probability";
+            View.NameTooltip?.UseCompactLayout();
         }
         public void Place()
         {

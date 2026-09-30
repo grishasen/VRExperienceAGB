@@ -15,7 +15,7 @@ It uses the nested AGB export format directly. The source and bundled copy are c
 - M4 opens all 50 model pines. Select explicit markers along the central and cross-paths to approach groups or individual planters. Right-stick snap turns and physical tracking remain available.
 - Point at a pine to reveal structural information. Click it to open that tree immediately. Return restores the forest location and preserves the selected tree and route.
 - The forest has a small Menu button and brief movement instructions. A / desktop Tab recalls the case menu. There is no field-guide dashboard, numbered selector, profile picker or ledger in this default flow.
-- Individual-tree controls are branch choices, Back, Restart tree, Back to forest/list and Cases. Restart affects the current tree. Full-name hover remains available.
+- The [compact one-tree update](m3-compact-layout-2026-09-30.md) keeps branch choices, Back and Menu on the main panel. Restart, seated/standing layout and return to forest/list live in its submenu. Restart affects the current tree. Full-name hover remains available.
 
 All initial UI copy is English. Navigation does not infer a prediction from arbitrary branch choices, change the scoring ensemble or write tracked head/controller local transforms. Movement between path markers is a deliberate teleport with a fade, not continuous joystick movement.
 

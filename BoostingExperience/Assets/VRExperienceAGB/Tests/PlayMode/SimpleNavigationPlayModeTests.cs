@@ -88,6 +88,51 @@ namespace VRExperienceAGB.Tests
             yield return null;
         }
         [UnityTest]
+        public IEnumerator TreeSubmenuRestoresPostureWithoutChangingTrackingOrRoute()
+        {
+            Click(Target(GardenCommand.SingleTree));Click(Target(GardenCommand.SelectTree,0));
+            var head=Garden.Locomotion.Head;var local=head.localPosition;var rotation=head.localRotation;
+            Action(TreeAction.TrueBranch);view.Advance(.2f);var pending=view.Session.State.PendingDecision;
+            Click(view.controls.Single(c=>c.action==TreeAction.Menu).gameObject);
+            Assert.That(Garden.Navigation.TreeMenuOpen,Is.True);Assert.That(view.Session.State.Paused,Is.True);
+            view.Advance(2);Assert.That(view.Session.State.PendingDecision,Is.EqualTo(pending));
+            var standing=view.presentationRoot.localPosition;
+            Click(view.controls.Single(c=>c.action==TreeAction.Seated).gameObject);
+            Assert.That(view.IsSeated,Is.True);Assert.That(view.presentationRoot.localPosition.y,Is.EqualTo(standing.y-.4f).Within(.001f));
+            Assert.That(head.localPosition,Is.EqualTo(local));Assert.That(head.localRotation,Is.EqualTo(rotation));
+            Assert.That(view.presentationRoot.Find("ConsoleStone").GetComponent<Renderer>().bounds.min.y,Is.GreaterThanOrEqualTo(0));
+            Click(view.controls.Single(c=>c.action==TreeAction.Seated).gameObject);Assert.That(view.IsSeated,Is.False);
+            Click(view.controls.Single(c=>c.action==TreeAction.Menu).gameObject);Assert.That(view.Session.State.Paused,Is.False);
+            view.Advance(2);Assert.That(view.Session.State.Decisions.Count,Is.EqualTo(1));
+            yield return null;
+        }
+        [UnityTest]
+        public IEnumerator CompactControlsAndSubmenuAreReachableInBothPostures()
+        {
+            Click(Target(GardenCommand.SingleTree));Click(Target(GardenCommand.SelectTree,0));
+            var camera=Garden.Locomotion.Head.GetComponent<Camera>();
+            foreach(bool seated in new[]{false,true})
+            {
+                if(seated) { Action(TreeAction.Menu);Action(TreeAction.Seated);Action(TreeAction.Menu); }
+                foreach(bool menu in new[]{false,true})
+                {
+                    if(menu)Action(TreeAction.Menu);
+                    yield return null;Canvas.ForceUpdateCanvases();
+                    var active=view.controls.Where(c=>c.gameObject.activeInHierarchy).ToArray();Assert.That(active.Length,Is.EqualTo(4));
+                    foreach(var button in active)
+                    {
+                        var pointer=new PointerEventData(EventSystem.current){position=camera.WorldToScreenPoint(button.transform.position)};
+                        var hits=new System.Collections.Generic.List<RaycastResult>();EventSystem.current.RaycastAll(pointer,hits);
+                        Assert.That(hits.Count,Is.GreaterThan(0),button.action.ToString());
+                        Assert.That(ExecuteEvents.GetEventHandler<IPointerClickHandler>(hits[0].gameObject),Is.EqualTo(button.gameObject),button.action.ToString());
+                    }
+                    if(menu)Action(TreeAction.Menu);
+                }
+            }
+            Assert.That(view.nodeViews.Max(n=>n.transform.localPosition.y),Is.LessThanOrEqualTo(1.85f));
+            Assert.That(view.nodeViews.Skip(1).All(n=>n.title.rectTransform.sizeDelta.x<=300),Is.True);
+        }
+        [UnityTest]
         public IEnumerator CaseAndListButtonsAreReachableAndPageChangesRejectStalePresses()
         {
             Canvas.ForceUpdateCanvases();var camera=Garden.Locomotion.Head.GetComponent<Camera>();

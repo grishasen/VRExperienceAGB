@@ -61,6 +61,8 @@ namespace VRExperienceAGB.Presentation
         private float dwell;
         private long displayedRevision = -1;
         private bool seated;
+        public bool IsSeated => seated;
+        public void RefreshNavigationTree() => Refresh();
         private bool showProfileDetails;
         private string message = "Choose either branch, or follow a synthetic profile.";
         private static string Number(double value) => value.ToString("0.###", CultureInfo.InvariantCulture);
@@ -228,9 +230,9 @@ namespace VRExperienceAGB.Presentation
             if (model.StructureOnlyPreview && (action == TreeAction.Profile || action == TreeAction.NextProfile || action == TreeAction.DeepExample || action == TreeAction.LargerEnsemble)) return;
             if(Garden?.simplifiedNavigation == true && Garden.Navigation != null)
             {
-                if(action==TreeAction.Menu) { Garden.Navigation.ShowHome(); return; }
+                if(action==TreeAction.Menu) { Garden.Navigation.ToggleTreeMenu(); return; }
                 if(action==TreeAction.Overview && !Session.State.Overview) { Garden.Navigation.ReturnFromTree(); return; }
-                if(action==TreeAction.Restart) { Session.Restart(); movingEvent=-1; Refresh(); return; }
+                if(action==TreeAction.Restart) { movingEvent=-1; Garden.Navigation.RestartTree(); return; }
                 if(action==TreeAction.Back) { Session.Back(); movingEvent=-1; Refresh(); return; }
             }
             CommandReply reply = default;

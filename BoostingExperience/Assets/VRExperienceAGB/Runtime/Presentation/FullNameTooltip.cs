@@ -37,6 +37,11 @@ namespace VRExperienceAGB.Presentation
             scroll=panel.GetComponent<ScrollRect>(); scroll.viewport=viewportRect; scroll.content=content; scroll.scrollSensitivity=32; scroll.horizontal=false; scroll.vertical=true; scroll.movementType=ScrollRect.MovementType.Clamped;
             panel.SetActive(false);
         }
+        public void UseCompactLayout()
+        {
+            var rect=(RectTransform)panel.transform;rect.anchoredPosition=new Vector2(0,330);rect.sizeDelta=new Vector2(760,260);
+            Text.fontSize=20;
+        }
         public void Show(NodeNameHover owner, string text)
         {
             source=owner; overPanel=false; hideAt=float.PositiveInfinity;

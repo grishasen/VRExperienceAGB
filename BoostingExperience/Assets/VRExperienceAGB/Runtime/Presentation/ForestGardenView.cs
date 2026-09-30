@@ -218,6 +218,7 @@ namespace VRExperienceAGB.Presentation
         }
         public void ToggleGuide()
         {
+            if(simplifiedNavigation && Navigation.Page==NavigationPage.Tree) { Navigation.ToggleTreeMenu(); return; }
             if(!Visible)return;
             if(simplifiedNavigation) { Navigation.ShowHome(); return; }
             bool show=!GuideOpen;guide.gameObject.SetActive(show);guideHandle.gameObject.SetActive(!show);PlaceGuide();
@@ -278,7 +279,7 @@ namespace VRExperienceAGB.Presentation
         }
         private void Update()
         {
-            if(!Visible)return;
+            if(!Visible && !(simplifiedNavigation && Navigation?.Page==NavigationPage.Tree))return;
             if(hoverDirty) { hoverDirty=false; RefreshState(); }
             if(UnityEngine.InputSystem.Keyboard.current != null && UnityEngine.InputSystem.Keyboard.current.tabKey.wasPressedThisFrame)ToggleGuide();
             var right=UnityEngine.XR.InputDevices.GetDeviceAtXRNode(UnityEngine.XR.XRNode.RightHand);
@@ -287,7 +288,7 @@ namespace VRExperienceAGB.Presentation
                 if(!pressed)guideButtonReleased=true;
                 if(pressed&&guideButtonReleased){guideButtonReleased=false;ToggleGuide();}
             }
-            if(Time.unscaledTime<nextPlaqueRefresh)return;
+            if(!Visible || Time.unscaledTime<nextPlaqueRefresh)return;
             nextPlaqueRefresh=Time.unscaledTime+.15f;RefreshNearbyPlaques();
         }
         private void RefreshNearbyPlaques()
