@@ -8,6 +8,25 @@ namespace VRExperienceAGB.Editor
 {
     public static class ForestGardenInstaller
     {
+        public static string InstallSimpleNavigation()
+        {
+            if(EditorApplication.isPlaying)throw new InvalidOperationException("Stop Play Mode first.");
+            var view=UnityEngine.Object.FindAnyObjectByType<OneTreeExperience>();
+            if(view==null)throw new InvalidOperationException("Open the teaching scene first.");
+            const string filename="export_Mobile_Click_Through_Rate_AGB_demo.json";
+            string source=System.IO.Path.GetFullPath(System.IO.Path.Combine(UnityEngine.Application.dataPath,"../../data/examples/",filename));
+            const string destination="Assets/VRExperienceAGB/Data/"+filename;
+            var json=System.IO.File.ReadAllText(source);
+            var result=VRExperienceAGB.Import.AgbStructurePreview.Read(json,"Mobile Click-Through Rate Demo");
+            if(!result.IsSuccess)throw new InvalidOperationException("Demo import failed: "+string.Join("; ",System.Linq.Enumerable.Select(result.Diagnostics,d=>d.Message)));
+            System.IO.File.WriteAllText(destination,json);AssetDatabase.ImportAsset(destination);
+            Undo.RecordObject(view,"Set default demo model");
+            view.modelFile=AssetDatabase.LoadAssetAtPath<TextAsset>(destination);
+            var garden=view.GetComponent<ForestGardenView>();Undo.RecordObject(garden,"Simplify navigation");garden.simplifiedNavigation=true;
+            EditorUtility.SetDirty(view);EditorUtility.SetDirty(garden);
+            EditorSceneManager.MarkSceneDirty(view.gameObject.scene);EditorSceneManager.SaveScene(view.gameObject.scene);AssetDatabase.SaveAssets();
+            return "Default demo installed: "+result.Value.Model.Trees.Count+" trees; simple M3/M4 navigation enabled.";
+        }
         public static string Install()
         {
             if(EditorApplication.isPlaying)throw new InvalidOperationException("Stop Play Mode first.");

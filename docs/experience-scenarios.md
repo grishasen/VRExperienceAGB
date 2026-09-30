@@ -73,7 +73,9 @@ The actual values determine the landscape. Later trees need not be smaller than 
 
 **Purpose:** move between ensemble overview and readable detail.
 
-The user explores the pine garden through room-scale movement or deliberate teleports to path standing points. Numbered controls provide seated access to every tree. Snap turns use the right thumbstick or explicit buttons. A collapsible field guide provides selection details and navigation; A or desktop Tab reopens it. Entering a selected tree opens the separate walkthrough through a short fade. Returning restores the garden location, selected tree and accepted route. Navigation moves an observer origin, never the tracked head or controller transforms. Rotating and scaling a tabletop model remain a possible later mode.
+Startup shows an empty forest clearing with two cases. M3 opens a paginated list of every tree in the selected model, followed by the existing individual-tree walkthrough. M4 opens the complete pine garden. Pointing at a pine reveals structural information; clicking enters that tree directly. Returning restores the garden location and saved route, or the originating M3 list page.
+
+The current default is the user-selected 50-tree nested demonstration export. In M4, explicit standing-point markers along the central and cross-paths provide deliberate teleports to groups and planters. The right thumbstick provides snap turns. A small Menu button and A / desktop Tab recall the two-case menu. The former field-guide dashboard and auxiliary profile, tour and ledger buttons are hidden in this structure-preview flow. Navigation moves an observer origin, never tracked head/controller local transforms. Prepared-profile mechanics and their verified synthetic fixtures remain independent of this default preview. See the [simplified navigation record](m4-simple-navigation-2026-09-30.md).
 
 For dense trees, show a bounded neighborhood around the selected node. Collapsed branches retain their identity and a count of hidden nodes. Selecting a branch can place an enlarged subtree on an inspection table, with a marker connecting it to its original location.
 

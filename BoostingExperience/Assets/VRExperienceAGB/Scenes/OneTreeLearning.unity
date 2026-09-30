@@ -28917,7 +28917,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c7ca3ed3b55c944f79d2ff54abb999e7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: VRExperienceAGB.Presentation::VRExperienceAGB.Presentation.OneTreeExperience
-  modelFile: {fileID: 4900000, guid: 75314d5e9287a40319bf5102e30ef002, type: 3}
+  modelFile: {fileID: 4900000, guid: 98a1088f0503a48158036c7a81c2d509, type: 3}
   profilesFile: {fileID: 4900000, guid: a530b8ed1a37846559fadf9189db9fad, type: 3}
   nodeViews:
   - {fileID: 579900230}
@@ -29028,6 +29028,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b3d9d1314bc534a919613c51009d94ba, type: 3}
   m_Name: 
   m_EditorClassIdentifier: VRExperienceAGB.Presentation::VRExperienceAGB.Presentation.ForestGardenView
+  simplifiedNavigation: 1
   pineMesh: {fileID: 4300000, guid: 8170da8733a5d4e7ebcf25e224474367, type: 2}
   trunkMesh: {fileID: 4300000, guid: 2e7bb8b06f27141c8bcf46fd389978fb, type: 2}
   planterMesh: {fileID: 4300000, guid: f2c44eab911c545398f02f573bd6a51a, type: 2}

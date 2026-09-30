@@ -139,7 +139,9 @@ The formula is the design target; agreement with the official scorer is a separa
 
 ## Example and private-data strategy
 
-The bundled example has three trees and four prepared fictional profiles. The first tree has seven nodes; other trees demonstrate treatment membership and an explicit missing predicate. Scores, gains, counts, treatment names and monitoring values are invented. The compact ensemble teaches scoring mechanics; its score distribution is not a claim about trained-model performance.
+The default structure-preview scene now bundles the user-selected `export_Mobile_Click_Through_Rate_AGB_demo.json` (50 trees); see the [simplified navigation record](m4-simple-navigation-2026-09-30.md). It has no supplied profile/reference prediction and remains explicitly unverified for scoring.
+
+The separate verified scoring fixture has three trees and four prepared fictional profiles. The first tree has seven nodes; other trees demonstrate treatment membership and an explicit missing predicate. Scores, gains, counts, treatment names and monitoring values are invented. The compact ensemble teaches scoring mechanics; its score distribution is not a claim about trained-model performance.
 
 `demo-model.json` is the normalized runtime representation; `demo-agb-export.json` is its nested export-shaped counterpart. A declared feature dictionary and readable labels live in the normalized file, since the export shape does not provide them. The runtime also accepts nested AGB exports directly for structure and manual preview. The fixture checker only verifies this known example's mapping.
 

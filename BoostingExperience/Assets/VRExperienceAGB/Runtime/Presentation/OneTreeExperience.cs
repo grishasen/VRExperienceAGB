@@ -195,6 +195,16 @@ namespace VRExperienceAGB.Presentation
             if (Ensemble.Select(index)) AdoptCurrent(true);
         }
 
+        public void ShowNavigationOverview()
+        {
+            NameTooltip?.Hide(); MenuOpen=false; reviewingResult=false; editingProfile=false; inspectingNodes=false; treeMap=false;
+            Session.ReturnToOverview(); Refresh();
+        }
+        public void EnterNavigationTree()
+        {
+            MenuOpen=false; treeMap=false; Session.EnterTree(); Session.SetPaused(false); Refresh();
+        }
+
         private string Feature(string id) => model.Features.Single(f => f.Id == id).DisplayName;
         public string Condition(SplitNode node, bool branch)
         {
@@ -216,6 +226,13 @@ namespace VRExperienceAGB.Presentation
             if (Session == null || revision != Session.State.Revision || nodeId != Session.State.NodeId) return;
             NameTooltip?.Hide();
             if (model.StructureOnlyPreview && (action == TreeAction.Profile || action == TreeAction.NextProfile || action == TreeAction.DeepExample || action == TreeAction.LargerEnsemble)) return;
+            if(Garden?.simplifiedNavigation == true && Garden.Navigation != null)
+            {
+                if(action==TreeAction.Menu) { Garden.Navigation.ShowHome(); return; }
+                if(action==TreeAction.Overview && !Session.State.Overview) { Garden.Navigation.ReturnFromTree(); return; }
+                if(action==TreeAction.Restart) { Session.Restart(); movingEvent=-1; Refresh(); return; }
+                if(action==TreeAction.Back) { Session.Back(); movingEvent=-1; Refresh(); return; }
+            }
             CommandReply reply = default;
             switch (action)
             {

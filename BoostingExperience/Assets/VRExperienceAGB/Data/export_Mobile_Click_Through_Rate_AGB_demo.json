@@ -1,0 +1,4339 @@
+{
+  "type": "AdaptiveBoostScoringModel",
+  "modelVersion": "demo50-meaningful-mobile-ctr-v1",
+  "algorithm": "GRADIENT_BOOST",
+  "factoryUpdateTime": "2026-09-30T08:00:00.000Z",
+  "trainingStats": {
+    "positiveCount": 12500,
+    "negativeCount": 87500,
+    "totalCount": 100000
+  },
+  "successRate": 0.125,
+  "auc": 0.86,
+  "model": {
+    "booster": {
+      "trees": [
+        {
+          "score": 0.0,
+          "gain": 573.56,
+          "sampleCount": 100000,
+          "split": "Audience.AppSignInCount7d < 24",
+          "left": {
+            "score": -0.075,
+            "gain": 266.13,
+            "sampleCount": 70000,
+            "split": "Audience.PaymentRecency12m < 14",
+            "left": {
+              "score": -0.0202,
+              "gain": 154.76,
+              "sampleCount": 49000,
+              "split": "Audience.MarketOrderRecency12m < 30",
+              "left": {
+                "score": 0.0869,
+                "gain": 0.0,
+                "sampleCount": 14700
+              },
+              "right": {
+                "score": -0.0661,
+                "gain": 0.0,
+                "sampleCount": 34300
+              }
+            },
+            "right": {
+              "score": -0.2029,
+              "gain": 161.88,
+              "sampleCount": 21000,
+              "split": "Audience.PasscodeSignInCount7d < 16",
+              "left": {
+                "score": -0.2961,
+                "gain": 0.0,
+                "sampleCount": 11550
+              },
+              "right": {
+                "score": -0.0891,
+                "gain": 0.0,
+                "sampleCount": 9450
+              }
+            }
+          },
+          "right": {
+            "score": 0.175,
+            "gain": 321.42,
+            "sampleCount": 30000,
+            "split": "Audience.OnlineSignInCount90d < 5",
+            "left": {
+              "score": 0.0143,
+              "gain": 131.18,
+              "sampleCount": 10500,
+              "split": "Audience.Activity.ReservePageViews1d < 2",
+              "left": {
+                "score": -0.0789,
+                "gain": 0.0,
+                "sampleCount": 5775
+              },
+              "right": {
+                "score": 0.1281,
+                "gain": 0.0,
+                "sampleCount": 4725
+              }
+            },
+            "right": {
+              "score": 0.2615,
+              "gain": 140.12,
+              "sampleCount": 19500,
+              "split": "Audience.StorePaymentRecency12m < 14",
+              "left": {
+                "score": 0.3443,
+                "gain": 0.0,
+                "sampleCount": 11700
+              },
+              "right": {
+                "score": 0.1373,
+                "gain": 0.0,
+                "sampleCount": 7800
+              }
+            }
+          }
+        },
+        {
+          "score": 0.0094,
+          "gain": 642.77,
+          "sampleCount": 100000,
+          "split": "Audience.Scores.AppSavingsInterest < 40",
+          "left": {
+            "score": -0.0812,
+            "gain": 273.85,
+            "sampleCount": 55000,
+            "split": "Audience.Scores.FundInterest < 40",
+            "left": {
+              "score": -0.1526,
+              "gain": 139.9,
+              "sampleCount": 35750,
+              "split": "Audience.Scores.PriceSensitivity < 25",
+              "left": {
+                "score": -0.025,
+                "gain": 0.0,
+                "sampleCount": 12512
+              },
+              "right": {
+                "score": -0.2212,
+                "gain": 0.0,
+                "sampleCount": 23238
+              }
+            },
+            "right": {
+              "score": 0.0512,
+              "gain": 142.66,
+              "sampleCount": 19250,
+              "split": "Audience.Scores.AdvisedInvestmentInterest < 40",
+              "left": {
+                "score": -0.043,
+                "gain": 0.0,
+                "sampleCount": 6738
+              },
+              "right": {
+                "score": 0.102,
+                "gain": 0.0,
+                "sampleCount": 12512
+              }
+            }
+          },
+          "right": {
+            "score": 0.1202,
+            "gain": 257.61,
+            "sampleCount": 45000,
+            "split": "Audience.Scores.SpecialYieldInterest < 25",
+            "left": {
+              "score": -0.0087,
+              "gain": 156.37,
+              "sampleCount": 20250,
+              "split": "Audience.Scores.AutumnSavingsInterest < 50",
+              "left": {
+                "score": -0.1196,
+                "gain": 0.0,
+                "sampleCount": 7088
+              },
+              "right": {
+                "score": 0.051,
+                "gain": 0.0,
+                "sampleCount": 13162
+              }
+            },
+            "right": {
+              "score": 0.2256,
+              "gain": 137.68,
+              "sampleCount": 24750,
+              "split": "Audience.Scores.ParkingInterest < 50",
+              "left": {
+                "score": 0.1147,
+                "gain": 0.0,
+                "sampleCount": 8662
+              },
+              "right": {
+                "score": 0.2854,
+                "gain": 0.0,
+                "sampleCount": 16088
+              }
+            }
+          }
+        },
+        {
+          "score": 0.0117,
+          "gain": 513.37,
+          "sampleCount": 100000,
+          "split": "OfferGroup in { EverydayServices, ProtectionPlans }",
+          "left": {
+            "score": 0.1801,
+            "gain": 278.86,
+            "sampleCount": 35000,
+            "split": "OfferVariant in { PhoneWallet_StorePay_Search_App }",
+            "left": {
+              "score": 0.336,
+              "gain": 117.07,
+              "sampleCount": 10500,
+              "split": "Audience.Activity.SavingsOfferViews1h < 2",
+              "left": {
+                "score": 0.2946,
+                "gain": 0.0,
+                "sampleCount": 7350
+              },
+              "right": {
+                "score": 0.4325,
+                "gain": 0.0,
+                "sampleCount": 3150
+              }
+            },
+            "right": {
+              "score": 0.1132,
+              "gain": 134.98,
+              "sampleCount": 24500,
+              "split": "Audience.BonusSavingsStartRecency < 7",
+              "left": {
+                "score": 0.1546,
+                "gain": 0.0,
+                "sampleCount": 17150
+              },
+              "right": {
+                "score": 0.0167,
+                "gain": 0.0,
+                "sampleCount": 7350
+              }
+            }
+          },
+          "right": {
+            "score": -0.079,
+            "gain": 243.82,
+            "sampleCount": 65000,
+            "split": "OfferName in { Borrowing_Protected_Bonus_QuickIncome }",
+            "left": {
+              "score": 0.0281,
+              "gain": 146.64,
+              "sampleCount": 22750,
+              "split": "Audience.Scores.SplitPaymentInterest < 25",
+              "left": {
+                "score": -0.0279,
+                "gain": 0.0,
+                "sampleCount": 15925
+              },
+              "right": {
+                "score": 0.1586,
+                "gain": 0.0,
+                "sampleCount": 6825
+              }
+            },
+            "right": {
+              "score": -0.1366,
+              "gain": 137.13,
+              "sampleCount": 42250,
+              "split": "Audience.DepositOpeningRecency < 3",
+              "left": {
+                "score": -0.062,
+                "gain": 0.0,
+                "sampleCount": 25350
+              },
+              "right": {
+                "score": -0.2485,
+                "gain": 0.0,
+                "sampleCount": 16900
+              }
+            }
+          }
+        },
+        {
+          "score": 0.0051,
+          "gain": 536.26,
+          "sampleCount": 100000,
+          "split": "IH.Mobile.Inbound.Clicked.HistoricalOutcomeCount < 20",
+          "left": {
+            "score": -0.1135,
+            "gain": 278.53,
+            "sampleCount": 35000,
+            "split": "IH.Mobile.Inbound.Impression.pxLastGroupID in { EverydayServices }",
+            "left": {
+              "score": 0.0351,
+              "gain": 124.24,
+              "sampleCount": 10500,
+              "split": "IH.Mobile.Inbound.Clicked.pxLastGroupID in { FixedSavings, WealthProducts }",
+              "left": {
+                "score": 0.0815,
+                "gain": 0.0,
+                "sampleCount": 7350
+              },
+              "right": {
+                "score": -0.0731,
+                "gain": 0.0,
+                "sampleCount": 3150
+              }
+            },
+            "right": {
+              "score": -0.1771,
+              "gain": 109.63,
+              "sampleCount": 24500,
+              "split": "IH.Web.Inbound.Impression.pxLastOutcomeTime.DaysSince < 0.5",
+              "left": {
+                "score": -0.0918,
+                "gain": 0.0,
+                "sampleCount": 8575
+              },
+              "right": {
+                "score": -0.2231,
+                "gain": 0.0,
+                "sampleCount": 15925
+              }
+            }
+          },
+          "right": {
+            "score": 0.0689,
+            "gain": 249.68,
+            "sampleCount": 65000,
+            "split": "IH.Push.Outbound.Impression.pxLastOutcomeTime.DaysSince < 0.5",
+            "left": {
+              "score": 0.1428,
+              "gain": 141.05,
+              "sampleCount": 39000,
+              "split": "IH.Mobile.Inbound.Rejected.pxLastGroupID in { ProtectionPlans, ReserveSavings }",
+              "left": {
+                "score": 0.2583,
+                "gain": 0.0,
+                "sampleCount": 13650
+              },
+              "right": {
+                "score": 0.0806,
+                "gain": 0.0,
+                "sampleCount": 25350
+              }
+            },
+            "right": {
+              "score": -0.0418,
+              "gain": 136.26,
+              "sampleCount": 26000,
+              "split": "IH.Push.Outbound.Pending.pxLastGroupID in { ReserveSavings }",
+              "left": {
+                "score": 0.0737,
+                "gain": 0.0,
+                "sampleCount": 9100
+              },
+              "right": {
+                "score": -0.104,
+                "gain": 0.0,
+                "sampleCount": 16900
+              }
+            }
+          }
+        },
+        {
+          "score": -0.0053,
+          "gain": 582.23,
+          "sampleCount": 100000,
+          "split": "Audience.CurrentCombinedFunds < 2500",
+          "left": {
+            "score": -0.1585,
+            "gain": 225.58,
+            "sampleCount": 35000,
+            "split": "Audience.MeanServiceRevenue180d < 2.5",
+            "left": {
+              "score": -0.2633,
+              "gain": 118.16,
+              "sampleCount": 10500,
+              "split": "Audience.PriorDayAssetValue < 500",
+              "left": {
+                "score": -0.3651,
+                "gain": 0.0,
+                "sampleCount": 4200
+              },
+              "right": {
+                "score": -0.1955,
+                "gain": 0.0,
+                "sampleCount": 6300
+              }
+            },
+            "right": {
+              "score": -0.1135,
+              "gain": 112.7,
+              "sampleCount": 24500,
+              "split": "Audience.CombinedAssetValue < 500",
+              "left": {
+                "score": -0.2238,
+                "gain": 0.0,
+                "sampleCount": 8575
+              },
+              "right": {
+                "score": -0.0542,
+                "gain": 0.0,
+                "sampleCount": 15925
+              }
+            }
+          },
+          "right": {
+            "score": 0.0772,
+            "gain": 278.36,
+            "sampleCount": 65000,
+            "split": "Audience.DepositIncomeRatio30d < 0.1",
+            "left": {
+              "score": -0.0374,
+              "gain": 119.84,
+              "sampleCount": 22750,
+              "split": "Audience.MeanFixedYield90d < 0.015",
+              "left": {
+                "score": -0.0816,
+                "gain": 0.0,
+                "sampleCount": 15925
+              },
+              "right": {
+                "score": 0.0659,
+                "gain": 0.0,
+                "sampleCount": 6825
+              }
+            },
+            "right": {
+              "score": 0.1389,
+              "gain": 119.49,
+              "sampleCount": 42250,
+              "split": "Audience.TotalFixedSavings < 500",
+              "left": {
+                "score": 0.0824,
+                "gain": 0.0,
+                "sampleCount": 23238
+              },
+              "right": {
+                "score": 0.2078,
+                "gain": 0.0,
+                "sampleCount": 19012
+              }
+            }
+          }
+        },
+        {
+          "score": -0.0117,
+          "gain": 488.08,
+          "sampleCount": 100000,
+          "split": "Audience.Scores.CardInterest < 40",
+          "left": {
+            "score": -0.0784,
+            "gain": 247.09,
+            "sampleCount": 60000,
+            "split": "Audience.Scores.AutoPaymentInterest < 65",
+            "left": {
+              "score": -0.1374,
+              "gain": 113.22,
+              "sampleCount": 39000,
+              "split": "Audience.Scores.ExchangeInterest < 25",
+              "left": {
+                "score": -0.2154,
+                "gain": 0.0,
+                "sampleCount": 13650
+              },
+              "right": {
+                "score": -0.0954,
+                "gain": 0.0,
+                "sampleCount": 25350
+              }
+            },
+            "right": {
+              "score": 0.0312,
+              "gain": 119.31,
+              "sampleCount": 21000,
+              "split": "Audience.Scores.RecurringSavingsInterest < 25",
+              "left": {
+                "score": -0.0605,
+                "gain": 0.0,
+                "sampleCount": 7350
+              },
+              "right": {
+                "score": 0.0807,
+                "gain": 0.0,
+                "sampleCount": 13650
+              }
+            }
+          },
+          "right": {
+            "score": 0.0883,
+            "gain": 247.68,
+            "sampleCount": 40000,
+            "split": "Audience.Scores.PlannedSavingsInterest < 25",
+            "left": {
+              "score": -0.0377,
+              "gain": 99.27,
+              "sampleCount": 14000,
+              "split": "Audience.Scores.TransitInterest < 80",
+              "left": {
+                "score": -0.0942,
+                "gain": 0.0,
+                "sampleCount": 8400
+              },
+              "right": {
+                "score": 0.047,
+                "gain": 0.0,
+                "sampleCount": 5600
+              }
+            },
+            "right": {
+              "score": 0.1562,
+              "gain": 106.53,
+              "sampleCount": 26000,
+              "split": "Audience.Scores.VoucherInterest < 25",
+              "left": {
+                "score": 0.0842,
+                "gain": 0.0,
+                "sampleCount": 10400
+              },
+              "right": {
+                "score": 0.2042,
+                "gain": 0.0,
+                "sampleCount": 15600
+              }
+            }
+          }
+        },
+        {
+          "score": -0.0093,
+          "gain": 492.23,
+          "sampleCount": 100000,
+          "split": "Audience.LoanRequestState in { NeedsReview }",
+          "left": {
+            "score": 0.088,
+            "gain": 196.14,
+            "sampleCount": 55000,
+            "split": "Audience.FamilyAccountFlag in { Disabled }",
+            "left": {
+              "score": 0.1769,
+              "gain": 102.11,
+              "sampleCount": 24750,
+              "split": "Audience.SavingsBonusTier in { StarterBonus }",
+              "left": {
+                "score": 0.2703,
+                "gain": 0.0,
+                "sampleCount": 9900
+              },
+              "right": {
+                "score": 0.1146,
+                "gain": 0.0,
+                "sampleCount": 14850
+              }
+            },
+            "right": {
+              "score": 0.0152,
+              "gain": 93.13,
+              "sampleCount": 30250,
+              "split": "Audience.InitialServiceBundle in { CoupleBasicBundle }",
+              "left": {
+                "score": 0.0853,
+                "gain": 0.0,
+                "sampleCount": 16638
+              },
+              "right": {
+                "score": -0.0704,
+                "gain": 0.0,
+                "sampleCount": 13612
+              }
+            }
+          },
+          "right": {
+            "score": -0.1282,
+            "gain": 214.15,
+            "sampleCount": 45000,
+            "split": "Audience.LargestAccountPlan in { FeeFreeAccount }",
+            "left": {
+              "score": -0.0631,
+              "gain": 121.21,
+              "sampleCount": 29250,
+              "split": "Audience.LoanRequestRecency < 3",
+              "left": {
+                "score": -0.0225,
+                "gain": 0.0,
+                "sampleCount": 20475
+              },
+              "right": {
+                "score": -0.1579,
+                "gain": 0.0,
+                "sampleCount": 8775
+              }
+            },
+            "right": {
+              "score": -0.249,
+              "gain": 119.74,
+              "sampleCount": 15750,
+              "split": "Audience.ProfileYears < 25",
+              "left": {
+                "score": -0.3035,
+                "gain": 0.0,
+                "sampleCount": 10238
+              },
+              "right": {
+                "score": -0.1479,
+                "gain": 0.0,
+                "sampleCount": 5512
+              }
+            }
+          }
+        },
+        {
+          "score": 0.0002,
+          "gain": 493.2,
+          "sampleCount": 100000,
+          "split": "Audience.HomeRegion in { WesternForest }",
+          "left": {
+            "score": 0.0625,
+            "gain": 215.84,
+            "sampleCount": 70000,
+            "split": "Audience.LatestAccountMonths < 12",
+            "left": {
+              "score": -0.0229,
+              "gain": 96.29,
+              "sampleCount": 31500,
+              "split": "Audience.PreferredRetailer in { StyleCorner }",
+              "left": {
+                "score": 0.0489,
+                "gain": 0.0,
+                "sampleCount": 11025
+              },
+              "right": {
+                "score": -0.0616,
+                "gain": 0.0,
+                "sampleCount": 20475
+              }
+            },
+            "right": {
+              "score": 0.1323,
+              "gain": 91.95,
+              "sampleCount": 38500,
+              "split": "Audience.LoanApprovalRecency < 3",
+              "left": {
+                "score": 0.2168,
+                "gain": 0.0,
+                "sampleCount": 13475
+              },
+              "right": {
+                "score": 0.0868,
+                "gain": 0.0,
+                "sampleCount": 25025
+              }
+            }
+          },
+          "right": {
+            "score": -0.1451,
+            "gain": 220.88,
+            "sampleCount": 30000,
+            "split": "Audience.RequestRecency < 3",
+            "left": {
+              "score": -0.052,
+              "gain": 90.35,
+              "sampleCount": 12000,
+              "split": "Audience.ProfileGender in { NonBinaryProfile }",
+              "left": {
+                "score": 0.0377,
+                "gain": 0.0,
+                "sampleCount": 4800
+              },
+              "right": {
+                "score": -0.1117,
+                "gain": 0.0,
+                "sampleCount": 7200
+              }
+            },
+            "right": {
+              "score": -0.2072,
+              "gain": 104.37,
+              "sampleCount": 18000,
+              "split": "Audience.HouseholdStatus in { MarriedHousehold, SingleHousehold }",
+              "left": {
+                "score": -0.1357,
+                "gain": 0.0,
+                "sampleCount": 8100
+              },
+              "right": {
+                "score": -0.2657,
+                "gain": 0.0,
+                "sampleCount": 9900
+              }
+            }
+          }
+        },
+        {
+          "score": 0.0095,
+          "gain": 432.14,
+          "sampleCount": 100000,
+          "split": "Audience.OtherFinanceProvider in { Riverbend Credit }",
+          "left": {
+            "score": 0.0894,
+            "gain": 214.54,
+            "sampleCount": 60000,
+            "split": "Audience.ExternalSavingsFlag in { Enabled }",
+            "left": {
+              "score": 0.1465,
+              "gain": 0.0,
+              "sampleCount": 33000
+            },
+            "right": {
+              "score": 0.0196,
+              "gain": 0.0,
+              "sampleCount": 27000
+            }
+          },
+          "right": {
+            "score": -0.1103,
+            "gain": 188.3,
+            "sampleCount": 40000,
+            "split": "Audience.PrimaryAccountFlag in { Enabled }",
+            "left": {
+              "score": -0.033,
+              "gain": 0.0,
+              "sampleCount": 22000
+            },
+            "right": {
+              "score": -0.2047,
+              "gain": 0.0,
+              "sampleCount": 18000
+            }
+          }
+        },
+        {
+          "score": 0.0116,
+          "gain": 414.93,
+          "sampleCount": 100000,
+          "split": "OfferCategory in { Review, Welcome }",
+          "left": {
+            "score": 0.0756,
+            "gain": 212.01,
+            "sampleCount": 55000,
+            "split": "Audience.MarketOrderCount12m < 5",
+            "left": {
+              "score": -0.0035,
+              "gain": 80.15,
+              "sampleCount": 24750,
+              "split": "Audience.Scores.RewardInterest < 80",
+              "left": {
+                "score": -0.0445,
+                "gain": 42.83,
+                "sampleCount": 14850,
+                "split": "Audience.OnlineMarketShoppingDays12m < 10",
+                "left": {
+                  "score": -0.0779,
+                  "gain": 0.0,
+                  "sampleCount": 10395
+                },
+                "right": {
+                  "score": 0.0336,
+                  "gain": 0.0,
+                  "sampleCount": 4455
+                }
+              },
+              "right": {
+                "score": 0.0579,
+                "gain": 37.6,
+                "sampleCount": 9900,
+                "split": "Audience.Activity.OwnSavingsViews1h < 2",
+                "left": {
+                  "score": 0.0239,
+                  "gain": 0.0,
+                  "sampleCount": 6435
+                },
+                "right": {
+                  "score": 0.1209,
+                  "gain": 0.0,
+                  "sampleCount": 3465
+                }
+              }
+            },
+            "right": {
+              "score": 0.1403,
+              "gain": 91.91,
+              "sampleCount": 30250,
+              "split": "Audience.CardLimitUtilization < 25",
+              "left": {
+                "score": 0.1045,
+                "gain": 49.86,
+                "sampleCount": 19662,
+                "split": "Audience.RetailDebitCount90d < 5",
+                "left": {
+                  "score": 0.0468,
+                  "gain": 0.0,
+                  "sampleCount": 5899
+                },
+                "right": {
+                  "score": 0.1292,
+                  "gain": 0.0,
+                  "sampleCount": 13763
+                }
+              },
+              "right": {
+                "score": 0.2068,
+                "gain": 47.47,
+                "sampleCount": 10588,
+                "split": "Audience.MeanBalanceRevenue180d < 2.5",
+                "left": {
+                  "score": 0.1486,
+                  "gain": 0.0,
+                  "sampleCount": 4235
+                },
+                "right": {
+                  "score": 0.2456,
+                  "gain": 0.0,
+                  "sampleCount": 6353
+                }
+              }
+            }
+          },
+          "right": {
+            "score": -0.0666,
+            "gain": 176.58,
+            "sampleCount": 45000,
+            "split": "Audience.BankingDebitCreditRatio30d < 0.1",
+            "left": {
+              "score": -0.1313,
+              "gain": 84.84,
+              "sampleCount": 24750,
+              "split": "IH.Mobile.Inbound.Impression.HistoricalOutcomeCount < 5",
+              "left": {
+                "score": -0.2035,
+                "gain": 45.26,
+                "sampleCount": 9900,
+                "split": "Audience.Scores.BonusSavingsInterest < 25",
+                "left": {
+                  "score": -0.2375,
+                  "gain": 0.0,
+                  "sampleCount": 6435
+                },
+                "right": {
+                  "score": -0.1405,
+                  "gain": 0.0,
+                  "sampleCount": 3465
+                }
+              },
+              "right": {
+                "score": -0.0831,
+                "gain": 44.63,
+                "sampleCount": 14850,
+                "split": "Audience.OpenEverydayPlans < 5",
+                "left": {
+                  "score": -0.1413,
+                  "gain": 0.0,
+                  "sampleCount": 5940
+                },
+                "right": {
+                  "score": -0.0443,
+                  "gain": 0.0,
+                  "sampleCount": 8910
+                }
+              }
+            },
+            "right": {
+              "score": 0.0125,
+              "gain": 99.03,
+              "sampleCount": 20250,
+              "split": "Audience.OnlineMarketOrderCount12m < 40",
+              "left": {
+                "score": -0.0537,
+                "gain": 44.91,
+                "sampleCount": 9112,
+                "split": "Audience.Scores.CreditBufferInterest < 25",
+                "left": {
+                  "score": -0.1073,
+                  "gain": 0.0,
+                  "sampleCount": 3189
+                },
+                "right": {
+                  "score": -0.0249,
+                  "gain": 0.0,
+                  "sampleCount": 5923
+                }
+              },
+              "right": {
+                "score": 0.0667,
+                "gain": 44.38,
+                "sampleCount": 11138,
+                "split": "IH.Push.Outbound.Clicked.pxLastOutcomeTime.DaysSince < 0.5",
+                "left": {
+                  "score": 0.1103,
+                  "gain": 0.0,
+                  "sampleCount": 6126
+                },
+                "right": {
+                  "score": 0.0134,
+                  "gain": 0.0,
+                  "sampleCount": 5012
+                }
+              }
+            }
+          }
+        },
+        {
+          "score": 0.0049,
+          "gain": 409.54,
+          "sampleCount": 100000,
+          "split": "Audience.AppSignInCount7d < 30",
+          "left": {
+            "score": -0.0568,
+            "gain": 167.99,
+            "sampleCount": 55000,
+            "split": "Audience.Activity.ReservePageViews1h < 2",
+            "left": {
+              "score": -0.1192,
+              "gain": 88.15,
+              "sampleCount": 30250,
+              "split": "Audience.Activity.SavingsOfferViews1d < 2",
+              "left": {
+                "score": -0.166,
+                "gain": 0.0,
+                "sampleCount": 19662
+              },
+              "right": {
+                "score": -0.0324,
+                "gain": 0.0,
+                "sampleCount": 10588
+              }
+            },
+            "right": {
+              "score": 0.0195,
+              "gain": 95.3,
+              "sampleCount": 24750,
+              "split": "Audience.DeviceShoppingDays12m < 5",
+              "left": {
+                "score": -0.074,
+                "gain": 0.0,
+                "sampleCount": 7425
+              },
+              "right": {
+                "score": 0.0596,
+                "gain": 0.0,
+                "sampleCount": 17325
+              }
+            }
+          },
+          "right": {
+            "score": 0.0803,
+            "gain": 162.4,
+            "sampleCount": 45000,
+            "split": "Audience.Activity.CreditPageViews1h < 2",
+            "left": {
+              "score": 0.0331,
+              "gain": 94.68,
+              "sampleCount": 27000,
+              "split": "Audience.LocalStoreVisitRecency < 7",
+              "left": {
+                "score": 0.0677,
+                "gain": 0.0,
+                "sampleCount": 17550
+              },
+              "right": {
+                "score": -0.031,
+                "gain": 0.0,
+                "sampleCount": 9450
+              }
+            },
+            "right": {
+              "score": 0.151,
+              "gain": 80.8,
+              "sampleCount": 18000,
+              "split": "Audience.AppSignInRecency < 14",
+              "left": {
+                "score": 0.1955,
+                "gain": 0.0,
+                "sampleCount": 9900
+              },
+              "right": {
+                "score": 0.0968,
+                "gain": 0.0,
+                "sampleCount": 8100
+              }
+            }
+          }
+        },
+        {
+          "score": -0.0055,
+          "gain": 395.04,
+          "sampleCount": 100000,
+          "split": "Audience.Scores.AppSavingsInterest < 50",
+          "left": {
+            "score": -0.0452,
+            "gain": 198.19,
+            "sampleCount": 70000,
+            "split": "Audience.Scores.HorizonSavingsInterest < 25",
+            "left": {
+              "score": -0.1192,
+              "gain": 82.2,
+              "sampleCount": 24500,
+              "split": "Audience.Scores.DepositInterest < 25",
+              "left": {
+                "score": -0.1478,
+                "gain": 0.0,
+                "sampleCount": 17150
+              },
+              "right": {
+                "score": -0.0525,
+                "gain": 0.0,
+                "sampleCount": 7350
+              }
+            },
+            "right": {
+              "score": -0.0054,
+              "gain": 73.66,
+              "sampleCount": 45500,
+              "split": "Audience.Scores.PhoneCreditInterest < 25",
+              "left": {
+                "score": -0.039,
+                "gain": 0.0,
+                "sampleCount": 31850
+              },
+              "right": {
+                "score": 0.0731,
+                "gain": 0.0,
+                "sampleCount": 13650
+              }
+            }
+          },
+          "right": {
+            "score": 0.0872,
+            "gain": 182.16,
+            "sampleCount": 30000,
+            "split": "Audience.Scores.FlexibleSavingsInterest < 40",
+            "left": {
+              "score": 0.0025,
+              "gain": 92.8,
+              "sampleCount": 13500,
+              "split": "Audience.Scores.BorrowingInterest < 25",
+              "left": {
+                "score": -0.0878,
+                "gain": 0.0,
+                "sampleCount": 4050
+              },
+              "right": {
+                "score": 0.0411,
+                "gain": 0.0,
+                "sampleCount": 9450
+              }
+            },
+            "right": {
+              "score": 0.1565,
+              "gain": 84.71,
+              "sampleCount": 16500,
+              "split": "IH.Push.Outbound.Pending.pxLastOutcomeTime.DaysSince < 0.5",
+              "left": {
+                "score": 0.2294,
+                "gain": 0.0,
+                "sampleCount": 5775
+              },
+              "right": {
+                "score": 0.1172,
+                "gain": 0.0,
+                "sampleCount": 10725
+              }
+            }
+          }
+        },
+        {
+          "score": -0.0118,
+          "gain": 397.79,
+          "sampleCount": 100000,
+          "split": "OfferGroup in { PersonalBorrowing, ProtectionPlans }",
+          "left": {
+            "score": 0.0835,
+            "gain": 188.47,
+            "sampleCount": 45000,
+            "split": "Audience.PeakMonthlyCardSpend180d < 3000",
+            "left": {
+              "score": 0.0388,
+              "gain": 88.44,
+              "sampleCount": 31500,
+              "split": "Audience.MarketOrderValue12m < 500",
+              "left": {
+                "score": -0.01,
+                "gain": 0.0,
+                "sampleCount": 17325
+              },
+              "right": {
+                "score": 0.0984,
+                "gain": 0.0,
+                "sampleCount": 14175
+              }
+            },
+            "right": {
+              "score": 0.1877,
+              "gain": 90.65,
+              "sampleCount": 13500,
+              "split": "Audience.LargestRetailDebit90d < 500",
+              "left": {
+                "score": 0.1462,
+                "gain": 0.0,
+                "sampleCount": 7425
+              },
+              "right": {
+                "score": 0.2384,
+                "gain": 0.0,
+                "sampleCount": 6075
+              }
+            }
+          },
+          "right": {
+            "score": -0.0897,
+            "gain": 157.77,
+            "sampleCount": 55000,
+            "split": "IH.Mobile.Inbound.Rejected.HistoricalOutcomeCount < 20",
+            "left": {
+              "score": -0.1558,
+              "gain": 86.14,
+              "sampleCount": 22000,
+              "split": "Audience.SmallestOutgoingPayment90d < 2.5",
+              "left": {
+                "score": -0.2119,
+                "gain": 0.0,
+                "sampleCount": 12100
+              },
+              "right": {
+                "score": -0.0872,
+                "gain": 0.0,
+                "sampleCount": 9900
+              }
+            },
+            "right": {
+              "score": -0.0457,
+              "gain": 86.79,
+              "sampleCount": 33000,
+              "split": "Audience.VehiclePaymentCount90d < 20",
+              "left": {
+                "score": -0.0826,
+                "gain": 0.0,
+                "sampleCount": 19800
+              },
+              "right": {
+                "score": 0.0096,
+                "gain": 0.0,
+                "sampleCount": 13200
+              }
+            }
+          }
+        },
+        {
+          "score": -0.0091,
+          "gain": 332.95,
+          "sampleCount": 100000,
+          "split": "IH.Mobile.Inbound.Clicked.HistoricalOutcomeCount < 40",
+          "left": {
+            "score": -0.0601,
+            "gain": 145.92,
+            "sampleCount": 65000,
+            "split": "IH.Event.Outbound.RealTimeEvent.pxLastOutcomeTime.DaysSince < 0.5",
+            "left": {
+              "score": 0.0192,
+              "gain": 77.59,
+              "sampleCount": 29250,
+              "split": "IH.Mobile.Inbound.Rejected.pxLastOutcomeTime.DaysSince < 0.5",
+              "left": {
+                "score": 0.0612,
+                "gain": 0.0,
+                "sampleCount": 17550
+              },
+              "right": {
+                "score": -0.0438,
+                "gain": 0.0,
+                "sampleCount": 11700
+              }
+            },
+            "right": {
+              "score": -0.125,
+              "gain": 75.67,
+              "sampleCount": 35750,
+              "split": "IH.Mobile.Inbound.Impression.pxLastOutcomeTime.DaysSince < 0.5",
+              "left": {
+                "score": -0.0938,
+                "gain": 0.0,
+                "sampleCount": 23238
+              },
+              "right": {
+                "score": -0.183,
+                "gain": 0.0,
+                "sampleCount": 12512
+              }
+            }
+          },
+          "right": {
+            "score": 0.0857,
+            "gain": 183.62,
+            "sampleCount": 35000,
+            "split": "IH.Event.Outbound.RealTimeEvent.HistoricalOutcomeCount < 5",
+            "left": {
+              "score": 0.0164,
+              "gain": 69.11,
+              "sampleCount": 12250,
+              "split": "IH.Push.Outbound.Pending.HistoricalOutcomeCount < 5",
+              "left": {
+                "score": -0.0319,
+                "gain": 0.0,
+                "sampleCount": 7350
+              },
+              "right": {
+                "score": 0.0888,
+                "gain": 0.0,
+                "sampleCount": 4900
+              }
+            },
+            "right": {
+              "score": 0.1229,
+              "gain": 79.5,
+              "sampleCount": 22750,
+              "split": "IH.Push.Outbound.Impression.pxLastGroupID in { ExternalPayments }",
+              "left": {
+                "score": 0.1592,
+                "gain": 0.0,
+                "sampleCount": 15925
+              },
+              "right": {
+                "score": 0.0385,
+                "gain": 0.0,
+                "sampleCount": 6825
+              }
+            }
+          }
+        },
+        {
+          "score": 0.0004,
+          "gain": 326.71,
+          "sampleCount": 100000,
+          "split": "Audience.CurrentCombinedFunds < 7500",
+          "left": {
+            "score": -0.0773,
+            "gain": 152.83,
+            "sampleCount": 45000,
+            "split": "Audience.MeanFeeRevenue180d < 2.5",
+            "left": {
+              "score": -0.1751,
+              "gain": 70.48,
+              "sampleCount": 13500,
+              "split": "Audience.CardRevenue30d < 2.5",
+              "left": {
+                "score": -0.2218,
+                "gain": 0.0,
+                "sampleCount": 8100
+              },
+              "right": {
+                "score": -0.1049,
+                "gain": 0.0,
+                "sampleCount": 5400
+              }
+            },
+            "right": {
+              "score": -0.0354,
+              "gain": 65.04,
+              "sampleCount": 31500,
+              "split": "Audience.DepositBalanceFloor < 500",
+              "left": {
+                "score": -0.0656,
+                "gain": 0.0,
+                "sampleCount": 20475
+              },
+              "right": {
+                "score": 0.0208,
+                "gain": 0.0,
+                "sampleCount": 11025
+              }
+            }
+          },
+          "right": {
+            "score": 0.064,
+            "gain": 170.54,
+            "sampleCount": 55000,
+            "split": "Audience.SavingsBalanceFloor < 500",
+            "left": {
+              "score": 0.0093,
+              "gain": 81.9,
+              "sampleCount": 30250,
+              "split": "Audience.MeanAccountFunds90d < 250",
+              "left": {
+                "score": -0.0517,
+                "gain": 0.0,
+                "sampleCount": 12100
+              },
+              "right": {
+                "score": 0.05,
+                "gain": 0.0,
+                "sampleCount": 18150
+              }
+            },
+            "right": {
+              "score": 0.1308,
+              "gain": 65.34,
+              "sampleCount": 24750,
+              "split": "Audience.EverydayAccountFunds < 500",
+              "left": {
+                "score": 0.0647,
+                "gain": 0.0,
+                "sampleCount": 8662
+              },
+              "right": {
+                "score": 0.1664,
+                "gain": 0.0,
+                "sampleCount": 16088
+              }
+            }
+          }
+        },
+        {
+          "score": 0.0096,
+          "gain": 360.4,
+          "sampleCount": 100000,
+          "split": "Audience.Scores.CardInterest < 65",
+          "left": {
+            "score": -0.1007,
+            "gain": 133.02,
+            "sampleCount": 30000,
+            "split": "Audience.SmallestCredit90d < 2.5",
+            "left": {
+              "score": -0.1537,
+              "gain": 65.3,
+              "sampleCount": 16500,
+              "split": "Audience.MobilityPaymentCount7d < 2",
+              "left": {
+                "score": -0.1872,
+                "gain": 0.0,
+                "sampleCount": 9900
+              },
+              "right": {
+                "score": -0.1034,
+                "gain": 0.0,
+                "sampleCount": 6600
+              }
+            },
+            "right": {
+              "score": -0.0359,
+              "gain": 63.24,
+              "sampleCount": 13500,
+              "split": "Audience.Activity.OwnSavingsViews1d < 2",
+              "left": {
+                "score": -0.0946,
+                "gain": 0.0,
+                "sampleCount": 4050
+              },
+              "right": {
+                "score": -0.0107,
+                "gain": 0.0,
+                "sampleCount": 9450
+              }
+            }
+          },
+          "right": {
+            "score": 0.0569,
+            "gain": 164.96,
+            "sampleCount": 70000,
+            "split": "Audience.MeanPayrollPayment90d < 250",
+            "left": {
+              "score": -0.0256,
+              "gain": 71.4,
+              "sampleCount": 21000,
+              "split": "Audience.CashWithdrawalShare180d < 0.1",
+              "left": {
+                "score": -0.0897,
+                "gain": 0.0,
+                "sampleCount": 7350
+              },
+              "right": {
+                "score": 0.0089,
+                "gain": 0.0,
+                "sampleCount": 13650
+              }
+            },
+            "right": {
+              "score": 0.0922,
+              "gain": 79.9,
+              "sampleCount": 49000,
+              "split": "Audience.LargestOutgoingPayment90d < 3000",
+              "left": {
+                "score": 0.0461,
+                "gain": 0.0,
+                "sampleCount": 22050
+              },
+              "right": {
+                "score": 0.1299,
+                "gain": 0.0,
+                "sampleCount": 26950
+              }
+            }
+          }
+        },
+        {
+          "score": 0.0116,
+          "gain": 301.94,
+          "sampleCount": 100000,
+          "split": "Audience.LoanRequestState in { Declined, Pending }",
+          "left": {
+            "score": 0.1034,
+            "gain": 146.85,
+            "sampleCount": 40000,
+            "split": "Audience.NewestServiceType in { FixedSavingsPlan }",
+            "left": {
+              "score": 0.1625,
+              "gain": 74.13,
+              "sampleCount": 22000,
+              "split": "Audience.EarningsSource in { OtherEarnings }",
+              "left": {
+                "score": 0.2056,
+                "gain": 0.0,
+                "sampleCount": 12100
+              },
+              "right": {
+                "score": 0.1099,
+                "gain": 0.0,
+                "sampleCount": 9900
+              }
+            },
+            "right": {
+              "score": 0.031,
+              "gain": 70.89,
+              "sampleCount": 18000,
+              "split": "Audience.LegacyProviderTag in { PartnerNetwork }",
+              "left": {
+                "score": 0.0751,
+                "gain": 0.0,
+                "sampleCount": 10800
+              },
+              "right": {
+                "score": -0.035,
+                "gain": 0.0,
+                "sampleCount": 7200
+              }
+            }
+          },
+          "right": {
+            "score": -0.0496,
+            "gain": 156.78,
+            "sampleCount": 60000,
+            "split": "Audience.ApprovalRecency < 3",
+            "left": {
+              "score": -0.0107,
+              "gain": 71.11,
+              "sampleCount": 36000,
+              "split": "Audience.RelationshipMonths < 24",
+              "left": {
+                "score": -0.0432,
+                "gain": 0.0,
+                "sampleCount": 21600
+              },
+              "right": {
+                "score": 0.0381,
+                "gain": 0.0,
+                "sampleCount": 14400
+              }
+            },
+            "right": {
+              "score": -0.1079,
+              "gain": 70.21,
+              "sampleCount": 24000,
+              "split": "Audience.HomeCountry in { Luxembourg }",
+              "left": {
+                "score": -0.0363,
+                "gain": 0.0,
+                "sampleCount": 8400
+              },
+              "right": {
+                "score": -0.1464,
+                "gain": 0.0,
+                "sampleCount": 15600
+              }
+            }
+          }
+        },
+        {
+          "score": 0.0048,
+          "gain": 304.25,
+          "sampleCount": 100000,
+          "split": "Audience.HomeRegion in { CentralDistrict, WesternCoast }",
+          "left": {
+            "score": 0.0629,
+            "gain": 147.45,
+            "sampleCount": 55000,
+            "split": "Audience.TotalSavingsFunds < 500",
+            "left": {
+              "score": 0.0241,
+              "gain": 58.76,
+              "sampleCount": 35750,
+              "split": "Audience.IncomingFunds90d < 500",
+              "left": {
+                "score": -0.0039,
+                "gain": 0.0,
+                "sampleCount": 25025
+              },
+              "right": {
+                "score": 0.0892,
+                "gain": 0.0,
+                "sampleCount": 10725
+              }
+            },
+            "right": {
+              "score": 0.1352,
+              "gain": 68.41,
+              "sampleCount": 19250,
+              "split": "Audience.MissedEarningsValue < 2.5",
+              "left": {
+                "score": 0.0798,
+                "gain": 0.0,
+                "sampleCount": 5775
+              },
+              "right": {
+                "score": 0.1589,
+                "gain": 0.0,
+                "sampleCount": 13475
+              }
+            }
+          },
+          "right": {
+            "score": -0.0663,
+            "gain": 158.79,
+            "sampleCount": 45000,
+            "split": "Audience.PayrollRecency < 14",
+            "left": {
+              "score": -0.0151,
+              "gain": 64.94,
+              "sampleCount": 27000,
+              "split": "Audience.OriginalBorrowedValue < 500",
+              "left": {
+                "score": -0.0793,
+                "gain": 0.0,
+                "sampleCount": 10800
+              },
+              "right": {
+                "score": 0.0276,
+                "gain": 0.0,
+                "sampleCount": 16200
+              }
+            },
+            "right": {
+              "score": -0.1429,
+              "gain": 67.37,
+              "sampleCount": 18000,
+              "split": "Audience.WellnessPaymentCount90d < 5",
+              "left": {
+                "score": -0.175,
+                "gain": 0.0,
+                "sampleCount": 12600
+              },
+              "right": {
+                "score": -0.068,
+                "gain": 0.0,
+                "sampleCount": 5400
+              }
+            }
+          }
+        },
+        {
+          "score": -0.0057,
+          "gain": 245.16,
+          "sampleCount": 100000,
+          "split": "Audience.OtherFinanceProvider in { Northstar Banking, Riverbend Credit }",
+          "left": {
+            "score": 0.0882,
+            "gain": 149.7,
+            "sampleCount": 35000,
+            "split": "Audience.DebtRepaymentValue90d < 500",
+            "left": {
+              "score": 0.0561,
+              "gain": 0.0,
+              "sampleCount": 22750
+            },
+            "right": {
+              "score": 0.1479,
+              "gain": 0.0,
+              "sampleCount": 12250
+            }
+          },
+          "right": {
+            "score": -0.0563,
+            "gain": 144.9,
+            "sampleCount": 65000,
+            "split": "IH.Web.Inbound.Impression.HistoricalOutcomeCount < 5",
+            "left": {
+              "score": -0.1246,
+              "gain": 0.0,
+              "sampleCount": 29250
+            },
+            "right": {
+              "score": -0.0004,
+              "gain": 0.0,
+              "sampleCount": 35750
+            }
+          }
+        },
+        {
+          "score": -0.0118,
+          "gain": 259.94,
+          "sampleCount": 100000,
+          "split": "OfferCategory in { Activate, Welcome }",
+          "left": {
+            "score": 0.0615,
+            "gain": 153.94,
+            "sampleCount": 40000,
+            "split": "Audience.PayrollFunds90d < 500",
+            "left": {
+              "score": 0.0213,
+              "gain": 69.34,
+              "sampleCount": 22000,
+              "split": "Audience.OwnAccountDebits270d < 500",
+              "left": {
+                "score": -0.0095,
+                "gain": 27.06,
+                "sampleCount": 14300,
+                "split": "Audience.EverydayAccountCreditShare < 0.1",
+                "left": {
+                  "score": -0.0414,
+                  "gain": 0.0,
+                  "sampleCount": 7865
+                },
+                "right": {
+                  "score": 0.0295,
+                  "gain": 0.0,
+                  "sampleCount": 6435
+                }
+              },
+              "right": {
+                "score": 0.0785,
+                "gain": 29.55,
+                "sampleCount": 7700,
+                "split": "Audience.TotalCredits90d < 500",
+                "left": {
+                  "score": 0.0454,
+                  "gain": 0.0,
+                  "sampleCount": 3465
+                },
+                "right": {
+                  "score": 0.1057,
+                  "gain": 0.0,
+                  "sampleCount": 4235
+                }
+              }
+            },
+            "right": {
+              "score": 0.1107,
+              "gain": 56.44,
+              "sampleCount": 18000,
+              "split": "Audience.CampaignEligibleFunds < 500",
+              "left": {
+                "score": 0.0803,
+                "gain": 33.91,
+                "sampleCount": 12600,
+                "split": "Audience.MarketOrderDays12m < 5",
+                "left": {
+                  "score": 0.0378,
+                  "gain": 0.0,
+                  "sampleCount": 5040
+                },
+                "right": {
+                  "score": 0.1087,
+                  "gain": 0.0,
+                  "sampleCount": 7560
+                }
+              },
+              "right": {
+                "score": 0.1816,
+                "gain": 33.51,
+                "sampleCount": 5400,
+                "split": "Audience.ScheduledPaymentCount < 5",
+                "left": {
+                  "score": 0.1574,
+                  "gain": 0.0,
+                  "sampleCount": 3240
+                },
+                "right": {
+                  "score": 0.2177,
+                  "gain": 0.0,
+                  "sampleCount": 2160
+                }
+              }
+            }
+          },
+          "right": {
+            "score": -0.0607,
+            "gain": 129.62,
+            "sampleCount": 60000,
+            "split": "Audience.PeakSavingsCreditShare30d < 0.1",
+            "left": {
+              "score": -0.1185,
+              "gain": 60.08,
+              "sampleCount": 27000,
+              "split": "Audience.IncomingFunds7d < 500",
+              "left": {
+                "score": -0.1489,
+                "gain": 30.15,
+                "sampleCount": 18900,
+                "split": "Audience.MeanCardPurchase30d < 250",
+                "left": {
+                  "score": -0.1914,
+                  "gain": 0.0,
+                  "sampleCount": 7560
+                },
+                "right": {
+                  "score": -0.1205,
+                  "gain": 0.0,
+                  "sampleCount": 11340
+                }
+              },
+              "right": {
+                "score": -0.0477,
+                "gain": 30.06,
+                "sampleCount": 8100,
+                "split": "Audience.SmallestCardPurchase30d < 10",
+                "left": {
+                  "score": -0.0899,
+                  "gain": 0.0,
+                  "sampleCount": 2430
+                },
+                "right": {
+                  "score": -0.0296,
+                  "gain": 0.0,
+                  "sampleCount": 5670
+                }
+              }
+            },
+            "right": {
+              "score": -0.0134,
+              "gain": 63.96,
+              "sampleCount": 33000,
+              "split": "Audience.MiscSpend7d < 25",
+              "left": {
+                "score": -0.075,
+                "gain": 35.06,
+                "sampleCount": 9900,
+                "split": "Audience.InterestRevenue30d < 2.5",
+                "left": {
+                  "score": -0.1021,
+                  "gain": 0.0,
+                  "sampleCount": 5445
+                },
+                "right": {
+                  "score": -0.0419,
+                  "gain": 0.0,
+                  "sampleCount": 4455
+                }
+              },
+              "right": {
+                "score": 0.013,
+                "gain": 33.27,
+                "sampleCount": 23100,
+                "split": "IH.Mobile.Inbound.Clicked.pxLastOutcomeTime.DaysSince < 0.5",
+                "left": {
+                  "score": 0.0619,
+                  "gain": 0.0,
+                  "sampleCount": 9240
+                },
+                "right": {
+                  "score": -0.0196,
+                  "gain": 0.0,
+                  "sampleCount": 13860
+                }
+              }
+            }
+          }
+        },
+        {
+          "score": -0.009,
+          "gain": 280.21,
+          "sampleCount": 100000,
+          "split": "Audience.AppSignInCount7d < 24",
+          "left": {
+            "score": -0.0626,
+            "gain": 133.19,
+            "sampleCount": 55000,
+            "split": "Audience.WebPaymentRecency12m < 14",
+            "left": {
+              "score": -0.0267,
+              "gain": 53.35,
+              "sampleCount": 35750,
+              "split": "Audience.DiningPaymentCount7d < 12",
+              "left": {
+                "score": -0.0705,
+                "gain": 0.0,
+                "sampleCount": 14300
+              },
+              "right": {
+                "score": 0.0024,
+                "gain": 0.0,
+                "sampleCount": 21450
+              }
+            },
+            "right": {
+              "score": -0.1291,
+              "gain": 59.71,
+              "sampleCount": 19250,
+              "split": "Param.ClNewAbandonCnt1d < 500",
+              "left": {
+                "score": -0.1805,
+                "gain": 0.0,
+                "sampleCount": 7700
+              },
+              "right": {
+                "score": -0.0948,
+                "gain": 0.0,
+                "sampleCount": 11550
+              }
+            }
+          },
+          "right": {
+            "score": 0.0565,
+            "gain": 129.59,
+            "sampleCount": 45000,
+            "split": "Audience.UtilitySpend90d < 500",
+            "left": {
+              "score": -0.0083,
+              "gain": 58.94,
+              "sampleCount": 20250,
+              "split": "Audience.LargestIncomingPayment90d < 500",
+              "left": {
+                "score": -0.0468,
+                "gain": 0.0,
+                "sampleCount": 11138
+              },
+              "right": {
+                "score": 0.0389,
+                "gain": 0.0,
+                "sampleCount": 9112
+              }
+            },
+            "right": {
+              "score": 0.1095,
+              "gain": 65.15,
+              "sampleCount": 24750,
+              "split": "Audience.OwnAccountCredits270d < 500",
+              "left": {
+                "score": 0.07,
+                "gain": 0.0,
+                "sampleCount": 14850
+              },
+              "right": {
+                "score": 0.1686,
+                "gain": 0.0,
+                "sampleCount": 9900
+              }
+            }
+          }
+        },
+        {
+          "score": 0.0006,
+          "gain": 227.21,
+          "sampleCount": 100000,
+          "split": "Audience.Scores.AppSavingsInterest < 65",
+          "left": {
+            "score": -0.029,
+            "gain": 115.87,
+            "sampleCount": 70000,
+            "split": "Audience.SmallestInternalDebit90d < 2.5",
+            "left": {
+              "score": -0.0639,
+              "gain": 59.96,
+              "sampleCount": 45500,
+              "split": "Audience.ReserveAccountFunds < 500",
+              "left": {
+                "score": -0.1263,
+                "gain": 0.0,
+                "sampleCount": 15925
+              },
+              "right": {
+                "score": -0.0303,
+                "gain": 0.0,
+                "sampleCount": 29575
+              }
+            },
+            "right": {
+              "score": 0.0359,
+              "gain": 65.03,
+              "sampleCount": 24500,
+              "split": "Audience.VehicleSpend7d < 25",
+              "left": {
+                "score": 0.0071,
+                "gain": 0.0,
+                "sampleCount": 17150
+              },
+              "right": {
+                "score": 0.1031,
+                "gain": 0.0,
+                "sampleCount": 7350
+              }
+            }
+          },
+          "right": {
+            "score": 0.0696,
+            "gain": 109.69,
+            "sampleCount": 30000,
+            "split": "Audience.ServiceOpeningRecency < 3",
+            "left": {
+              "score": 0.1145,
+              "gain": 54.34,
+              "sampleCount": 16500,
+              "split": "Audience.DeviceOrderCount12m < 5",
+              "left": {
+                "score": 0.0857,
+                "gain": 0.0,
+                "sampleCount": 11550
+              },
+              "right": {
+                "score": 0.1818,
+                "gain": 0.0,
+                "sampleCount": 4950
+              }
+            },
+            "right": {
+              "score": 0.0148,
+              "gain": 61.83,
+              "sampleCount": 13500,
+              "split": "Audience.MobilityPaymentCount90d < 10",
+              "left": {
+                "score": -0.0285,
+                "gain": 0.0,
+                "sampleCount": 7425
+              },
+              "right": {
+                "score": 0.0676,
+                "gain": 0.0,
+                "sampleCount": 6075
+              }
+            }
+          }
+        },
+        {
+          "score": 0.0098,
+          "gain": 246.79,
+          "sampleCount": 100000,
+          "split": "OfferGroup in { EverydayServices, FlexibleCard, MemberBenefits }",
+          "left": {
+            "score": 0.0607,
+            "gain": 139.67,
+            "sampleCount": 55000,
+            "split": "Audience.OwnAccountCredits90d < 500",
+            "left": {
+              "score": 0.0271,
+              "gain": 57.56,
+              "sampleCount": 38500,
+              "split": "Audience.IncomingPaymentRecency < 14",
+              "left": {
+                "score": 0.0787,
+                "gain": 0.0,
+                "sampleCount": 17325
+              },
+              "right": {
+                "score": -0.015,
+                "gain": 0.0,
+                "sampleCount": 21175
+              }
+            },
+            "right": {
+              "score": 0.139,
+              "gain": 52.36,
+              "sampleCount": 16500,
+              "split": "Audience.MeanSavedFunds30d < 250",
+              "left": {
+                "score": 0.0969,
+                "gain": 0.0,
+                "sampleCount": 9075
+              },
+              "right": {
+                "score": 0.1905,
+                "gain": 0.0,
+                "sampleCount": 7425
+              }
+            }
+          },
+          "right": {
+            "score": -0.0524,
+            "gain": 105.37,
+            "sampleCount": 45000,
+            "split": "Audience.SmallestEssentialsSpend180d < 5",
+            "left": {
+              "score": -0.0972,
+              "gain": 55.57,
+              "sampleCount": 27000,
+              "split": "Audience.ShortDepositShare < 0.1",
+              "left": {
+                "score": -0.1179,
+                "gain": 0.0,
+                "sampleCount": 18900
+              },
+              "right": {
+                "score": -0.0487,
+                "gain": 0.0,
+                "sampleCount": 8100
+              }
+            },
+            "right": {
+              "score": 0.0147,
+              "gain": 51.53,
+              "sampleCount": 18000,
+              "split": "Audience.ClosedBankingServices < 10",
+              "left": {
+                "score": -0.0061,
+                "gain": 0.0,
+                "sampleCount": 12600
+              },
+              "right": {
+                "score": 0.0632,
+                "gain": 0.0,
+                "sampleCount": 5400
+              }
+            }
+          }
+        },
+        {
+          "score": 0.0115,
+          "gain": 243.51,
+          "sampleCount": 100000,
+          "split": "IH.Mobile.Inbound.Clicked.HistoricalOutcomeCount < 80",
+          "left": {
+            "score": -0.0602,
+            "gain": 114.89,
+            "sampleCount": 35000,
+            "split": "Audience.OnlineMarketSpend12m < 500",
+            "left": {
+              "score": -0.0966,
+              "gain": 53.06,
+              "sampleCount": 19250,
+              "split": "Audience.SavingsBonusYield < 1.5",
+              "left": {
+                "score": -0.1438,
+                "gain": 0.0,
+                "sampleCount": 5775
+              },
+              "right": {
+                "score": -0.0763,
+                "gain": 0.0,
+                "sampleCount": 13475
+              }
+            },
+            "right": {
+              "score": -0.0159,
+              "gain": 57.94,
+              "sampleCount": 15750,
+              "split": "Audience.CardShoppingValue7d < 25",
+              "left": {
+                "score": -0.0524,
+                "gain": 0.0,
+                "sampleCount": 9450
+              },
+              "right": {
+                "score": 0.039,
+                "gain": 0.0,
+                "sampleCount": 6300
+              }
+            }
+          },
+          "right": {
+            "score": 0.0501,
+            "gain": 118.21,
+            "sampleCount": 65000,
+            "split": "Audience.ExtraIncome7d < 500",
+            "left": {
+              "score": -0.0208,
+              "gain": 52.6,
+              "sampleCount": 22750,
+              "split": "Audience.LargestFeeFreeDebit90d < 500",
+              "left": {
+                "score": -0.0614,
+                "gain": 0.0,
+                "sampleCount": 9100
+              },
+              "right": {
+                "score": 0.0062,
+                "gain": 0.0,
+                "sampleCount": 13650
+              }
+            },
+            "right": {
+              "score": 0.0883,
+              "gain": 60.33,
+              "sampleCount": 42250,
+              "split": "Audience.OnlineBorrowingValue12m is Missing",
+              "left": {
+                "score": 0.0079,
+                "gain": 0.0,
+                "sampleCount": 5070
+              },
+              "right": {
+                "score": 0.0993,
+                "gain": 0.0,
+                "sampleCount": 37180
+              }
+            }
+          }
+        },
+        {
+          "score": 0.0046,
+          "gain": 220.65,
+          "sampleCount": 100000,
+          "split": "Audience.CurrentCombinedFunds < 15000",
+          "left": {
+            "score": -0.0388,
+            "gain": 117.39,
+            "sampleCount": 65000,
+            "split": "Audience.DepositYieldPaid90d < 500",
+            "left": {
+              "score": -0.0663,
+              "gain": 48.35,
+              "sampleCount": 42250,
+              "split": "Audience.PastDepositCount < 20",
+              "left": {
+                "score": -0.1129,
+                "gain": 0.0,
+                "sampleCount": 16900
+              },
+              "right": {
+                "score": -0.0353,
+                "gain": 0.0,
+                "sampleCount": 25350
+              }
+            },
+            "right": {
+              "score": 0.0124,
+              "gain": 51.54,
+              "sampleCount": 22750,
+              "split": "Audience.MeanBalanceFloor180d < 250",
+              "left": {
+                "score": -0.0188,
+                "gain": 0.0,
+                "sampleCount": 14788
+              },
+              "right": {
+                "score": 0.0704,
+                "gain": 0.0,
+                "sampleCount": 7962
+              }
+            }
+          },
+          "right": {
+            "score": 0.0851,
+            "gain": 118.03,
+            "sampleCount": 35000,
+            "split": "Audience.LowBalanceDays90d < 40",
+            "left": {
+              "score": 0.1324,
+              "gain": 52.63,
+              "sampleCount": 14000,
+              "split": "Audience.PaymentPlanPrincipal is Missing",
+              "left": {
+                "score": 0.0539,
+                "gain": 0.0,
+                "sampleCount": 1680
+              },
+              "right": {
+                "score": 0.1431,
+                "gain": 0.0,
+                "sampleCount": 12320
+              }
+            },
+            "right": {
+              "score": 0.0536,
+              "gain": 50.38,
+              "sampleCount": 21000,
+              "split": "Audience.MeanDepositDuration < 3",
+              "left": {
+                "score": 0.0046,
+                "gain": 0.0,
+                "sampleCount": 9450
+              },
+              "right": {
+                "score": 0.0938,
+                "gain": 0.0,
+                "sampleCount": 11550
+              }
+            }
+          }
+        },
+        {
+          "score": -0.0058,
+          "gain": 215.49,
+          "sampleCount": 100000,
+          "split": "Audience.Scores.CardInterest < 80",
+          "left": {
+            "score": -0.0595,
+            "gain": 113.44,
+            "sampleCount": 40000,
+            "split": "Audience.AccountCreditTotal90d < 500",
+            "left": {
+              "score": -0.0903,
+              "gain": 59.3,
+              "sampleCount": 24000,
+              "split": "Audience.LargestCardPurchase30d < 500",
+              "left": {
+                "score": -0.116,
+                "gain": 0.0,
+                "sampleCount": 14400
+              },
+              "right": {
+                "score": -0.0516,
+                "gain": 0.0,
+                "sampleCount": 9600
+              }
+            },
+            "right": {
+              "score": -0.0133,
+              "gain": 54.26,
+              "sampleCount": 16000,
+              "split": "Audience.ReportedHousingDebt24m is Missing",
+              "left": {
+                "score": -0.09,
+                "gain": 0.0,
+                "sampleCount": 1920
+              },
+              "right": {
+                "score": -0.0029,
+                "gain": 0.0,
+                "sampleCount": 14080
+              }
+            }
+          },
+          "right": {
+            "score": 0.03,
+            "gain": 115.75,
+            "sampleCount": 60000,
+            "split": "Audience.SmallestRetailDebit90d < 5",
+            "left": {
+              "score": -0.0429,
+              "gain": 54.1,
+              "sampleCount": 18000,
+              "split": "Audience.DebitShare30d < 0.1",
+              "left": {
+                "score": -0.0694,
+                "gain": 0.0,
+                "sampleCount": 11700
+              },
+              "right": {
+                "score": 0.0064,
+                "gain": 0.0,
+                "sampleCount": 6300
+              }
+            },
+            "right": {
+              "score": 0.0612,
+              "gain": 48.43,
+              "sampleCount": 42000,
+              "split": "Audience.RetailDebitTotal90d < 500",
+              "left": {
+                "score": 0.0351,
+                "gain": 0.0,
+                "sampleCount": 29400
+              },
+              "right": {
+                "score": 0.1222,
+                "gain": 0.0,
+                "sampleCount": 12600
+              }
+            }
+          }
+        },
+        {
+          "score": -0.0118,
+          "gain": 229.46,
+          "sampleCount": 100000,
+          "split": "Audience.LoanRequestState in { Approved, NeedsReview, Pending }",
+          "left": {
+            "score": 0.0276,
+            "gain": 119.35,
+            "sampleCount": 55000,
+            "split": "Audience.MeanInterestRevenue180d < 2.5",
+            "left": {
+              "score": -0.0344,
+              "gain": 49.2,
+              "sampleCount": 16500,
+              "split": "Audience.OwnAccountCreditCount270d is Missing",
+              "left": {
+                "score": -0.0996,
+                "gain": 0.0,
+                "sampleCount": 1980
+              },
+              "right": {
+                "score": -0.0255,
+                "gain": 0.0,
+                "sampleCount": 14520
+              }
+            },
+            "right": {
+              "score": 0.0541,
+              "gain": 47.39,
+              "sampleCount": 38500,
+              "split": "Audience.RewardsPurchaseRecency < 3",
+              "left": {
+                "score": 0.0763,
+                "gain": 0.0,
+                "sampleCount": 26950
+              },
+              "right": {
+                "score": 0.0022,
+                "gain": 0.0,
+                "sampleCount": 11550
+              }
+            }
+          },
+          "right": {
+            "score": -0.0599,
+            "gain": 119.84,
+            "sampleCount": 45000,
+            "split": "Audience.LargestEssentialsSpend90d < 500",
+            "left": {
+              "score": -0.126,
+              "gain": 56.25,
+              "sampleCount": 15750,
+              "split": "Audience.SmallestIncomingPayment90d < 2.5",
+              "left": {
+                "score": -0.1607,
+                "gain": 0.0,
+                "sampleCount": 7088
+              },
+              "right": {
+                "score": -0.0977,
+                "gain": 0.0,
+                "sampleCount": 8662
+              }
+            },
+            "right": {
+              "score": -0.0243,
+              "gain": 50.44,
+              "sampleCount": 29250,
+              "split": "Audience.MiscPaymentCount90d < 40",
+              "left": {
+                "score": -0.0724,
+                "gain": 0.0,
+                "sampleCount": 10238
+              },
+              "right": {
+                "score": 0.0016,
+                "gain": 0.0,
+                "sampleCount": 19012
+              }
+            }
+          }
+        },
+        {
+          "score": -0.0089,
+          "gain": 242.33,
+          "sampleCount": 100000,
+          "split": "Audience.HomeRegion in { CoastalDistrict, RiverDistrict, SouthernHighlands }",
+          "left": {
+            "score": 0.0605,
+            "gain": 99.06,
+            "sampleCount": 40000,
+            "split": "Audience.MeanBankingDebit30d < 250",
+            "left": {
+              "score": 0.0216,
+              "gain": 44.51,
+              "sampleCount": 22000,
+              "split": "Audience.SmallestFeeFreeDebit90d < 2.5",
+              "left": {
+                "score": -0.003,
+                "gain": 0.0,
+                "sampleCount": 13200
+              },
+              "right": {
+                "score": 0.0585,
+                "gain": 0.0,
+                "sampleCount": 8800
+              }
+            },
+            "right": {
+              "score": 0.1081,
+              "gain": 58.36,
+              "sampleCount": 18000,
+              "split": "Audience.MeanIndividualCredit180d < 250",
+              "left": {
+                "score": 0.0804,
+                "gain": 0.0,
+                "sampleCount": 9900
+              },
+              "right": {
+                "score": 0.142,
+                "gain": 0.0,
+                "sampleCount": 8100
+              }
+            }
+          },
+          "right": {
+            "score": -0.0552,
+            "gain": 93.65,
+            "sampleCount": 60000,
+            "split": "Audience.SmallestAutoTransfer90d is Missing",
+            "left": {
+              "score": -0.1427,
+              "gain": 46.74,
+              "sampleCount": 7200,
+              "split": "Audience.LocalStoreSpend90d < 500",
+              "left": {
+                "score": -0.1681,
+                "gain": 0.0,
+                "sampleCount": 4680
+              },
+              "right": {
+                "score": -0.0957,
+                "gain": 0.0,
+                "sampleCount": 2520
+              }
+            },
+            "right": {
+              "score": -0.0432,
+              "gain": 48.55,
+              "sampleCount": 52800,
+              "split": "Audience.ExtraIncomeCount7d < 4",
+              "left": {
+                "score": -0.0648,
+                "gain": 0.0,
+                "sampleCount": 34320
+              },
+              "right": {
+                "score": -0.0032,
+                "gain": 0.0,
+                "sampleCount": 18480
+              }
+            }
+          }
+        },
+        {
+          "score": 0.0008,
+          "gain": 251.18,
+          "sampleCount": 100000,
+          "split": "Audience.OtherFinanceProvider in { Cedar Community Bank, Harbor Finance, Riverbend Credit }",
+          "left": {
+            "score": 0.0594,
+            "gain": 108.88,
+            "sampleCount": 30000,
+            "split": "Audience.OpenBonusSavingsPlans is Missing",
+            "left": {
+              "score": -0.004,
+              "gain": 0.0,
+              "sampleCount": 3600
+            },
+            "right": {
+              "score": 0.068,
+              "gain": 0.0,
+              "sampleCount": 26400
+            }
+          },
+          "right": {
+            "score": -0.0243,
+            "gain": 118.45,
+            "sampleCount": 70000,
+            "split": "Audience.WebPaymentShare180d < 0.1",
+            "left": {
+              "score": -0.0709,
+              "gain": 0.0,
+              "sampleCount": 31500
+            },
+            "right": {
+              "score": 0.0138,
+              "gain": 0.0,
+              "sampleCount": 38500
+            }
+          }
+        },
+        {
+          "score": 0.0099,
+          "gain": 244.54,
+          "sampleCount": 100000,
+          "split": "OfferCategory is Missing",
+          "left": {
+            "score": -0.0622,
+            "gain": 89.92,
+            "sampleCount": 12000,
+            "split": "Audience.StatementClosingBalance < 500",
+            "left": {
+              "score": -0.1079,
+              "gain": 54.23,
+              "sampleCount": 4200,
+              "split": "Audience.WellnessSpend90d < 500",
+              "left": {
+                "score": -0.1359,
+                "gain": 22.64,
+                "sampleCount": 2730,
+                "split": "Audience.MeanOutgoingPayment90d < 250",
+                "left": {
+                  "score": -0.1667,
+                  "gain": 0.0,
+                  "sampleCount": 955
+                },
+                "right": {
+                  "score": -0.1192,
+                  "gain": 0.0,
+                  "sampleCount": 1775
+                }
+              },
+              "right": {
+                "score": -0.0561,
+                "gain": 20.97,
+                "sampleCount": 1470,
+                "split": "Audience.ServiceRevenue30d < 2.5",
+                "left": {
+                  "score": -0.0751,
+                  "gain": 0.0,
+                  "sampleCount": 882
+                },
+                "right": {
+                  "score": -0.0276,
+                  "gain": 0.0,
+                  "sampleCount": 588
+                }
+              }
+            },
+            "right": {
+              "score": -0.0375,
+              "gain": 54.54,
+              "sampleCount": 7800,
+              "split": "Audience.SmallestAppPayment90d < 2.5",
+              "left": {
+                "score": -0.0614,
+                "gain": 25.94,
+                "sampleCount": 5460,
+                "split": "Audience.FixedSavingsClosureRecency < 3",
+                "left": {
+                  "score": -0.0261,
+                  "gain": 0.0,
+                  "sampleCount": 2457
+                },
+                "right": {
+                  "score": -0.0904,
+                  "gain": 0.0,
+                  "sampleCount": 3003
+                }
+              },
+              "right": {
+                "score": 0.0183,
+                "gain": 22.51,
+                "sampleCount": 2340,
+                "split": "Audience.MobilitySpend90d < 500",
+                "left": {
+                  "score": -0.0125,
+                  "gain": 0.0,
+                  "sampleCount": 819
+                },
+                "right": {
+                  "score": 0.0349,
+                  "gain": 0.0,
+                  "sampleCount": 1521
+                }
+              }
+            }
+          },
+          "right": {
+            "score": 0.0197,
+            "gain": 102.24,
+            "sampleCount": 88000,
+            "split": "Audience.VehicleSpend90d < 500",
+            "left": {
+              "score": -0.0176,
+              "gain": 55.71,
+              "sampleCount": 48400,
+              "split": "Audience.BankingNetPaymentFlow30d < 500",
+              "left": {
+                "score": -0.0382,
+                "gain": 24.61,
+                "sampleCount": 31460,
+                "split": "Audience.FeeFreeDebitCount90d < 5",
+                "left": {
+                  "score": -0.0524,
+                  "gain": 0.0,
+                  "sampleCount": 22022
+                },
+                "right": {
+                  "score": -0.0049,
+                  "gain": 0.0,
+                  "sampleCount": 9438
+                }
+              },
+              "right": {
+                "score": 0.0208,
+                "gain": 25.8,
+                "sampleCount": 16940,
+                "split": "Audience.GrocerySpend7d < 25",
+                "left": {
+                  "score": -0.0128,
+                  "gain": 0.0,
+                  "sampleCount": 6776
+                },
+                "right": {
+                  "score": 0.0431,
+                  "gain": 0.0,
+                  "sampleCount": 10164
+                }
+              }
+            },
+            "right": {
+              "score": 0.0653,
+              "gain": 42.71,
+              "sampleCount": 39600,
+              "split": "Audience.MeanActiveServices180d < 5",
+              "left": {
+                "score": 0.0202,
+                "gain": 25.04,
+                "sampleCount": 13860,
+                "split": "OfferVariant in { Rewards_Special_Everyday_Existing_App, YouthAccount_StarterBonus_App }",
+                "left": {
+                  "score": 0.0345,
+                  "gain": 0.0,
+                  "sampleCount": 9702
+                },
+                "right": {
+                  "score": -0.013,
+                  "gain": 0.0,
+                  "sampleCount": 4158
+                }
+              },
+              "right": {
+                "score": 0.0896,
+                "gain": 23.95,
+                "sampleCount": 25740,
+                "split": "OfferGroup in { PaymentPlans }",
+                "left": {
+                  "score": 0.1119,
+                  "gain": 0.0,
+                  "sampleCount": 15444
+                },
+                "right": {
+                  "score": 0.056,
+                  "gain": 0.0,
+                  "sampleCount": 10296
+                }
+              }
+            }
+          }
+        },
+        {
+          "score": 0.0115,
+          "gain": 197.03,
+          "sampleCount": 100000,
+          "split": "Audience.AppSignInCount7d < 30",
+          "left": {
+            "score": -0.0326,
+            "gain": 89.23,
+            "sampleCount": 45000,
+            "split": "Audience.StorePaymentRecency12m < 30",
+            "left": {
+              "score": 0.0234,
+              "gain": 52.16,
+              "sampleCount": 18000,
+              "split": "Audience.DeviceShoppingDays12m < 10",
+              "left": {
+                "score": -0.017,
+                "gain": 0.0,
+                "sampleCount": 5400
+              },
+              "right": {
+                "score": 0.0407,
+                "gain": 0.0,
+                "sampleCount": 12600
+              }
+            },
+            "right": {
+              "score": -0.0699,
+              "gain": 55.18,
+              "sampleCount": 27000,
+              "split": "Audience.Activity.SavingsOfferViews1h < 4",
+              "left": {
+                "score": -0.1129,
+                "gain": 0.0,
+                "sampleCount": 12150
+              },
+              "right": {
+                "score": -0.0348,
+                "gain": 0.0,
+                "sampleCount": 14850
+              }
+            }
+          },
+          "right": {
+            "score": 0.0476,
+            "gain": 102.43,
+            "sampleCount": 55000,
+            "split": "Audience.Activity.CreditPageViews1h < 4",
+            "left": {
+              "score": 0.0151,
+              "gain": 47.25,
+              "sampleCount": 33000,
+              "split": "Audience.AppSignInRecency < 30",
+              "left": {
+                "score": 0.0555,
+                "gain": 0.0,
+                "sampleCount": 9900
+              },
+              "right": {
+                "score": -0.0022,
+                "gain": 0.0,
+                "sampleCount": 23100
+              }
+            },
+            "right": {
+              "score": 0.0963,
+              "gain": 48.07,
+              "sampleCount": 22000,
+              "split": "Audience.Activity.ReservePageViews1d < 4",
+              "left": {
+                "score": 0.0558,
+                "gain": 0.0,
+                "sampleCount": 6600
+              },
+              "right": {
+                "score": 0.1136,
+                "gain": 0.0,
+                "sampleCount": 15400
+              }
+            }
+          }
+        },
+        {
+          "score": 0.0044,
+          "gain": 189.84,
+          "sampleCount": 100000,
+          "split": "Audience.Scores.AppSavingsInterest < 80",
+          "left": {
+            "score": -0.0372,
+            "gain": 103.76,
+            "sampleCount": 55000,
+            "split": "Audience.Scores.ParkingInterest < 35.5",
+            "left": {
+              "score": -0.061,
+              "gain": 40.98,
+              "sampleCount": 38500,
+              "split": "Audience.Scores.PriceSensitivity < 40",
+              "left": {
+                "score": -0.0377,
+                "gain": 0.0,
+                "sampleCount": 25025
+              },
+              "right": {
+                "score": -0.1043,
+                "gain": 0.0,
+                "sampleCount": 13475
+              }
+            },
+            "right": {
+              "score": 0.0184,
+              "gain": 53.01,
+              "sampleCount": 16500,
+              "split": "Audience.Scores.CreditBufferInterest < 40",
+              "left": {
+                "score": -0.0215,
+                "gain": 0.0,
+                "sampleCount": 6600
+              },
+              "right": {
+                "score": 0.0451,
+                "gain": 0.0,
+                "sampleCount": 9900
+              }
+            }
+          },
+          "right": {
+            "score": 0.0552,
+            "gain": 84.58,
+            "sampleCount": 45000,
+            "split": "Audience.Scores.RewardInterest < 35.5",
+            "left": {
+              "score": 0.0113,
+              "gain": 48.9,
+              "sampleCount": 15750,
+              "split": "Audience.Scores.TransitInterest < 35.5",
+              "left": {
+                "score": -0.0308,
+                "gain": 0.0,
+                "sampleCount": 7088
+              },
+              "right": {
+                "score": 0.0458,
+                "gain": 0.0,
+                "sampleCount": 8662
+              }
+            },
+            "right": {
+              "score": 0.0789,
+              "gain": 47.22,
+              "sampleCount": 29250,
+              "split": "Audience.Scores.AutumnSavingsInterest < 65",
+              "left": {
+                "score": 0.0523,
+                "gain": 0.0,
+                "sampleCount": 17550
+              },
+              "right": {
+                "score": 0.1188,
+                "gain": 0.0,
+                "sampleCount": 11700
+              }
+            }
+          }
+        },
+        {
+          "score": -0.006,
+          "gain": 222.23,
+          "sampleCount": 100000,
+          "split": "OfferGroup in { EverydayServices, PaymentPlans }",
+          "left": {
+            "score": 0.0209,
+            "gain": 92.12,
+            "sampleCount": 65000,
+            "split": "OfferVariant in { BonusReserve_AddedFunds_Current_App, PhoneWallet_CardSetup_Orchard_App, RecurringReserve_Scheduled_App }",
+            "left": {
+              "score": 0.0677,
+              "gain": 40.46,
+              "sampleCount": 26000,
+              "split": "OfferCategory in { Activate, Expand }",
+              "left": {
+                "score": 0.1009,
+                "gain": 0.0,
+                "sampleCount": 10400
+              },
+              "right": {
+                "score": 0.0455,
+                "gain": 0.0,
+                "sampleCount": 15600
+              }
+            },
+            "right": {
+              "score": -0.0102,
+              "gain": 44.68,
+              "sampleCount": 39000,
+              "split": "Audience.Scores.AppSavingsInterest < 35.5",
+              "left": {
+                "score": -0.0559,
+                "gain": 0.0,
+                "sampleCount": 11700
+              },
+              "right": {
+                "score": 0.0094,
+                "gain": 0.0,
+                "sampleCount": 27300
+              }
+            }
+          },
+          "right": {
+            "score": -0.056,
+            "gain": 105.24,
+            "sampleCount": 35000,
+            "split": "OfferName in { Borrowing_Unprotected_Bonus_HomeUpgrade, CardSetup_PhoneWallet_Search }",
+            "left": {
+              "score": -0.0329,
+              "gain": 44.13,
+              "sampleCount": 22750,
+              "split": "Audience.PeakSavingsCreditShare30d < 0.25",
+              "left": {
+                "score": -0.0634,
+                "gain": 0.0,
+                "sampleCount": 10238
+              },
+              "right": {
+                "score": -0.0079,
+                "gain": 0.0,
+                "sampleCount": 12512
+              }
+            },
+            "right": {
+              "score": -0.0991,
+              "gain": 45.94,
+              "sampleCount": 12250,
+              "split": "Audience.CardLimitUtilization < 50",
+              "left": {
+                "score": -0.1328,
+                "gain": 0.0,
+                "sampleCount": 6738
+              },
+              "right": {
+                "score": -0.0578,
+                "gain": 0.0,
+                "sampleCount": 5512
+              }
+            }
+          }
+        },
+        {
+          "score": -0.0119,
+          "gain": 210.28,
+          "sampleCount": 100000,
+          "split": "IH.Mobile.Inbound.Clicked.HistoricalOutcomeCount < 160",
+          "left": {
+            "score": -0.043,
+            "gain": 103.98,
+            "sampleCount": 65000,
+            "split": "IH.Web.Inbound.Impression.HistoricalOutcomeCount < 10",
+            "left": {
+              "score": -0.1001,
+              "gain": 46.96,
+              "sampleCount": 22750,
+              "split": "IH.Push.Outbound.Pending.HistoricalOutcomeCount < 10",
+              "left": {
+                "score": -0.1416,
+                "gain": 0.0,
+                "sampleCount": 7962
+              },
+              "right": {
+                "score": -0.0777,
+                "gain": 0.0,
+                "sampleCount": 14788
+              }
+            },
+            "right": {
+              "score": -0.0122,
+              "gain": 38.79,
+              "sampleCount": 42250,
+              "split": "IH.Mobile.Inbound.Clicked.pxLastGroupID in { FixedSavings, WealthProducts }",
+              "left": {
+                "score": 0.0282,
+                "gain": 0.0,
+                "sampleCount": 19012
+              },
+              "right": {
+                "score": -0.0453,
+                "gain": 0.0,
+                "sampleCount": 23238
+              }
+            }
+          },
+          "right": {
+            "score": 0.0458,
+            "gain": 101.96,
+            "sampleCount": 35000,
+            "split": "IH.Push.Outbound.Impression.pxLastGroupID in { AccountPayments, ExternalPayments }",
+            "left": {
+              "score": 0.0687,
+              "gain": 40.31,
+              "sampleCount": 24500,
+              "split": "IH.Mobile.Inbound.Impression.HistoricalOutcomeCount < 10",
+              "left": {
+                "score": 0.0246,
+                "gain": 0.0,
+                "sampleCount": 9800
+              },
+              "right": {
+                "score": 0.0982,
+                "gain": 0.0,
+                "sampleCount": 14700
+              }
+            },
+            "right": {
+              "score": -0.0076,
+              "gain": 43.42,
+              "sampleCount": 10500,
+              "split": "IH.Push.Outbound.Impression.pxLastOutcomeTime.DaysSince < 2",
+              "left": {
+                "score": 0.025,
+                "gain": 0.0,
+                "sampleCount": 4200
+              },
+              "right": {
+                "score": -0.0294,
+                "gain": 0.0,
+                "sampleCount": 6300
+              }
+            }
+          }
+        },
+        {
+          "score": -0.0087,
+          "gain": 208.07,
+          "sampleCount": 100000,
+          "split": "Audience.CurrentCombinedFunds < 30000",
+          "left": {
+            "score": -0.0738,
+            "gain": 100.68,
+            "sampleCount": 35000,
+            "split": "Audience.FixedSavingsClosureRecency < 7",
+            "left": {
+              "score": -0.0356,
+              "gain": 44.15,
+              "sampleCount": 14000,
+              "split": "Audience.SavingsBonusYield < 2.5",
+              "left": {
+                "score": -0.0703,
+                "gain": 0.0,
+                "sampleCount": 4900
+              },
+              "right": {
+                "score": -0.0169,
+                "gain": 0.0,
+                "sampleCount": 9100
+              }
+            },
+            "right": {
+              "score": -0.0993,
+              "gain": 48.07,
+              "sampleCount": 21000,
+              "split": "Audience.DepositBalanceFloor < 1500",
+              "left": {
+                "score": -0.1313,
+                "gain": 0.0,
+                "sampleCount": 8400
+              },
+              "right": {
+                "score": -0.078,
+                "gain": 0.0,
+                "sampleCount": 12600
+              }
+            }
+          },
+          "right": {
+            "score": 0.0264,
+            "gain": 95.17,
+            "sampleCount": 65000,
+            "split": "Audience.CombinedAssetValue < 1500",
+            "left": {
+              "score": -0.0023,
+              "gain": 49.55,
+              "sampleCount": 35750,
+              "split": "Audience.PriorDayAssetValue < 1500",
+              "left": {
+                "score": -0.0239,
+                "gain": 0.0,
+                "sampleCount": 25025
+              },
+              "right": {
+                "score": 0.0482,
+                "gain": 0.0,
+                "sampleCount": 10725
+              }
+            },
+            "right": {
+              "score": 0.0614,
+              "gain": 45.47,
+              "sampleCount": 29250,
+              "split": "Audience.ShortDepositShare < 0.25",
+              "left": {
+                "score": 0.0109,
+                "gain": 0.0,
+                "sampleCount": 8775
+              },
+              "right": {
+                "score": 0.083,
+                "gain": 0.0,
+                "sampleCount": 20475
+              }
+            }
+          }
+        },
+        {
+          "score": 0.001,
+          "gain": 206.21,
+          "sampleCount": 100000,
+          "split": "Audience.Scores.CardInterest < 35.5",
+          "left": {
+            "score": -0.039,
+            "gain": 98.09,
+            "sampleCount": 45000,
+            "split": "Audience.Scores.SpecialYieldInterest < 65",
+            "left": {
+              "score": -0.0647,
+              "gain": 39.32,
+              "sampleCount": 29250,
+              "split": "Audience.Scores.BorrowingInterest < 40",
+              "left": {
+                "score": -0.0935,
+                "gain": 0.0,
+                "sampleCount": 13162
+              },
+              "right": {
+                "score": -0.0411,
+                "gain": 0.0,
+                "sampleCount": 16088
+              }
+            },
+            "right": {
+              "score": 0.0088,
+              "gain": 39.94,
+              "sampleCount": 15750,
+              "split": "Audience.Scores.ParkingInterest < 55.5",
+              "left": {
+                "score": -0.0407,
+                "gain": 0.0,
+                "sampleCount": 4725
+              },
+              "right": {
+                "score": 0.0301,
+                "gain": 0.0,
+                "sampleCount": 11025
+              }
+            }
+          },
+          "right": {
+            "score": 0.0337,
+            "gain": 91.42,
+            "sampleCount": 55000,
+            "split": "Audience.Scores.RecurringSavingsInterest < 65",
+            "left": {
+              "score": -0.0001,
+              "gain": 41.19,
+              "sampleCount": 33000,
+              "split": "Audience.Scores.AutumnSavingsInterest < 80",
+              "left": {
+                "score": -0.032,
+                "gain": 0.0,
+                "sampleCount": 18150
+              },
+              "right": {
+                "score": 0.0388,
+                "gain": 0.0,
+                "sampleCount": 14850
+              }
+            },
+            "right": {
+              "score": 0.0844,
+              "gain": 39.18,
+              "sampleCount": 22000,
+              "split": "Audience.Scores.CreditBufferInterest < 50",
+              "left": {
+                "score": 0.0349,
+                "gain": 0.0,
+                "sampleCount": 6600
+              },
+              "right": {
+                "score": 0.1056,
+                "gain": 0.0,
+                "sampleCount": 15400
+              }
+            }
+          }
+        },
+        {
+          "score": 0.01,
+          "gain": 205.92,
+          "sampleCount": 100000,
+          "split": "Audience.LoanRequestState in { Declined, Pending }",
+          "left": {
+            "score": 0.0394,
+            "gain": 101.15,
+            "sampleCount": 65000,
+            "split": "Audience.ProfileYears < 55",
+            "left": {
+              "score": 0.0062,
+              "gain": 43.05,
+              "sampleCount": 39000,
+              "split": "Audience.ProfileGender in { FemaleProfile, MaleProfile }",
+              "left": {
+                "score": 0.0344,
+                "gain": 0.0,
+                "sampleCount": 17550
+              },
+              "right": {
+                "score": -0.0169,
+                "gain": 0.0,
+                "sampleCount": 21450
+              }
+            },
+            "right": {
+              "score": 0.0891,
+              "gain": 44.69,
+              "sampleCount": 26000,
+              "split": "Audience.LoanRequestRecency < 7",
+              "left": {
+                "score": 0.1343,
+                "gain": 0.0,
+                "sampleCount": 9100
+              },
+              "right": {
+                "score": 0.0648,
+                "gain": 0.0,
+                "sampleCount": 16900
+              }
+            }
+          },
+          "right": {
+            "score": -0.0445,
+            "gain": 82.87,
+            "sampleCount": 35000,
+            "split": "Audience.HomeCountry in { Estonia, SouthAfrica }",
+            "left": {
+              "score": -0.0155,
+              "gain": 42.1,
+              "sampleCount": 22750,
+              "split": "Audience.RequestRecency < 7",
+              "left": {
+                "score": 0.0297,
+                "gain": 0.0,
+                "sampleCount": 7962
+              },
+              "right": {
+                "score": -0.0398,
+                "gain": 0.0,
+                "sampleCount": 14788
+              }
+            },
+            "right": {
+              "score": -0.0985,
+              "gain": 39.57,
+              "sampleCount": 12250,
+              "split": "Audience.OtherFinanceProvider in { Northstar Banking }",
+              "left": {
+                "score": -0.0803,
+                "gain": 0.0,
+                "sampleCount": 8575
+              },
+              "right": {
+                "score": -0.1407,
+                "gain": 0.0,
+                "sampleCount": 3675
+              }
+            }
+          }
+        },
+        {
+          "score": 0.0114,
+          "gain": 189.57,
+          "sampleCount": 100000,
+          "split": "Audience.HomeRegion in { LakeDistrict }",
+          "left": {
+            "score": 0.0567,
+            "gain": 78.66,
+            "sampleCount": 45000,
+            "split": "Audience.SavingsBonusTier in { GrowthBonus, LoyaltyBonus }",
+            "left": {
+              "score": 0.1137,
+              "gain": 36.51,
+              "sampleCount": 13500,
+              "split": "Audience.RelationshipMonths < 60",
+              "left": {
+                "score": 0.087,
+                "gain": 0.0,
+                "sampleCount": 7425
+              },
+              "right": {
+                "score": 0.1464,
+                "gain": 0.0,
+                "sampleCount": 6075
+              }
+            },
+            "right": {
+              "score": 0.0323,
+              "gain": 42.64,
+              "sampleCount": 31500,
+              "split": "Audience.LatestAccountMonths < 36",
+              "left": {
+                "score": -0.0004,
+                "gain": 0.0,
+                "sampleCount": 14175
+              },
+              "right": {
+                "score": 0.059,
+                "gain": 0.0,
+                "sampleCount": 17325
+              }
+            }
+          },
+          "right": {
+            "score": -0.0257,
+            "gain": 86.64,
+            "sampleCount": 55000,
+            "split": "Audience.RequestRecency < 14",
+            "left": {
+              "score": -0.0012,
+              "gain": 43.5,
+              "sampleCount": 38500,
+              "split": "Audience.HomeCountry in { Laos, Serbia, SouthKorea }",
+              "left": {
+                "score": 0.0403,
+                "gain": 0.0,
+                "sampleCount": 11550
+              },
+              "right": {
+                "score": -0.019,
+                "gain": 0.0,
+                "sampleCount": 26950
+              }
+            },
+            "right": {
+              "score": -0.0827,
+              "gain": 45.17,
+              "sampleCount": 16500,
+              "split": "Audience.LegacyProviderTag in { LegacyNetwork, ModernNetwork }",
+              "left": {
+                "score": -0.0412,
+                "gain": 0.0,
+                "sampleCount": 4950
+              },
+              "right": {
+                "score": -0.1005,
+                "gain": 0.0,
+                "sampleCount": 11550
+              }
+            }
+          }
+        },
+        {
+          "score": 0.0042,
+          "gain": 156.78,
+          "sampleCount": 100000,
+          "split": "Audience.OtherFinanceProvider in { Cedar Community Bank, Riverbend Credit }",
+          "left": {
+            "score": 0.0283,
+            "gain": 89.83,
+            "sampleCount": 65000,
+            "split": "Audience.FamilyAccountFlag in { Disabled }",
+            "left": {
+              "score": 0.0643,
+              "gain": 0.0,
+              "sampleCount": 35750
+            },
+            "right": {
+              "score": -0.0157,
+              "gain": 0.0,
+              "sampleCount": 29250
+            }
+          },
+          "right": {
+            "score": -0.0405,
+            "gain": 97.68,
+            "sampleCount": 35000,
+            "split": "Audience.SavingsBonusTier in { StarterBonus }",
+            "left": {
+              "score": -0.0125,
+              "gain": 0.0,
+              "sampleCount": 22750
+            },
+            "right": {
+              "score": -0.0925,
+              "gain": 0.0,
+              "sampleCount": 12250
+            }
+          }
+        },
+        {
+          "score": -0.0062,
+          "gain": 185.21,
+          "sampleCount": 100000,
+          "split": "OfferCategory in { Activate, Expand }",
+          "left": {
+            "score": 0.0208,
+            "gain": 82.14,
+            "sampleCount": 60000,
+            "split": "OfferVariant in { CardOffer_Classic_Standard_App }",
+            "left": {
+              "score": 0.0482,
+              "gain": 36.14,
+              "sampleCount": 36000,
+              "split": "OfferName in { BonusReserve_Starter, CardSetup_PlanZeroRate_Dormant, RecurringReserve_Routine }",
+              "left": {
+                "score": 0.0844,
+                "gain": 20.15,
+                "sampleCount": 16200,
+                "split": "Audience.NewestServiceType in { EverydayPlan, PersonalCredit }",
+                "left": {
+                  "score": 0.1135,
+                  "gain": 0.0,
+                  "sampleCount": 7290
+                },
+                "right": {
+                  "score": 0.0605,
+                  "gain": 0.0,
+                  "sampleCount": 8910
+                }
+              },
+              "right": {
+                "score": 0.0186,
+                "gain": 18.13,
+                "sampleCount": 19800,
+                "split": "Audience.AccountCreditTotal90d < 1500",
+                "left": {
+                  "score": -0.0186,
+                  "gain": 0.0,
+                  "sampleCount": 5940
+                },
+                "right": {
+                  "score": 0.0345,
+                  "gain": 0.0,
+                  "sampleCount": 13860
+                }
+              }
+            },
+            "right": {
+              "score": -0.0202,
+              "gain": 45.33,
+              "sampleCount": 24000,
+              "split": "Audience.PayrollFunds90d < 1500",
+              "left": {
+                "score": -0.0542,
+                "gain": 21.43,
+                "sampleCount": 7200,
+                "split": "Audience.OwnAccountCredits270d < 1500",
+                "left": {
+                  "score": -0.0842,
+                  "gain": 0.0,
+                  "sampleCount": 2520
+                },
+                "right": {
+                  "score": -0.0381,
+                  "gain": 0.0,
+                  "sampleCount": 4680
+                }
+              },
+              "right": {
+                "score": -0.0056,
+                "gain": 19.37,
+                "sampleCount": 16800,
+                "split": "Audience.ProfileGender in { MaleProfile }",
+                "left": {
+                  "score": 0.0101,
+                  "gain": 0.0,
+                  "sampleCount": 10080
+                },
+                "right": {
+                  "score": -0.0291,
+                  "gain": 0.0,
+                  "sampleCount": 6720
+                }
+              }
+            }
+          },
+          "right": {
+            "score": -0.0467,
+            "gain": 86.79,
+            "sampleCount": 40000,
+            "split": "OfferGroup in { FlexibleCard, PersonalBorrowing, WealthProducts }",
+            "left": {
+              "score": -0.0293,
+              "gain": 40.07,
+              "sampleCount": 28000,
+              "split": "Audience.MeanSavedFunds30d < 500",
+              "left": {
+                "score": -0.0512,
+                "gain": 21.09,
+                "sampleCount": 15400,
+                "split": "Audience.DepositOpeningRecency < 7",
+                "left": {
+                  "score": -0.0277,
+                  "gain": 0.0,
+                  "sampleCount": 6160
+                },
+                "right": {
+                  "score": -0.0669,
+                  "gain": 0.0,
+                  "sampleCount": 9240
+                }
+              },
+              "right": {
+                "score": -0.0026,
+                "gain": 19.76,
+                "sampleCount": 12600,
+                "split": "Audience.MiscPaymentCount90d < 80",
+                "left": {
+                  "score": -0.028,
+                  "gain": 0.0,
+                  "sampleCount": 4410
+                },
+                "right": {
+                  "score": 0.0112,
+                  "gain": 0.0,
+                  "sampleCount": 8190
+                }
+              }
+            },
+            "right": {
+              "score": -0.0874,
+              "gain": 39.88,
+              "sampleCount": 12000,
+              "split": "Audience.LocalStoreVisitRecency < 30",
+              "left": {
+                "score": -0.0479,
+                "gain": 17.53,
+                "sampleCount": 4800,
+                "split": "Audience.InterestRevenue30d < 5",
+                "left": {
+                  "score": -0.0641,
+                  "gain": 0.0,
+                  "sampleCount": 3120
+                },
+                "right": {
+                  "score": -0.018,
+                  "gain": 0.0,
+                  "sampleCount": 1680
+                }
+              },
+              "right": {
+                "score": -0.1137,
+                "gain": 18.29,
+                "sampleCount": 7200,
+                "split": "Audience.PriorDayAssetValue < 3000",
+                "left": {
+                  "score": -0.1376,
+                  "gain": 0.0,
+                  "sampleCount": 3960
+                },
+                "right": {
+                  "score": -0.0846,
+                  "gain": 0.0,
+                  "sampleCount": 3240
+                }
+              }
+            }
+          }
+        },
+        {
+          "score": -0.0119,
+          "gain": 189.73,
+          "sampleCount": 100000,
+          "split": "Audience.AppSignInCount7d < 24",
+          "left": {
+            "score": -0.0392,
+            "gain": 92.03,
+            "sampleCount": 65000,
+            "split": "Audience.Activity.SavingsOfferViews1h < 6",
+            "left": {
+              "score": -0.0594,
+              "gain": 40.49,
+              "sampleCount": 45500,
+              "split": "Audience.Activity.OwnSavingsViews1h < 4",
+              "left": {
+                "score": -0.0788,
+                "gain": 0.0,
+                "sampleCount": 31850
+              },
+              "right": {
+                "score": -0.0141,
+                "gain": 0.0,
+                "sampleCount": 13650
+              }
+            },
+            "right": {
+              "score": 0.0078,
+              "gain": 33.86,
+              "sampleCount": 19500,
+              "split": "Audience.MarketOrderRecency12m < 60",
+              "left": {
+                "score": 0.0413,
+                "gain": 0.0,
+                "sampleCount": 5850
+              },
+              "right": {
+                "score": -0.0066,
+                "gain": 0.0,
+                "sampleCount": 13650
+              }
+            }
+          },
+          "right": {
+            "score": 0.0389,
+            "gain": 83.11,
+            "sampleCount": 35000,
+            "split": "Audience.LocalStoreVisitRecency < 60",
+            "left": {
+              "score": 0.059,
+              "gain": 43.87,
+              "sampleCount": 24500,
+              "split": "Audience.WebPaymentRecency12m < 30",
+              "left": {
+                "score": 0.0881,
+                "gain": 0.0,
+                "sampleCount": 13475
+              },
+              "right": {
+                "score": 0.0235,
+                "gain": 0.0,
+                "sampleCount": 11025
+              }
+            },
+            "right": {
+              "score": -0.0081,
+              "gain": 40.72,
+              "sampleCount": 10500,
+              "split": "Audience.PasscodeSignInCount7d < 16",
+              "left": {
+                "score": -0.025,
+                "gain": 0.0,
+                "sampleCount": 7350
+              },
+              "right": {
+                "score": 0.0312,
+                "gain": 0.0,
+                "sampleCount": 3150
+              }
+            }
+          }
+        },
+        {
+          "score": -0.0086,
+          "gain": 143.55,
+          "sampleCount": 100000,
+          "split": "Audience.Scores.AppSavingsInterest < 55.5",
+          "left": {
+            "score": -0.0616,
+            "gain": 85.82,
+            "sampleCount": 40000,
+            "split": "Audience.Scores.PriceSensitivity < 50",
+            "left": {
+              "score": -0.0388,
+              "gain": 33.1,
+              "sampleCount": 28000,
+              "split": "Audience.Scores.SpecialYieldInterest < 80",
+              "left": {
+                "score": -0.0611,
+                "gain": 0.0,
+                "sampleCount": 18200
+              },
+              "right": {
+                "score": 0.0025,
+                "gain": 0.0,
+                "sampleCount": 9800
+              }
+            },
+            "right": {
+              "score": -0.1148,
+              "gain": 40.11,
+              "sampleCount": 12000,
+              "split": "Audience.Scores.BonusSavingsInterest < 50",
+              "left": {
+                "score": -0.1561,
+                "gain": 0.0,
+                "sampleCount": 4200
+              },
+              "right": {
+                "score": -0.0925,
+                "gain": 0.0,
+                "sampleCount": 7800
+              }
+            }
+          },
+          "right": {
+            "score": 0.0267,
+            "gain": 69.58,
+            "sampleCount": 60000,
+            "split": "Audience.Scores.CreditBufferInterest < 65",
+            "left": {
+              "score": -0.0037,
+              "gain": 34.02,
+              "sampleCount": 36000,
+              "split": "Audience.Scores.ParkingInterest < 75.5",
+              "left": {
+                "score": -0.0396,
+                "gain": 0.0,
+                "sampleCount": 12600
+              },
+              "right": {
+                "score": 0.0157,
+                "gain": 0.0,
+                "sampleCount": 23400
+              }
+            },
+            "right": {
+              "score": 0.0723,
+              "gain": 43.82,
+              "sampleCount": 24000,
+              "split": "Audience.Scores.BorrowingInterest < 50",
+              "left": {
+                "score": 0.05,
+                "gain": 0.0,
+                "sampleCount": 15600
+              },
+              "right": {
+                "score": 0.1136,
+                "gain": 0.0,
+                "sampleCount": 8400
+              }
+            }
+          }
+        },
+        {
+          "score": 0.0012,
+          "gain": 187.15,
+          "sampleCount": 100000,
+          "split": "OfferGroup in { PartnerBenefits }",
+          "left": {
+            "score": 0.0503,
+            "gain": 70.35,
+            "sampleCount": 35000,
+            "split": "OfferCategory in { Activate, Expand, Review }",
+            "left": {
+              "score": 0.0862,
+              "gain": 40.88,
+              "sampleCount": 12250,
+              "split": "OfferName in { ForeignPayment_EverydayStarter }",
+              "left": {
+                "score": 0.1107,
+                "gain": 0.0,
+                "sampleCount": 6738
+              },
+              "right": {
+                "score": 0.0563,
+                "gain": 0.0,
+                "sampleCount": 5512
+              }
+            },
+            "right": {
+              "score": 0.031,
+              "gain": 36.26,
+              "sampleCount": 22750,
+              "split": "Audience.Activity.ReservePageViews1h < 4",
+              "left": {
+                "score": -0.0034,
+                "gain": 0.0,
+                "sampleCount": 10238
+              },
+              "right": {
+                "score": 0.0591,
+                "gain": 0.0,
+                "sampleCount": 12512
+              }
+            }
+          },
+          "right": {
+            "score": -0.0252,
+            "gain": 84.64,
+            "sampleCount": 65000,
+            "split": "OfferVariant in { PaymentPlan_PreDue_All_Regular_App, Rewards_Special_OtherPlans_Existing_App }",
+            "left": {
+              "score": -0.0032,
+              "gain": 42.29,
+              "sampleCount": 39000,
+              "split": "Param.ClNewAbandonCnt1d < 1500",
+              "left": {
+                "score": -0.0355,
+                "gain": 0.0,
+                "sampleCount": 11700
+              },
+              "right": {
+                "score": 0.0107,
+                "gain": 0.0,
+                "sampleCount": 27300
+              }
+            },
+            "right": {
+              "score": -0.0584,
+              "gain": 37.36,
+              "sampleCount": 26000,
+              "split": "Audience.OnlineBorrowingValue12m < 1500",
+              "left": {
+                "score": -0.099,
+                "gain": 0.0,
+                "sampleCount": 9100
+              },
+              "right": {
+                "score": -0.0365,
+                "gain": 0.0,
+                "sampleCount": 16900
+              }
+            }
+          }
+        },
+        {
+          "score": 0.0101,
+          "gain": 150.97,
+          "sampleCount": 100000,
+          "split": "IH.Mobile.Inbound.Clicked.HistoricalOutcomeCount < 20",
+          "left": {
+            "score": -0.0341,
+            "gain": 79.17,
+            "sampleCount": 30000,
+            "split": "IH.Push.Outbound.Clicked.pxLastOutcomeTime.DaysSince < 2",
+            "left": {
+              "score": -0.0121,
+              "gain": 38.59,
+              "sampleCount": 21000,
+              "split": "IH.Push.Outbound.Pending.pxLastOutcomeTime.DaysSince < 2",
+              "left": {
+                "score": 0.0064,
+                "gain": 0.0,
+                "sampleCount": 14700
+              },
+              "right": {
+                "score": -0.0551,
+                "gain": 0.0,
+                "sampleCount": 6300
+              }
+            },
+            "right": {
+              "score": -0.0855,
+              "gain": 32.06,
+              "sampleCount": 9000,
+              "split": "IH.Push.Outbound.Pending.HistoricalOutcomeCount < 40",
+              "left": {
+                "score": -0.1203,
+                "gain": 0.0,
+                "sampleCount": 3150
+              },
+              "right": {
+                "score": -0.0668,
+                "gain": 0.0,
+                "sampleCount": 5850
+              }
+            }
+          },
+          "right": {
+            "score": 0.029,
+            "gain": 86.6,
+            "sampleCount": 70000,
+            "split": "IH.Web.Inbound.Impression.pxLastOutcomeTime.DaysSince < 2",
+            "left": {
+              "score": 0.0706,
+              "gain": 34.81,
+              "sampleCount": 24500,
+              "split": "IH.Mobile.Inbound.Rejected.pxLastGroupID in { ReserveSavings, WealthProducts }",
+              "left": {
+                "score": 0.0952,
+                "gain": 0.0,
+                "sampleCount": 14700
+              },
+              "right": {
+                "score": 0.0337,
+                "gain": 0.0,
+                "sampleCount": 9800
+              }
+            },
+            "right": {
+              "score": 0.0067,
+              "gain": 35.37,
+              "sampleCount": 45500,
+              "split": "IH.Mobile.Inbound.Impression.pxLastGroupID in { ExternalPayments, FlexibleCard }",
+              "left": {
+                "score": 0.0344,
+                "gain": 0.0,
+                "sampleCount": 25025
+              },
+              "right": {
+                "score": -0.0272,
+                "gain": 0.0,
+                "sampleCount": 20475
+              }
+            }
+          }
+        },
+        {
+          "score": 0.0114,
+          "gain": 145.25,
+          "sampleCount": 100000,
+          "split": "Audience.CurrentCombinedFunds < 60000",
+          "left": {
+            "score": -0.0398,
+            "gain": 65.65,
+            "sampleCount": 30000,
+            "split": "Audience.ServiceRevenue30d < 5",
+            "left": {
+              "score": -0.0615,
+              "gain": 35.26,
+              "sampleCount": 21000,
+              "split": "Audience.MeanAccountFunds90d < 500",
+              "left": {
+                "score": -0.0883,
+                "gain": 0.0,
+                "sampleCount": 8400
+              },
+              "right": {
+                "score": -0.0436,
+                "gain": 0.0,
+                "sampleCount": 12600
+              }
+            },
+            "right": {
+              "score": 0.0108,
+              "gain": 31.4,
+              "sampleCount": 9000,
+              "split": "Audience.TotalSavingsFunds < 1500",
+              "left": {
+                "score": -0.026,
+                "gain": 0.0,
+                "sampleCount": 2700
+              },
+              "right": {
+                "score": 0.0266,
+                "gain": 0.0,
+                "sampleCount": 6300
+              }
+            }
+          },
+          "right": {
+            "score": 0.0333,
+            "gain": 82.6,
+            "sampleCount": 70000,
+            "split": "Audience.DepositYieldPaid90d < 1500",
+            "left": {
+              "score": 0.0145,
+              "gain": 32.54,
+              "sampleCount": 49000,
+              "split": "Audience.IncomingFunds90d < 1500",
+              "left": {
+                "score": -0.0188,
+                "gain": 0.0,
+                "sampleCount": 22050
+              },
+              "right": {
+                "score": 0.0417,
+                "gain": 0.0,
+                "sampleCount": 26950
+              }
+            },
+            "right": {
+              "score": 0.0773,
+              "gain": 40.09,
+              "sampleCount": 21000,
+              "split": "Audience.MeanBalanceRevenue180d < 5",
+              "left": {
+                "score": 0.0484,
+                "gain": 0.0,
+                "sampleCount": 9450
+              },
+              "right": {
+                "score": 0.101,
+                "gain": 0.0,
+                "sampleCount": 11550
+              }
+            }
+          }
+        },
+        {
+          "score": 0.004,
+          "gain": 178.68,
+          "sampleCount": 100000,
+          "split": "Audience.Scores.CardInterest < 55.5",
+          "left": {
+            "score": -0.0428,
+            "gain": 66.22,
+            "sampleCount": 35000,
+            "split": "Audience.Scores.BonusSavingsInterest < 65",
+            "left": {
+              "score": -0.0717,
+              "gain": 39.24,
+              "sampleCount": 15750,
+              "split": "Audience.Scores.BorrowingInterest < 80",
+              "left": {
+                "score": -0.0872,
+                "gain": 0.0,
+                "sampleCount": 11025
+              },
+              "right": {
+                "score": -0.0354,
+                "gain": 0.0,
+                "sampleCount": 4725
+              }
+            },
+            "right": {
+              "score": -0.0191,
+              "gain": 33.93,
+              "sampleCount": 19250,
+              "split": "Audience.Scores.RecurringSavingsInterest < 80",
+              "left": {
+                "score": -0.0399,
+                "gain": 0.0,
+                "sampleCount": 12512
+              },
+              "right": {
+                "score": 0.0196,
+                "gain": 0.0,
+                "sampleCount": 6738
+              }
+            }
+          },
+          "right": {
+            "score": 0.0292,
+            "gain": 84.8,
+            "sampleCount": 65000,
+            "split": "Audience.Scores.AutoPaymentInterest < 35.5",
+            "left": {
+              "score": -0.0171,
+              "gain": 30.88,
+              "sampleCount": 22750,
+              "split": "Audience.Scores.CreditBufferInterest < 80",
+              "left": {
+                "score": -0.0498,
+                "gain": 0.0,
+                "sampleCount": 10238
+              },
+              "right": {
+                "score": 0.0097,
+                "gain": 0.0,
+                "sampleCount": 12512
+              }
+            },
+            "right": {
+              "score": 0.0541,
+              "gain": 32.44,
+              "sampleCount": 42250,
+              "split": "Audience.Scores.HorizonSavingsInterest < 50",
+              "left": {
+                "score": 0.0334,
+                "gain": 0.0,
+                "sampleCount": 25350
+              },
+              "right": {
+                "score": 0.0852,
+                "gain": 0.0,
+                "sampleCount": 16900
+              }
+            }
+          }
+        },
+        {
+          "score": -0.0064,
+          "gain": 154.01,
+          "sampleCount": 100000,
+          "split": "Audience.LoanRequestState in { Approved, Declined }",
+          "left": {
+            "score": 0.0465,
+            "gain": 75.57,
+            "sampleCount": 35000,
+            "split": "Audience.LoanRequestRecency < 14",
+            "left": {
+              "score": 0.0956,
+              "gain": 37.75,
+              "sampleCount": 10500,
+              "split": "Audience.HouseholdStatus in { LivingTogether, SingleHousehold }",
+              "left": {
+                "score": 0.1287,
+                "gain": 0.0,
+                "sampleCount": 3675
+              },
+              "right": {
+                "score": 0.0777,
+                "gain": 0.0,
+                "sampleCount": 6825
+              }
+            },
+            "right": {
+              "score": 0.0255,
+              "gain": 37.1,
+              "sampleCount": 24500,
+              "split": "Audience.EarningsSource in { IndependentWork, RetirementPay }",
+              "left": {
+                "score": 0.0461,
+                "gain": 0.0,
+                "sampleCount": 15925
+              },
+              "right": {
+                "score": -0.0126,
+                "gain": 0.0,
+                "sampleCount": 8575
+              }
+            }
+          },
+          "right": {
+            "score": -0.0349,
+            "gain": 72.79,
+            "sampleCount": 65000,
+            "split": "Audience.OtherFinanceProvider in { Cedar Community Bank, Harbor Finance, Northstar Banking }",
+            "left": {
+              "score": -0.0075,
+              "gain": 37.0,
+              "sampleCount": 35750,
+              "split": "Audience.InitialServiceBundle in { CoupleEverydayBundle, CoupleTravelBundle }",
+              "left": {
+                "score": 0.0231,
+                "gain": 0.0,
+                "sampleCount": 14300
+              },
+              "right": {
+                "score": -0.0279,
+                "gain": 0.0,
+                "sampleCount": 21450
+              }
+            },
+            "right": {
+              "score": -0.0684,
+              "gain": 39.47,
+              "sampleCount": 29250,
+              "split": "Audience.HomeCountry in { Colombia }",
+              "left": {
+                "score": -0.0479,
+                "gain": 0.0,
+                "sampleCount": 19012
+              },
+              "right": {
+                "score": -0.1065,
+                "gain": 0.0,
+                "sampleCount": 10238
+              }
+            }
+          }
+        },
+        {
+          "score": -0.0119,
+          "gain": 147.51,
+          "sampleCount": 100000,
+          "split": "Audience.HomeRegion in { MountainDistrict, WesternForest }",
+          "left": {
+            "score": 0.0088,
+            "gain": 71.27,
+            "sampleCount": 65000,
+            "split": "Audience.FamilyAccountFlag in { Disabled }",
+            "left": {
+              "score": 0.0268,
+              "gain": 35.88,
+              "sampleCount": 45500,
+              "split": "Audience.LoanApprovalRecency < 14",
+              "left": {
+                "score": 0.0442,
+                "gain": 0.0,
+                "sampleCount": 31850
+              },
+              "right": {
+                "score": -0.0136,
+                "gain": 0.0,
+                "sampleCount": 13650
+              }
+            },
+            "right": {
+              "score": -0.0331,
+              "gain": 34.23,
+              "sampleCount": 19500,
+              "split": "Audience.PreferredRetailer in { GlobalBazaar, StyleCorner }",
+              "left": {
+                "score": -0.0158,
+                "gain": 0.0,
+                "sampleCount": 13650
+              },
+              "right": {
+                "score": -0.0736,
+                "gain": 0.0,
+                "sampleCount": 5850
+              }
+            }
+          },
+          "right": {
+            "score": -0.0504,
+            "gain": 68.71,
+            "sampleCount": 35000,
+            "split": "Audience.LoanRequestState in { Declined, NeedsReview, Pending }",
+            "left": {
+              "score": -0.0114,
+              "gain": 37.77,
+              "sampleCount": 12250,
+              "split": "Audience.LoanRequestRecency < 30",
+              "left": {
+                "score": 0.0237,
+                "gain": 0.0,
+                "sampleCount": 3675
+              },
+              "right": {
+                "score": -0.0265,
+                "gain": 0.0,
+                "sampleCount": 8575
+              }
+            },
+            "right": {
+              "score": -0.0714,
+              "gain": 30.24,
+              "sampleCount": 22750,
+              "split": "Audience.ProfileGender in { FemaleProfile, MaleProfile }",
+              "left": {
+                "score": -0.0339,
+                "gain": 0.0,
+                "sampleCount": 7962
+              },
+              "right": {
+                "score": -0.0916,
+                "gain": 0.0,
+                "sampleCount": 14788
+              }
+            }
+          }
+        },
+        {
+          "score": -0.0085,
+          "gain": 135.14,
+          "sampleCount": 100000,
+          "split": "Audience.OtherFinanceProvider in { Harbor Finance }",
+          "left": {
+            "score": 0.0265,
+            "gain": 61.94,
+            "sampleCount": 40000,
+            "split": "Audience.InitialServiceBundle in { CouplePremiumBundle, CoupleTravelBundle, SoloEverydayBundle }",
+            "left": {
+              "score": 0.0502,
+              "gain": 0.0,
+              "sampleCount": 24000
+            },
+            "right": {
+              "score": -0.0089,
+              "gain": 0.0,
+              "sampleCount": 16000
+            }
+          },
+          "right": {
+            "score": -0.0319,
+            "gain": 62.94,
+            "sampleCount": 60000,
+            "split": "Audience.LatestAccountMonths < 72",
+            "left": {
+              "score": -0.0469,
+              "gain": 0.0,
+              "sampleCount": 42000
+            },
+            "right": {
+              "score": 0.0033,
+              "gain": 0.0,
+              "sampleCount": 18000
+            }
+          }
+        },
+        {
+          "score": 0.0014,
+          "gain": 134.27,
+          "sampleCount": 100000,
+          "split": "OfferCategory in { Activate }",
+          "left": {
+            "score": 0.052,
+            "gain": 80.03,
+            "sampleCount": 35000,
+            "split": "OfferVariant in { CreditExtension_Protected_Reminder_App, IdentityRefresh_OverdueReminder_NationalId_App, NewCredit_Protected_Standard_Reminder_App }",
+            "left": {
+              "score": 0.0927,
+              "gain": 29.12,
+              "sampleCount": 10500,
+              "split": "OfferGroup in { EverydayServices, WealthProducts }",
+              "left": {
+                "score": 0.1072,
+                "gain": 13.83,
+                "sampleCount": 6825,
+                "split": "Audience.MiscPaymentCount90d < 160",
+                "left": {
+                  "score": 0.0839,
+                  "gain": 0.0,
+                  "sampleCount": 2048
+                },
+                "right": {
+                  "score": 0.1172,
+                  "gain": 0.0,
+                  "sampleCount": 4777
+                }
+              },
+              "right": {
+                "score": 0.0658,
+                "gain": 18.42,
+                "sampleCount": 3675,
+                "split": "Audience.IncomingFunds7d < 1500",
+                "left": {
+                  "score": 0.0524,
+                  "gain": 0.0,
+                  "sampleCount": 2205
+                },
+                "right": {
+                  "score": 0.0858,
+                  "gain": 0.0,
+                  "sampleCount": 1470
+                }
+              }
+            },
+            "right": {
+              "score": 0.0345,
+              "gain": 33.02,
+              "sampleCount": 24500,
+              "split": "Audience.Scores.HorizonSavingsInterest < 65",
+              "left": {
+                "score": -0.0047,
+                "gain": 15.95,
+                "sampleCount": 7350,
+                "split": "Audience.PayrollFunds90d is Missing",
+                "left": {
+                  "score": -0.0392,
+                  "gain": 0.0,
+                  "sampleCount": 882
+                },
+                "right": {
+                  "score": 0.0,
+                  "gain": 0.0,
+                  "sampleCount": 6468
+                }
+              },
+              "right": {
+                "score": 0.0513,
+                "gain": 17.85,
+                "sampleCount": 17150,
+                "split": "Audience.LocalStoreSpend90d < 1500",
+                "left": {
+                  "score": 0.0337,
+                  "gain": 0.0,
+                  "sampleCount": 9432
+                },
+                "right": {
+                  "score": 0.0729,
+                  "gain": 0.0,
+                  "sampleCount": 7718
+                }
+              }
+            }
+          },
+          "right": {
+            "score": -0.0258,
+            "gain": 66.92,
+            "sampleCount": 65000,
+            "split": "OfferName in { InvestorProfile_FirstReview, PropertyCover_Reminder }",
+            "left": {
+              "score": -0.0085,
+              "gain": 31.84,
+              "sampleCount": 42250,
+              "split": "Audience.ShortDepositShare < 0.1",
+              "left": {
+                "score": -0.0354,
+                "gain": 16.23,
+                "sampleCount": 14787,
+                "split": "Audience.MarketOrderCount12m < 10",
+                "left": {
+                  "score": -0.0504,
+                  "gain": 0.0,
+                  "sampleCount": 8133
+                },
+                "right": {
+                  "score": -0.0171,
+                  "gain": 0.0,
+                  "sampleCount": 6654
+                }
+              },
+              "right": {
+                "score": 0.006,
+                "gain": 18.29,
+                "sampleCount": 27463,
+                "split": "Audience.LatestAccountMonths < 144",
+                "left": {
+                  "score": -0.0057,
+                  "gain": 0.0,
+                  "sampleCount": 17851
+                },
+                "right": {
+                  "score": 0.0277,
+                  "gain": 0.0,
+                  "sampleCount": 9612
+                }
+              }
+            },
+            "right": {
+              "score": -0.058,
+              "gain": 31.28,
+              "sampleCount": 22750,
+              "split": "Audience.Activity.ReservePageViews1d < 6",
+              "left": {
+                "score": -0.0896,
+                "gain": 15.79,
+                "sampleCount": 7962,
+                "split": "Audience.Scores.CreditBufferInterest < 35.5",
+                "left": {
+                  "score": -0.1054,
+                  "gain": 0.0,
+                  "sampleCount": 5175
+                },
+                "right": {
+                  "score": -0.0603,
+                  "gain": 0.0,
+                  "sampleCount": 2787
+                }
+              },
+              "right": {
+                "score": -0.0409,
+                "gain": 14.44,
+                "sampleCount": 14788,
+                "split": "Audience.Scores.AutumnSavingsInterest < 35.5",
+                "left": {
+                  "score": -0.0566,
+                  "gain": 0.0,
+                  "sampleCount": 8873
+                },
+                "right": {
+                  "score": -0.0174,
+                  "gain": 0.0,
+                  "sampleCount": 5915
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

@@ -11,6 +11,8 @@ namespace VRExperienceAGB.Presentation
     /// <summary>A separate, ordered garden. All trees stay in the model; only distant plaques are hidden.</summary>
     public sealed class ForestGardenView : MonoBehaviour
     {
+        public bool simplifiedNavigation;
+        public SimpleExperienceNavigation Navigation { get; private set; }
         public Mesh pineMesh, trunkMesh, planterMesh, ringMesh;
         public Material pineMaterial, barkMaterial, stoneMaterial, soilMaterial, pathMaterial, selectedMaterial, completedMaterial;
         public OneTreeExperience Experience { get; private set; }
@@ -45,6 +47,7 @@ namespace VRExperienceAGB.Presentation
         private GameObject profileButton;
         private Material quietRing;
         private int hovered = -1;
+        private bool hoverDirty;
         private float nextPlaqueRefresh;
         private int shownBed = -1;
         private const int TreesPerBed = 10;
@@ -67,6 +70,7 @@ namespace VRExperienceAGB.Presentation
         {
             if (Experience == null) return;
             if (builtModel != Experience.Model) Build();
+            if (simplifiedNavigation) garden = Navigation.Page != NavigationPage.Tree;
             if (garden != Visible)
             {
                 if (garden) { root.SetActive(true); Locomotion.SetGarden(true); PlaceGuide(); }
@@ -74,6 +78,7 @@ namespace VRExperienceAGB.Presentation
             }
             foreach(var entry in walkthroughObjects) entry.Key.SetActive(!garden && entry.Value);
             if(garden)RefreshState();
+            if(simplifiedNavigation) Navigation.Refresh();
         }
         public Vector3 PlotPosition(int index)
         {
@@ -112,11 +117,20 @@ namespace VRExperienceAGB.Presentation
                 Block("BedPath-"+(row+1),new Vector3(0,.01f,z),new Vector3(34,.025f,1.25f),pathMaterial);
                 var waypoint=CanvasAt("StandingPoint-"+(row+1),new Vector3(0,.04f,z),new Vector2(440,440),.0025f,root.transform);
                 waypoint.transform.localRotation=Quaternion.Euler(90,0,0);
-                var target=Button(waypoint,"MOVE TO BED "+(row+1),Vector2.zero,new Vector2(430,430),GardenCommand.Waypoint,row,27);
+                var target=Button(waypoint,"GO TO GROUP "+(row+1),Vector2.zero,new Vector2(430,430),GardenCommand.Waypoint,row,40);
                 target.GetComponent<UnityEngine.UI.Image>().color=new Color(.08f,.35f,.38f,.75f);waypoints.Add(waypoint);
             }
+            if(simplifiedNavigation)
+            for(int i=0;i<metrics.Length;i++)
+            {
+                var waypoint=CanvasAt("PlanterPath-"+(i+1),StandingPoint(i)+Vector3.up*.05f,new Vector2(440,440),.0025f,root.transform);
+                waypoint.transform.localRotation=Quaternion.Euler(90,0,0);
+                Button(waypoint,"GO HERE",Vector2.zero,new Vector2(430,430),GardenCommand.Path,i,42);
+                waypoints.Add(waypoint);
+            }
             for(int i=0;i<metrics.Length;i++)BuildPlot(i);
-            BuildGuide();
+            if(simplifiedNavigation) Navigation = new SimpleExperienceNavigation(this, root.transform);
+            else { Navigation = null; BuildGuide(); }
         }
         private void BuildPlot(int index)
         {
@@ -174,11 +188,13 @@ namespace VRExperienceAGB.Presentation
         public void EnterSelected()
         {
             if(!Visible)return;
+            if(simplifiedNavigation) { Navigation.OpenTree(Experience.Ensemble.Index); return; }
             var state=Experience.Session.State;Experience.Execute(TreeAction.Overview,state.Revision,state.NodeId);
         }
         public void Activate(GardenCommand command,int index=0)
         {
             if(!Visible)return;
+            if(simplifiedNavigation && Navigation.Activate(command,index)) return;
             int selected=Experience.Ensemble.Index;
             hovered=-1;
             switch(command)
@@ -203,6 +219,7 @@ namespace VRExperienceAGB.Presentation
         public void ToggleGuide()
         {
             if(!Visible)return;
+            if(simplifiedNavigation) { Navigation.ShowHome(); return; }
             bool show=!GuideOpen;guide.gameObject.SetActive(show);guideHandle.gameObject.SetActive(!show);PlaceGuide();
         }
         private void GoToBed(int bed)
@@ -212,9 +229,10 @@ namespace VRExperienceAGB.Presentation
             Locomotion.Teleport(new Vector3(0,0,6.6f+bed*4.8f-2.1f));PlaceGuide();
         }
         public void Hover(int index) { if(index>=0&&index<PlotCount){hovered=index;RefreshState();} }
-        public void ClearHover(int index) { if(hovered==index){hovered=-1;if(Visible)RefreshState();} }
+        public void ClearHover(int index) { if(hovered==index){hovered=-1;hoverDirty=true;} }
         private void RefreshDetails()
         {
+            if(simplifiedNavigation)return;
             int index=hovered>=0?hovered:Experience.Ensemble.Index;
             var tree=metrics[index];var state=Experience.Ensemble.Trees[index].State;
             Details.text=(hovered>=0?"POINTING AT ":"SELECTED ")+"TREE "+(index+1)+"  |  Max depth "+tree.MaximumDepth+"  |  "+tree.LeafCount+" leaves  |  "+tree.NodeCount+" nodes\n"+
@@ -224,17 +242,20 @@ namespace VRExperienceAGB.Presentation
         private void RefreshState()
         {
             int selected=Experience.Ensemble.Index;int bed=selected/TreesPerBed;
+            if(!simplifiedNavigation) {
             header.text="MOONLIT MODEL GARDEN  |  "+PlotCount+" trees\nBed "+(bed+1)+" / "+((PlotCount+9)/10)+"  |  "+Experience.Ensemble.CompletedCount+" leaves reached";
             RefreshDetails();
             profileButton.GetComponent<UnityEngine.UI.Button>().interactable=!Experience.Model.StructureOnlyPreview;
             PreviousButton.GetComponent<UnityEngine.UI.Button>().interactable=selected>0;NextButton.GetComponent<UnityEngine.UI.Button>().interactable=selected+1<PlotCount;
+            }
             for(int i=0;i<plots.Count;i++)
             {
                 var state=Experience.Ensemble.Trees[i].State;var tree=metrics[i];
                 plots[i].ring.sharedMaterial=i==selected?selectedMaterial:state.AtLeaf?completedMaterial:quietRing;
                 plots[i].ring.transform.localScale=plots[i].ringScale*(i==hovered?1.07f:1);
-                plots[i].label.text="TREE "+(i+1)+"\nMax depth "+tree.MaximumDepth+" · "+tree.LeafCount+" leaves\n"+(i==hovered?"POINTING":i==selected?"SELECTED":state.AtLeaf?"LEAF REACHED":state.Decisions.Count==0?"UNVISITED":"ROUTE SAVED");
+                plots[i].label.text = simplifiedNavigation ? "TREE " + (i+1) + (i==hovered ? "\nDepth " + tree.MaximumDepth + " · " + tree.LeafCount + " leaves\nClick to explore" : "\nPoint to inspect") : "TREE "+(i+1)+"\nMax depth "+tree.MaximumDepth+" · "+tree.LeafCount+" leaves\n"+(i==hovered?"POINTING":i==selected?"SELECTED":state.AtLeaf?"LEAF REACHED":state.Decisions.Count==0?"UNVISITED":"ROUTE SAVED");
             }
+            if(simplifiedNavigation) { Navigation.Refresh(); RefreshNearbyPlaques(); return; }
             if(shownBed!=bed)
             {
                 shownBed=bed;
@@ -248,6 +269,7 @@ namespace VRExperienceAGB.Presentation
         }
         private void PlaceGuide()
         {
+            if(simplifiedNavigation) { Navigation?.Place(); return; }
             if(guide==null)return;
             Vector3 forward=Locomotion.Head.forward;forward.y=0;if(forward.sqrMagnitude<.01f)forward=Vector3.forward;forward.Normalize();
             var position=Locomotion.Head.position+forward*1.2f;position.y=Locomotion.Head.position.y-.30f;
@@ -257,6 +279,7 @@ namespace VRExperienceAGB.Presentation
         private void Update()
         {
             if(!Visible)return;
+            if(hoverDirty) { hoverDirty=false; RefreshState(); }
             if(UnityEngine.InputSystem.Keyboard.current != null && UnityEngine.InputSystem.Keyboard.current.tabKey.wasPressedThisFrame)ToggleGuide();
             var right=UnityEngine.XR.InputDevices.GetDeviceAtXRNode(UnityEngine.XR.XRNode.RightHand);
             if(right.TryGetFeatureValue(UnityEngine.XR.CommonUsages.primaryButton,out bool pressed))
@@ -270,9 +293,11 @@ namespace VRExperienceAGB.Presentation
         private void RefreshNearbyPlaques()
         {
             if(!Visible)return;
+            bool forest = !simplifiedNavigation || Navigation.Page == NavigationPage.Forest;
             foreach(var plot in plots)
             {
-                bool nearby=Vector3.Distance(Locomotion.Head.position,plot.root.position)<12;
+                plot.root.gameObject.SetActive(forest);
+                bool nearby=forest && Vector3.Distance(Locomotion.Head.position,plot.root.position)<12;
                 plot.plaque.gameObject.SetActive(nearby);
                 if(nearby)
                 {
@@ -280,9 +305,9 @@ namespace VRExperienceAGB.Presentation
                     if(direction.sqrMagnitude>.01f)plot.plaque.transform.rotation=Quaternion.LookRotation(direction);
                 }
             }
-            foreach(var waypoint in waypoints)waypoint.gameObject.SetActive(Vector3.Distance(Locomotion.Head.position,waypoint.transform.position)<16);
+            foreach(var waypoint in waypoints)waypoint.gameObject.SetActive(forest && Vector3.Distance(Locomotion.Head.position,waypoint.transform.position)<16);
         }
-        private Canvas CanvasAt(string name,Vector3 position,Vector2 size,float scale,Transform parent)
+        internal Canvas CanvasAt(string name,Vector3 position,Vector2 size,float scale,Transform parent)
         {
             var go=new GameObject(name,typeof(RectTransform),typeof(Canvas),typeof(UnityEngine.UI.GraphicRaycaster));
             go.transform.SetParent(parent,false);go.transform.localPosition=position;go.transform.localScale=Vector3.one*scale;
@@ -296,7 +321,7 @@ namespace VRExperienceAGB.Presentation
             }
             return canvas;
         }
-        private GameObject Button(Canvas canvas,string label,Vector2 position,Vector2 size,GardenCommand command,int index,int fontSize)
+        internal GameObject Button(Canvas canvas,string label,Vector2 position,Vector2 size,GardenCommand command,int index,int fontSize)
         {
             var go=new GameObject(command+"-"+index,typeof(RectTransform),typeof(UnityEngine.UI.Image),typeof(UnityEngine.UI.Button),typeof(GardenPointerTarget));
             go.transform.SetParent(canvas.transform,false);var rect=(RectTransform)go.transform;rect.sizeDelta=size;rect.anchoredPosition=position;
@@ -305,7 +330,7 @@ namespace VRExperienceAGB.Presentation
             var target=go.GetComponent<GardenPointerTarget>();target.garden=this;target.command=command;target.index=index;
             Text(go.transform,"Label",label,Vector2.zero,size-new Vector2(12,8),fontSize);return go;
         }
-        private TMP_Text Text(Transform parent,string name,string text,Vector2 position,Vector2 size,int fontSize)
+        internal TMP_Text Text(Transform parent,string name,string text,Vector2 position,Vector2 size,int fontSize)
         {
             var go=new GameObject(name,typeof(RectTransform),typeof(TextMeshProUGUI));go.transform.SetParent(parent,false);
             var label=go.GetComponent<TextMeshProUGUI>();label.font=Experience.status.font;label.fontSharedMaterial=Experience.status.fontSharedMaterial;

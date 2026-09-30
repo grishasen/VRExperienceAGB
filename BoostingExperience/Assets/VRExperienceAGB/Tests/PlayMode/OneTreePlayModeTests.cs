@@ -19,6 +19,10 @@ namespace VRExperienceAGB.Tests
             yield return SceneManager.LoadSceneAsync("OneTreeLearning", LoadSceneMode.Single);
             yield return null;
             view = Object.FindAnyObjectByType<OneTreeExperience>();
+            // Regression coverage uses the verified synthetic profile fixture, independently of the startup demo.
+            view.Garden.simplifiedNavigation=false;
+            view.modelFile=new TextAsset(System.IO.File.ReadAllText(System.IO.Path.Combine(UnityEngine.Application.dataPath,"VRExperienceAGB/Data/demo-model.json")));
+            Assert.That(view.Initialize(),Is.True);
             Assert.That(view,Is.Not.Null); Assert.That(view.Ready,Is.True);
             // Drive deterministic time explicitly; production uses the same Advance entry point from Update.
             view.enabled = false;

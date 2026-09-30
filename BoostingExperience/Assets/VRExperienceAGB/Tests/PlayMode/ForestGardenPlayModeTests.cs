@@ -17,6 +17,11 @@ namespace VRExperienceAGB.Tests
         {
             yield return SceneManager.LoadSceneAsync("OneTreeLearning");yield return null;
             view=Object.FindAnyObjectByType<OneTreeExperience>();view.enabled=false;
+            view.GetComponent<DesktopTreePreview>().enabled=false;
+            // Regression coverage uses the verified synthetic profile fixture, independently of the startup demo.
+            view.Garden.simplifiedNavigation=false;
+            view.modelFile=new TextAsset(System.IO.File.ReadAllText(System.IO.Path.Combine(UnityEngine.Application.dataPath,"VRExperienceAGB/Data/demo-model.json")));
+            Assert.That(view.Initialize(),Is.True);
             Assert.That(view.Ready,Is.True);Assert.That(view.Garden.Visible,Is.True);
         }
         private void PointerClick(GameObject target)

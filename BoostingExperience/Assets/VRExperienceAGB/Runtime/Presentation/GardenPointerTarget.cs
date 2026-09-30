@@ -4,7 +4,7 @@ using VRExperienceAGB.Application;
 
 namespace VRExperienceAGB.Presentation
 {
-    public enum GardenCommand { SelectTree, Enter, Visit, PreviousTree, NextTree, PreviousBed, NextBed, Entrance, TurnLeft, TurnRight, Profile, Manual, Waypoint, FieldGuide }
+    public enum GardenCommand { SelectTree, Enter, Visit, PreviousTree, NextTree, PreviousBed, NextBed, Entrance, TurnLeft, TurnRight, Profile, Manual, Waypoint, FieldGuide, Home, SingleTree, Forest, ListPrevious, ListNext, Path }
     public sealed class GardenPointerTarget : MonoBehaviour, IPointerDownHandler, IPointerClickHandler, IPointerEnterHandler, IPointerExitHandler
     {
         public ForestGardenView garden;
@@ -13,11 +13,12 @@ namespace VRExperienceAGB.Presentation
         private EnsembleSession pressed;
         private int pointer, pressedIndex;
         private long pressedRevision;
+        private long navigationRevision;
         public void OnPointerDown(PointerEventData data)
-        { if (garden.Visible && GetComponent<UnityEngine.UI.Button>().IsInteractable() && data.button == PointerEventData.InputButton.Left) { pressed=garden.Experience.Ensemble; pointer=data.pointerId; pressedIndex=index; pressedRevision=pressed.Revision; } }
+        { if (garden.Visible && GetComponent<UnityEngine.UI.Button>().IsInteractable() && data.button == PointerEventData.InputButton.Left) { pressed=garden.Experience.Ensemble; pointer=data.pointerId; pressedIndex=index; pressedRevision=pressed.Revision; navigationRevision=garden.Navigation?.Revision ?? 0; } }
         public void OnPointerClick(PointerEventData data)
         {
-            if (pressed == null || pressed != garden.Experience.Ensemble || pointer != data.pointerId || pressedIndex != index || pressedRevision != pressed.Revision || data.button != PointerEventData.InputButton.Left) return;
+            if (navigationRevision != (garden.Navigation?.Revision ?? 0) || pressed == null || pressed != garden.Experience.Ensemble || pointer != data.pointerId || pressedIndex != index || pressedRevision != pressed.Revision || data.button != PointerEventData.InputButton.Left) return;
             pressed=null;
             if (garden.Visible) { garden.Activate(command,index); ControllerSelectionFeedback.Pulse(data.pointerId); }
         }
