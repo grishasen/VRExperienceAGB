@@ -1,6 +1,6 @@
 # Architecture
 
-**Current update — 2026-09-29:** deep-tree focus, smoother stone shading/foliage edges, ensemble navigation, profile editing and a basic forest overview are implemented; 111 EditMode and eleven PlayMode tests passed. The prior build had a successful first Quest test reported by the user. The new build's headset and performance acceptance remain open. See [current evidence and remaining scope](development-progress-2026-09-29.md). Earlier dated status paragraphs and milestone estimates below are historical planning records, not the latest completion counts.
+**Current update — 2026-09-30:** M4 ensemble ledger, final result review, staged hypothetical edits, manual consistency diagnostics and equivalent short/detailed tours are implemented on `codex/m4-ensemble`. See the [M4 implementation record](m4-progress-2026-09-30.md) for current automated/build evidence. Quest M4 acceptance, outstanding M1/M3 device checks, actual performance measurements and production AGB verification remain open. Earlier dated records below are historical.
 
 Status: Domain and normalized synthetic Import implemented for M2-01–M2-05; 84 EditMode tests pass. A one-tree Application/session layer and Presentation scene are now implemented and Editor-tested; full-ensemble sessions, advanced presentation, XR hardware qualification and environment polish remain planned. See the [M3 record](m3-progress-2026-09-28.md). See [implementation record](m2-foundation-2026-09-28.md).
 

@@ -6,7 +6,7 @@
 
 **Business value:** connect the immersive journey to the complete model result, while making the limits of free exploration and hypothetical edits explicit.
 
-**Status:** preliminary ensemble navigation and profile editing implemented in the M3 development branch; remaining M4 acceptance work is next. See the [handoff](../development-progress-2026-09-29.md). **Priority:** Must. **Dependencies:** accepted M3 and M2 synthetic evaluator. **Owner role:** Application developer with model reviewer. **Planning range:** 4–6 working days.
+**Status:** M4-01–M4-08 implemented for synthetic data; Editor verification and Android candidate evidence are tracked in the [September 30 record](../m4-progress-2026-09-30.md). Formal Quest acceptance is pending the [device checklist](../m4-device-check-2026-09-30.md). **Priority:** Must. **Dependencies:** accepted M3 and M2 synthetic evaluator. **Owner role:** Application developer with model reviewer. **Planning range:** 4–6 working days.
 
 ```mermaid
 flowchart LR
@@ -27,7 +27,7 @@ A short tour groups some explanations; it does not omit their contributions. Man
 
 **User story:** As a business viewer, I want to reconcile the final result with the baseline and each tree so that I can understand the ensemble as a series of contributions.
 
-**Priority:** Must. **Status:** Not started. **Owner role:** Model/presentation developer. **Depends on:** M2-04, M2-05, M3-08.
+**Priority:** Must. **Status:** Implemented; automated evidence recorded; device acceptance pending. **Owner role:** Model/presentation developer. **Depends on:** M2-04, M2-05, M3-08.
 
 **Acceptance criteria**
 
@@ -44,7 +44,7 @@ A short tour groups some explanations; it does not omit their contributions. Man
 
 **User story:** As a visitor, I want clear transitions and a final explanation so that I understand how individual trees connect to the overall outcome.
 
-**Priority:** Must. **Status:** Not started. **Owner role:** Unity/XR presentation developer. **Depends on:** M4-01, M3-06.
+**Priority:** Must. **Status:** Implemented; automated evidence recorded; device acceptance pending. **Owner role:** Unity/XR presentation developer. **Depends on:** M4-01, M3-06.
 
 **Acceptance criteria**
 
@@ -61,7 +61,7 @@ A short tour groups some explanations; it does not omit their contributions. Man
 
 **User story:** As a presenter, I want visitors to inspect and select a prepared example so that they know whose hypothetical values the explanation follows.
 
-**Priority:** Must. **Status:** Not started. **Owner role:** Application/UX developer. **Depends on:** M4-01, M3-05.
+**Priority:** Must. **Status:** Implemented; automated evidence recorded; device acceptance pending. **Owner role:** Application/UX developer. **Depends on:** M4-01, M3-05.
 
 **Acceptance criteria**
 
@@ -78,7 +78,7 @@ A short tour groups some explanations; it does not omit their contributions. Man
 
 **User story:** As a business viewer, I want to try changing an allowed feature while preserving the original example so that I can explore a hypothetical scenario and return to the starting point.
 
-**Priority:** Must. **Status:** Not started. **Owner role:** Application/UX developer. **Depends on:** M4-03, M2-02.
+**Priority:** Must. **Status:** Implemented; automated evidence recorded; device acceptance pending. **Owner role:** Application/UX developer. **Depends on:** M4-03, M2-02.
 
 **Acceptance criteria**
 
@@ -95,7 +95,7 @@ A short tour groups some explanations; it does not omit their contributions. Man
 
 **User story:** As a visitor, I want the entire explanation to reflect my accepted profile change so that old paths and contributions cannot mislead me.
 
-**Priority:** Must. **Status:** Not started. **Owner role:** Application/model developer. **Depends on:** M4-04, M4-01.
+**Priority:** Must. **Status:** Implemented; automated evidence recorded; device acceptance pending. **Owner role:** Application/model developer. **Depends on:** M4-04, M4-01.
 
 **Acceptance criteria**
 
@@ -112,7 +112,7 @@ A short tour groups some explanations; it does not omit their contributions. Man
 
 **User story:** As an exploring visitor, I want to know when my choices cannot describe one consistent profile so that I can revise them or continue freely without misunderstanding the result.
 
-**Priority:** Must. **Status:** Not started. **Owner role:** Model/application developer. **Depends on:** M3-03, M4-01.
+**Priority:** Must. **Status:** Implemented; automated evidence recorded; device acceptance pending. **Owner role:** Model/application developer. **Depends on:** M3-03, M4-01.
 
 **Acceptance criteria**
 
@@ -130,7 +130,7 @@ A short tour groups some explanations; it does not omit their contributions. Man
 
 **User story:** As a presenter with limited time, I want a shorter explanation that preserves the full result so that I can adapt the pace without changing the model's meaning.
 
-**Priority:** Must. **Status:** Not started. **Owner role:** Application/presentation developer. **Depends on:** M4-01, M4-02, M3-05.
+**Priority:** Must. **Status:** Implemented; automated evidence recorded; device acceptance pending. **Owner role:** Application/presentation developer. **Depends on:** M4-01, M4-02, M3-05.
 
 **Acceptance criteria**
 
@@ -147,7 +147,7 @@ A short tour groups some explanations; it does not omit their contributions. Man
 
 **User story:** As a visitor, I want a stable explanation of my mode, progress, and total so that I can distinguish a route score from a prepared-profile result wherever I am.
 
-**Priority:** Must. **Status:** Not started. **Owner role:** UX/application developer. **Depends on:** M4-01–M4-07.
+**Priority:** Must. **Status:** Implemented; automated evidence recorded; device acceptance pending. **Owner role:** UX/application developer. **Depends on:** M4-01–M4-07.
 
 **Acceptance criteria**
 

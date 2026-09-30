@@ -102,6 +102,9 @@ namespace VRExperienceAGB.Application
             return Outcome<TreeSession>.Success(new TreeSession(model, tree, profile, evaluated));
         }
 
+        internal static TreeSession FromEvaluation(ModelDefinition model, ModelTree tree, PreparedProfile profile, TreeEvaluation evaluated)
+            => new TreeSession(model, tree, profile, evaluated);
+
         private CommandReply Accept(string message) { Revision++; return new CommandReply(true, message); }
         private static CommandReply Reject(string message) => new CommandReply(false, message);
         private bool Matches(long revision, string nodeId) => revision == Revision && nodeId == CurrentNode.Id;

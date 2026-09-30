@@ -1,11 +1,11 @@
 # VRExperienceAGB
 
-Current development: deep-tree focus, ensemble navigation, profile editing and a basic forest overview are implemented. See the [September 29 development record](docs/development-progress-2026-09-29.md).
+Current development: M4 adds an ensemble contribution ledger, final result review, staged profile edits, manual-route consistency warnings and short/detailed tours. See the [September 30 implementation record](docs/m4-progress-2026-09-30.md).
 An immersive explanation of adaptive gradient boosted decision trees for Meta Quest 3.
 
 Explore a miniature forest, enter a tree, choose branches yourself, or follow a prepared customer profile. Watch each selected leaf contribute to the ensemble score in a twilight forest with luminous paths inspired by the existing AGB Grid Drive prototype.
 
-**Status: implementation underway.** The synthetic model/session foundation and scene now have **111 passing EditMode tests and twelve passing PlayMode tests** in Unity 6000.6.3f1. The prior moonlit build installed and launched on Quest 3, and the user reported a successful first interaction test. The combined September 29 M3 candidate is ready for the [headset checklist](docs/m3-device-check-2026-09-29.md); device acceptance and actual performance measurements remain pending. Real AGB verification remains pending. Open `BoostingExperience/Assets/VRExperienceAGB/Scenes/OneTreeLearning.unity` and press Play for the mouse preview. Both manual exploration and deterministic prepared-profile playback remain available.
+**Status: implementation underway.** M4 synthetic behavior is implemented on `codex/m4-ensemble`; current automated tests and Android build evidence are recorded in the [M4 record](docs/m4-progress-2026-09-30.md). The earlier M3 appearance/posture/lantern iteration was approved by the user on Quest 3. M4 headset acceptance, remaining device checks, real AGB verification and actual performance measurements remain pending. Open `BoostingExperience/Assets/VRExperienceAGB/Scenes/OneTreeLearning.unity` for the mouse preview. Both manual exploration and deterministic prepared-profile playback remain available.
 
 All project documentation, code, comments, identifiers, commit messages, and initial application copy are in English.
 

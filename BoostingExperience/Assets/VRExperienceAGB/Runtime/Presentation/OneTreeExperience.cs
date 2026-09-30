@@ -28,6 +28,10 @@ namespace VRExperienceAGB.Presentation
         public float decisionSeconds = 2.5f;
         public TreeSession Session { get; private set; }
         public EnsembleSession Ensemble { get; private set; }
+        public TMP_Text ledgerText;
+        private bool reviewingResult;
+        private int ledgerPage;
+        private bool freeExplorationAcknowledged;
         private bool editingProfile;
         private bool inspectingNodes;
         private int inspectedNode;
@@ -103,7 +107,8 @@ namespace VRExperienceAGB.Presentation
         {
             var outcome = EnsembleSession.Create(model, profile);
             if (!outcome.IsSuccess) return Fail(string.Join("; ", outcome.Diagnostics.Select(d => d.Code)));
-            Ensemble = outcome.Value; Ensemble.Select(treeIndex); editingProfile = false; inspectingNodes = false; profilePreview = profile != null; MenuOpen = false;
+            if (Ensemble != null) foreach (var retired in Ensemble.Trees) retired.ReturnToOverview();
+            Ensemble = outcome.Value; reviewingResult = false; freeExplorationAcknowledged = false; Ensemble.Select(treeIndex); editingProfile = false; inspectingNodes = false; profilePreview = profile != null; MenuOpen = false;
             AdoptCurrent(overview); return true;
         }
         private void AdoptCurrent(bool overview = false)
@@ -129,13 +134,13 @@ namespace VRExperienceAGB.Presentation
 
         public void Execute(TreeAction action, long revision, string nodeId)
         {
-            if (Session == null) return;
+            if (Session == null || revision != Session.State.Revision || nodeId != Session.State.NodeId) return;
             CommandReply reply = default;
             switch (action)
             {
                 case TreeAction.Menu:
                     if (!MenuOpen) { pausedBeforeMenu = Session.State.Paused; Session.SetPaused(true); MenuOpen = true; }
-                    else { MenuOpen = false; editingProfile = false; inspectingNodes = false; Session.SetPaused(pausedBeforeMenu); }
+                    else { Ensemble.CancelEdit(); MenuOpen = false; reviewingResult = false; editingProfile = false; inspectingNodes = false; Session.SetPaused(pausedBeforeMenu); }
                     Refresh(); return;
                 case TreeAction.InspectNodes:
                     inspectionIds = nodeViews.Where(v => v.gameObject.activeSelf).Select(v => v.nodeId).ToArray();
@@ -153,11 +158,49 @@ namespace VRExperienceAGB.Presentation
                     return;
                 case TreeAction.EditProfile:
                     if (Ensemble.Profile == null) { message = "Choose Follow a profile first."; Refresh(); return; }
-                    Session.SetPaused(true); editingProfile = true; featureIndex = 0; Refresh(); return;
-                case TreeAction.CloseEdit: editingProfile = false; MenuOpen = false; Session.SetPaused(pausedBeforeMenu); message = "Profile ready. Use Step or Play to inspect the updated routes."; Refresh(); return;
+                    if (!MenuOpen) { pausedBeforeMenu = Session.State.Paused; MenuOpen = true; }
+                    Session.SetPaused(true); Ensemble.BeginEdit(); editingProfile = true; featureIndex = 0; Refresh(); return;
+                case TreeAction.CloseEdit:
+                    var applied = Ensemble.ApplyEdit();
+                    if (!applied.IsSuccess) { message = string.Join("; ", applied.Diagnostics.Select(d => d.Message)); Refresh(); return; }
+                    editingProfile = false; MenuOpen = false; AdoptCurrent(); Session.SetPaused(pausedBeforeMenu);
+                    profilePreview = true; message = "Hypothetical profile applied. All trees recomputed; restart at Tree 1 root. Model sensitivity is not a causal promise."; Refresh(); return;
+                case TreeAction.CancelEdit:
+                    Ensemble.CancelEdit(); editingProfile = false; MenuOpen = false; Session.SetPaused(pausedBeforeMenu);
+                    message = "Edit cancelled. Accepted profile, route and result preserved."; Refresh(); return;
+                case TreeAction.SetMissing: Ensemble.StageEdit(model.Features[featureIndex].Id, ProfileValue.Missing); Refresh(); return;
+                case TreeAction.TourDetail:
+                    Ensemble.SetDetail(Ensemble.Detail == TourDetail.Detailed ? Application.TourDetail.Short : Application.TourDetail.Detailed);
+                    message = "Tour detail changed. Full evaluation is unchanged; grouped trees can be inspected individually."; Refresh(); return;
+                case TreeAction.GroupRemaining:
+                    if (MenuOpen) { MenuOpen = false; Session.SetPaused(pausedBeforeMenu); }
+                    if (Ensemble.ExplainRemainingGroup()) { message = "Remaining contributions explained as a group. Review the ledger for every tree."; pausedBeforeMenu = Session.State.Paused; Session.SetPaused(true); MenuOpen = true; reviewingResult = true; ledgerPage = 0; }
+                    Refresh(); return;
+                case TreeAction.Result:
+                    if (!MenuOpen) { pausedBeforeMenu = Session.State.Paused; Session.SetPaused(true); MenuOpen = true; }
+                    reviewingResult = true; ledgerPage = 0; Refresh(); return;
+                case TreeAction.NextLedgerPage: ledgerPage = (ledgerPage + 1) % Math.Max(1, (model.Trees.Count + 3) / 4); Refresh(); return;
+                case TreeAction.CloseResult: reviewingResult = false; MenuOpen = false; Session.SetPaused(pausedBeforeMenu); Refresh(); return;
+                case TreeAction.ReviseChoice:
+                    MenuOpen = false; reviewingResult = false;
+                    if (Ensemble.ReviseConflict()) { AdoptCurrent(); Session.SetPaused(pausedBeforeMenu); freeExplorationAcknowledged = false; message = "Earlier conflicting decision restored. Later contributions cleared."; }
+                    Refresh(); return;
+                case TreeAction.ContinueFree:
+                    freeExplorationAcknowledged = true; MenuOpen = false; Session.SetPaused(pausedBeforeMenu);
+                    message = "Continue free exploration. The total remains a Route score without a profile probability."; Refresh(); return;
                 case TreeAction.NextFeature: featureIndex = (featureIndex + 1) % model.Features.Count; Refresh(); return;
                 case TreeAction.DecreaseValue: case TreeAction.IncreaseValue: EditValue(action == TreeAction.IncreaseValue ? 1 : -1); return;
-                case TreeAction.RestoreProfile: Ensemble.RestoreOriginal(); AdoptCurrent(); message = "Original profile restored; all routes reset."; Refresh(); return;
+                case TreeAction.RestoreProfile: Ensemble.ResetDraftToOriginal(); message = "Original values restored in the draft. Apply to accept them."; Refresh(); return;
+                case TreeAction.LargerEnsemble:
+                    if (model.Id == "synthetic-ensemble-24") Initialize();
+                    else
+                    {
+                        var source = NormalizedModelJson.ReadModel(modelFile.text).Value;
+                        var sourceProfiles = NormalizedModelJson.ReadProfiles(profilesFile.text, source).Value;
+                        model = EnsembleTeachingExample.Model(source); profiles = EnsembleTeachingExample.Profiles(model, sourceProfiles);
+                        profileIndex = 0; deepExample = false; StartEnsemble(null, false);
+                    }
+                    message = "Synthetic 24-tree example repeats predictors. Every tree contributes; try different choices to explore contradictions."; Refresh(); return;
                 case TreeAction.DeepExample:
                     if (deepExample) { Initialize(); message = "Original three-tree example restored."; }
                     else { model = DeepTreeExample.Model(); profiles = DeepTreeExample.Profiles(model); profileIndex = 0; deepExample = true;
@@ -174,8 +217,8 @@ namespace VRExperienceAGB.Presentation
                 case TreeAction.Step: profilePreview = false; reply = Session.StepProfile(revision, nodeId); break;
                 case TreeAction.Play: profilePreview = false; reply = Session.SetPlaying(true); break;
                 case TreeAction.Pause: reply = Session.SetPaused(!Session.State.Paused); break;
-                case TreeAction.Back: reply = Session.Back(); break;
-                case TreeAction.Restart: reply = Session.Restart(); break;
+                case TreeAction.Back: reply = Ensemble.Back(); AdoptCurrent(); freeExplorationAcknowledged = false; break;
+                case TreeAction.Restart: Ensemble.RestartTour(); AdoptCurrent(); freeExplorationAcknowledged = false; message = "Entire tour restarted at the baseline."; Refresh(); return;
                 case TreeAction.Overview: MenuOpen = false; Session.SetPaused(pausedBeforeMenu); treeMap = false; reply = Session.State.Overview ? Session.EnterTree() : Session.ReturnToOverview(); break;
                 case TreeAction.Manual: showProfileDetails = false; StartEnsemble(null, false, Ensemble.Index); message = "Manual exploration. Choices are not a customer prediction."; Refresh(); return;
                 case TreeAction.Profile: showProfileDetails = true; StartEnsemble(profiles.Profiles[profileIndex], false, Ensemble.Index); message = "Follow this synthetic profile with Step or Play."; Refresh(); return;
@@ -185,7 +228,7 @@ namespace VRExperienceAGB.Presentation
                     message = seated ? "Seated layout: presentation lowered; tracking space unchanged." : "Standing layout restored.";
                     Refresh(); return;
             }
-            if (reply.Accepted && (action == TreeAction.TrueBranch || action == TreeAction.FalseBranch)) Ensemble.TakeOver();
+            if (reply.Accepted && (action == TreeAction.TrueBranch || action == TreeAction.FalseBranch)) { Ensemble.TakeOver(); Ensemble.InvalidateAfterCurrent(); }
             message = reply.Message;
             feedbackUntil = Time.unscaledTime + 4;
             Refresh();
@@ -243,21 +286,24 @@ namespace VRExperienceAGB.Presentation
             if (Ensemble.Trees.Skip(1).Any(t => t.State.AtLeaf) || Ensemble.Index > 0)
                 score.text = (Ensemble.Mode == ExperienceMode.Manual ? "Manual route score  " : "Visited-tree subtotal  ") + Number(Ensemble.RouteTotal) +
                     "\n" + Ensemble.CompletedCount + " / " + model.Trees.Count + " leaves reached | Baseline " + Number(model.BaseScore) +
-                    "\n" + string.Join("  +  ", Ensemble.Trees.Select(t => t.State.AtLeaf ? Number(t.State.Contribution) : "pending"));
+                    "\n" + (model.Trees.Count <= 3 ? string.Join("  +  ", Ensemble.Trees.Select(t => t.State.AtLeaf ? Number(t.State.Contribution) : "pending")) : "Current leaf " + Number(s.Contribution) + " | " + (model.Trees.Count - Ensemble.CompletedCount) + " pending trees | See contribution ledger");
             if (Ensemble.Complete && Ensemble.Mode == ExperienceMode.PreparedProfile)
-                score.text = "Full synthetic prediction: " + (Ensemble.Evaluation.Probability * 100).ToString("0.00", CultureInfo.InvariantCulture) + "% " + model.OutcomeLabel +
-                    "\nRaw score " + Number(Ensemble.Evaluation.RawScore) + " = baseline " + Number(model.BaseScore) + " + " + string.Join(" + ", Ensemble.Evaluation.Trees.Select(t => "(" + Number(t.Contribution) + ")"));
-            if (Ensemble.Mode == ExperienceMode.Manual && Ensemble.CompletedCount > 1)
-                score.text += "\nFree exploration; route consistency not verified. No profile probability.";
+                score.text = "Full synthetic prediction: " + Percent(Ensemble.Evaluation.Probability) + "% " + model.OutcomeLabel +
+                    "\nRaw score " + Number(Ensemble.Evaluation.RawScore) + " = baseline " + Number(model.BaseScore) + " + " + (model.Trees.Count <= 3 ? string.Join(" + ", Ensemble.Evaluation.Trees.Select(t => "(" + Number(t.Contribution) + ")")) : "all " + model.Trees.Count + " tree contributions (see ledger)");
+            if (Ensemble.Mode == ExperienceMode.Manual)
+                score.text += "\nRoute score. No profile probability. " + (Ensemble.Consistency.Status == RouteConsistency.Contradictory ? "Conflicting choices" :
+                    Ensemble.Consistency.Status == RouteConsistency.NotVerified ? "Consistency not verified" : "Partial route; consistent choices");
+            if (Ensemble.Mode == ExperienceMode.PreparedProfile)
+                score.text += "\n" + Ensemble.Profile.DisplayName + " | " + Ensemble.Detail + " tour";
             feedback.text = showProfileDetails && MenuOpen ? "Selected for next run: " + chosen.DisplayName + "\n" +
                 string.Join("  |  ", chosen.Values.Select(p => Feature(p.Key) + ": " + Value(p.Value))) + "\n" + message :
                 s.Overview ? "Choose Explore branches or Follow a profile to begin" : message;
             if (editingProfile)
             {
                 var feature = model.Features[featureIndex];
-                explanation.text = "Try a hypothetical change\n" + feature.DisplayName + ": " + Value(Ensemble.Profile.GetValue(feature.Id));
-                feedback.text = "Original: " + Value(Ensemble.OriginalProfile.GetValue(feature.Id)) + " | Edits reset every tree route and recompute the full model.\n" + message;
-                if (Ensemble.Evaluation != null) score.text = "Updated full synthetic prediction: " + (Ensemble.Evaluation.Probability * 100).ToString("0.00", CultureInfo.InvariantCulture) + "%\nRaw score " + Number(Ensemble.Evaluation.RawScore) + " | All " + model.Trees.Count + " trees evaluated";
+                explanation.text = "Try a hypothetical change\n" + feature.DisplayName + ": " + Value(Ensemble.Draft.GetValue(feature.Id));
+                feedback.text = "Original: " + Value(Ensemble.OriginalProfile.GetValue(feature.Id)) + " | Apply restarts at Tree 1; Cancel preserves the accepted result.\n" + message;
+                if (Ensemble.Evaluation != null) score.text = "Accepted full synthetic prediction: " + Percent(Ensemble.Evaluation.Probability) + "%\nRaw score " + Number(Ensemble.Evaluation.RawScore) + " | All " + model.Trees.Count + " trees evaluated";
             }
             if (profilePreview && !MenuOpen && Ensemble.Profile != null)
                 feedback.text = "Synthetic profile: " + Ensemble.Profile.DisplayName + "\n" +
@@ -273,8 +319,16 @@ namespace VRExperienceAGB.Presentation
                     "Leaf contribution: " + Number(Session.Tree.Weight * ((LeafNode)inspected).Score));
                 feedback.text = "Read-only inspection. Your route and score are preserved.";
             }
-            feedback.gameObject.SetActive(MenuOpen || profilePreview || Time.unscaledTime < feedbackUntil);
-            if (menuBackdrop != null) menuBackdrop.SetActive(MenuOpen);
+            var consistency = Ensemble.Consistency;
+            if (Ensemble.Mode == ExperienceMode.Manual && consistency.Status == RouteConsistency.Contradictory && !editingProfile && !inspectingNodes && !reviewingResult)
+                feedback.text = "Conflicting choices: " + string.Join("; ", consistency.Conflicts.Take(2).Select(ConstraintCopy)) + "\nRevise earlier choice or Continue free exploration (Menu).";
+            feedback.gameObject.SetActive(!reviewingResult && (MenuOpen || profilePreview || (Ensemble.Mode == ExperienceMode.Manual && consistency.Status == RouteConsistency.Contradictory && !freeExplorationAcknowledged) || Time.unscaledTime < feedbackUntil));
+            if (ledgerText != null)
+            {
+                ledgerText.gameObject.SetActive(reviewingResult);
+                ledgerText.text = LedgerCopy();
+            }
+            if (menuBackdrop != null) menuBackdrop.SetActive(MenuOpen || reviewingResult);
             if (s.Overview && !treeMap) focusedView.Forest(Ensemble);
             else focusedView.Refresh(s, treeMap || Session.Tree.Nodes.Count <= 7);
             if (inspectingNodes && !(s.Overview && !treeMap))
@@ -283,11 +337,11 @@ namespace VRExperienceAGB.Presentation
             if (routeHistory != null) routeHistory.text = "Depth " + s.Decisions.Count + "  |  " + Session.Tree.Nodes.Count + " nodes  |  " +
                 (s.Decisions.Count == 0 ? "At root" : string.Join(" > ", s.Decisions.Select(d => d.Matched ? "TRUE" : "FALSE"))) +
                 (treeMap ? "\nRoot overview - return to focus to continue" : "\nBack retraces your accepted decisions");
-            if (routeHistory != null) routeHistory.gameObject.SetActive(MenuOpen && !editingProfile && !inspectingNodes);
+            if (routeHistory != null) routeHistory.gameObject.SetActive(MenuOpen && !reviewingResult && !editingProfile && !inspectingNodes);
             explanation.rectTransform.anchoredPosition = new Vector2(0, inspectingNodes ? 760 : 420);
             explanation.rectTransform.sizeDelta = new Vector2(1200, inspectingNodes ? 210 : 100);
-            explanation.gameObject.SetActive(!MenuOpen || editingProfile || inspectingNodes);
-            drop.gameObject.SetActive(!(s.Overview && !treeMap) && (!treeMap || nodeViews.Any(v => v.gameObject.activeSelf && v.nodeId == s.NodeId)));
+            explanation.gameObject.SetActive(!reviewingResult && (!MenuOpen || editingProfile || inspectingNodes));
+            drop.gameObject.SetActive(!reviewingResult && !(s.Overview && !treeMap) && (!treeMap || nodeViews.Any(v => v.gameObject.activeSelf && v.nodeId == s.NodeId)));
             if (s.PendingDecision == null) drop.position = Position(s.NodeId);
             foreach (var c in controls)
             {
@@ -298,6 +352,13 @@ namespace VRExperienceAGB.Presentation
                     case TreeAction.PreviousTree: enabled = Ensemble.Index > 0; break;
                     case TreeAction.NextTree: enabled = Ensemble.Index + 1 < model.Trees.Count; break;
                     case TreeAction.EditProfile: enabled = Ensemble.Profile != null; break;
+                    case TreeAction.SetMissing: enabled = editingProfile && model.Features[featureIndex].AllowMissing; break;
+                    case TreeAction.CloseEdit: label.text = "Apply change"; break;
+                    case TreeAction.TourDetail: label.text = Ensemble.Detail == Application.TourDetail.Detailed ? "Choose short tour" : "Choose detailed tour"; enabled = Ensemble.Mode == ExperienceMode.PreparedProfile; break;
+                    case TreeAction.GroupRemaining: enabled = Ensemble.Mode == ExperienceMode.PreparedProfile && Ensemble.Detail == Application.TourDetail.Short && s.AtLeaf && Ensemble.Index < model.Trees.Count - 1; break;
+                    case TreeAction.ReviseChoice: case TreeAction.ContinueFree: enabled = Ensemble.Mode == ExperienceMode.Manual && consistency.Status == RouteConsistency.Contradictory; break;
+                    case TreeAction.Result: label.text = Ensemble.Complete ? "Review final result" : "Review contributions"; break;
+                    case TreeAction.LargerEnsemble: label.text = model.Id == "synthetic-ensemble-24" ? "Original three-tree example" : "Larger ensemble: 24 trees"; break;
                     case TreeAction.DeepExample: label.text = deepExample ? "Original example" : "Deep tree: 8 levels"; break;
                     case TreeAction.TreeMap: label.text = treeMap ? "Return to focus" : "Tree overview"; break;
                     case TreeAction.TrueBranch: case TreeAction.FalseBranch:
@@ -320,27 +381,61 @@ namespace VRExperienceAGB.Presentation
                     var selected = c.action == TreeAction.Manual ? s.Mode == ExperienceMode.Manual : s.Mode == ExperienceMode.PreparedProfile;
                     c.GetComponent<UnityEngine.UI.Image>().color = selected ? new Color(.06f, .28f, .35f, .98f) : new Color(.045f, .12f, .19f, .98f);
                 }
-                bool editorControl = c.action == TreeAction.NextFeature || c.action == TreeAction.DecreaseValue || c.action == TreeAction.IncreaseValue || c.action == TreeAction.RestoreProfile || c.action == TreeAction.CloseEdit;
+                bool resultControl = c.action == TreeAction.NextLedgerPage || c.action == TreeAction.CloseResult;
+                bool editorControl = c.action == TreeAction.CancelEdit || c.action == TreeAction.SetMissing || c.action == TreeAction.NextFeature || c.action == TreeAction.DecreaseValue || c.action == TreeAction.IncreaseValue || c.action == TreeAction.RestoreProfile || c.action == TreeAction.CloseEdit;
                 bool inspectorControl = c.action == TreeAction.NextNode || c.action == TreeAction.CloseInspect;
                 bool secondary = IsSecondary(c.action);
-                bool visible = inspectorControl ? MenuOpen && inspectingNodes : editorControl ? MenuOpen && editingProfile : secondary ? MenuOpen && !editingProfile && !inspectingNodes : true;
+                bool visible = reviewingResult ? resultControl || c.action == TreeAction.Menu : resultControl ? false : inspectorControl ? MenuOpen && inspectingNodes : editorControl ? MenuOpen && editingProfile : secondary ? MenuOpen && !editingProfile && !inspectingNodes : true;
                 if (c.action == TreeAction.Step || c.action == TreeAction.Play || c.action == TreeAction.Pause)
                     visible = c.action == TreeAction.Pause ? !MenuOpen : !MenuOpen && s.Mode == ExperienceMode.PreparedProfile;
                 if (c.action == TreeAction.TrueBranch || c.action == TreeAction.FalseBranch)
                     visible = !MenuOpen && !s.Overview && !s.AtLeaf;
-                if (MenuOpen && !secondary && !editorControl && !inspectorControl && c.action != TreeAction.Menu) enabled = false;
+                if (MenuOpen && !secondary && !editorControl && !inspectorControl && !resultControl && c.action != TreeAction.Menu) enabled = false;
+                if (reviewingResult) visible = resultControl || c.action == TreeAction.Menu;
                 c.gameObject.SetActive(visible);
                 c.GetComponent<UnityEngine.UI.Button>().interactable = enabled;
 
             }
         }
-        public static bool IsSecondary(TreeAction action) => action == TreeAction.DeepExample || action == TreeAction.TreeMap ||
+        public static bool IsSecondary(TreeAction action) => action == TreeAction.LargerEnsemble || action == TreeAction.DeepExample || action == TreeAction.TreeMap ||
             action == TreeAction.PreviousTree || action == TreeAction.NextTree || action == TreeAction.EditProfile ||
-            action == TreeAction.NextProfile || action == TreeAction.Seated || action == TreeAction.Overview || action == TreeAction.InspectNodes;
+            action == TreeAction.Result || action == TreeAction.TourDetail || action == TreeAction.GroupRemaining || action == TreeAction.ReviseChoice || action == TreeAction.ContinueFree || action == TreeAction.NextProfile || action == TreeAction.Seated || action == TreeAction.Overview || action == TreeAction.InspectNodes;
+
+        private static string Percent(double probability) => (probability * 100).ToString(
+            probability > 0 && probability < .0001 ? "0.###E+0" : "0.00", CultureInfo.InvariantCulture);
+
+        private string ConstraintCopy(ManualConstraint choice) => choice.TreeId + "/" + choice.NodeId + ": " +
+            Condition(new SplitNode(choice.NodeId, choice.FeatureId, choice.Condition, "true", "false"), choice.Matched);
+
+        private string LedgerCopy()
+        {
+            var rows = Ensemble.Ledger;
+            var output = Ensemble.Evaluation;
+            string text = (Ensemble.Complete ? "FINAL RESULT" : "CONTRIBUTION LEDGER") + "  |  Page " + (ledgerPage + 1) + " / " + Math.Max(1, (rows.Count + 3) / 4) +
+                "\nSynthetic data | " + (Ensemble.Mode == ExperienceMode.Manual ? "Manual Route score" : Ensemble.Profile.DisplayName) +
+                "\nBaseline " + Number(model.BaseScore) + " | Explained " + Ensemble.CompletedCount + " / " + rows.Count + " | Running raw total " + Number(Ensemble.RouteTotal);
+            foreach (var row in rows.Skip(ledgerPage * 4).Take(4))
+                text += "\n" + (row.Index + 1) + ". " + row.TreeId + " | " + (row.Progress == ContributionProgress.Pending ? "Pending" : row.Progress == ContributionProgress.Grouped ? "Grouped" : "Explained") + " | " +
+                    (row.EvaluatedContribution.HasValue ? "evaluated " + Number(row.EvaluatedContribution.Value) : row.Progress == ContributionProgress.Pending ? "pending" : "route " + Number(row.PresentedContribution));
+            var grouped = Ensemble.GroupedRows;
+            if (grouped.Count > 0) text += "\nGrouped: " + grouped.Count + " trees | contribution " + Number(grouped.Sum(r => r.PresentedContribution)) + " | Every identity is listed on these pages.";
+            if (output != null) text += "\nComplete raw score " + Number(output.RawScore) + " = baseline + ALL " + rows.Count + " contributions" +
+                "\nOutput = sigmoid(raw score): " + Percent(output.Probability) + "% " + output.OutcomeLabel +
+                "\nAlready computed; pending rows have not yet been explained. Synthetic model; source scoring not verified." +
+                (Ensemble.Profile.Id != Ensemble.OriginalProfile.Id ? "\nHypothetical model sensitivity; not a causal promise." : "");
+            else
+            {
+                var report = Ensemble.Consistency;
+                text += "\n" + (report.Status == RouteConsistency.Contradictory ? "Conflicting choices" : report.Message) + "\nRoute score only. No complete customer probability.";
+                var pageTreeIds = rows.Skip(ledgerPage * 4).Take(4).Select(r => r.TreeId).ToArray();
+                foreach (var conflict in report.Conflicts.Where(c => pageTreeIds.Contains(c.TreeId)).Take(4)) text += "\n" + ConstraintCopy(conflict);
+            }
+            return text;
+        }
 
         private void EditValue(int direction)
         {
-            var feature = model.Features[featureIndex]; var old = Ensemble.Profile.GetValue(feature.Id);
+            var feature = model.Features[featureIndex]; var old = Ensemble.Draft.GetValue(feature.Id);
             ProfileValue next;
             if (feature.Kind == FeatureKind.Category)
             {
@@ -356,9 +451,9 @@ namespace VRExperienceAGB.Presentation
                 if (feature.AllowMissing && !old.IsMissing && direction < 0 && number < (feature.Minimum ?? 0)) next = ProfileValue.Missing;
                 else next = ProfileValue.FromNumber(Math.Max(feature.Minimum ?? double.MinValue, Math.Min(feature.Maximum ?? double.MaxValue, number)));
             }
-            var result = Ensemble.Edit(feature.Id, next);
+            var result = Ensemble.StageEdit(feature.Id, next);
             if (!result.IsSuccess) message = "Change rejected: " + string.Join("; ", result.Diagnostics.Select(d => d.Code));
-            else { AdoptCurrent(); message = "Updated " + feature.DisplayName + ". All tree routes were reset."; }
+            else { message = "Draft updated. Apply change to evaluate, or Cancel edit to keep the accepted result."; }
             Refresh();
         }
         private void OnApplicationPause(bool paused) { if (paused && Session != null) { Session.SetPaused(true); Refresh(); } }

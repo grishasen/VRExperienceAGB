@@ -26,7 +26,7 @@ namespace VRExperienceAGB.Tests
         }
         private void Click(TreeAction action,int pointerId=1)
         {
-            bool editorAction = action == TreeAction.NextFeature || action == TreeAction.DecreaseValue || action == TreeAction.IncreaseValue || action == TreeAction.RestoreProfile || action == TreeAction.CloseEdit || action == TreeAction.NextNode || action == TreeAction.CloseInspect;
+            bool editorAction = action == TreeAction.CancelEdit || action == TreeAction.SetMissing || action == TreeAction.NextLedgerPage || action == TreeAction.CloseResult || action == TreeAction.NextFeature || action == TreeAction.DecreaseValue || action == TreeAction.IncreaseValue || action == TreeAction.RestoreProfile || action == TreeAction.CloseEdit || action == TreeAction.NextNode || action == TreeAction.CloseInspect;
             if (OneTreeExperience.IsSecondary(action) && !view.MenuOpen) Click(TreeAction.Menu, pointerId);
             else if (!OneTreeExperience.IsSecondary(action) && !editorAction && action != TreeAction.Menu && view.MenuOpen) Click(TreeAction.Menu, pointerId);
             var button=view.controls.Single(c=>c.action==action);
@@ -219,9 +219,9 @@ namespace VRExperienceAGB.Tests
             Assert.That(view.Session.State.NodeId, Is.EqualTo(saved));
             var original = view.Ensemble.OriginalProfile;
             Click(TreeAction.EditProfile); Click(TreeAction.IncreaseValue);
-            Assert.That(view.Ensemble.CompletedCount, Is.Zero);
+            Assert.That(view.Ensemble.CompletedCount, Is.EqualTo(3), "A draft must preserve accepted route progress until Apply.");
             Assert.That(view.Ensemble.OriginalProfile, Is.SameAs(original));
-            Assert.That(view.score.text, Does.Contain("Updated full synthetic prediction"));
+            Assert.That(view.score.text, Does.Contain("Accepted full synthetic prediction"));
             Click(TreeAction.RestoreProfile); Click(TreeAction.CloseEdit);
             Assert.That(view.Ensemble.Evaluation.RawScore, Is.EqualTo(-4.1).Within(1e-12));
             Assert.That(view.Session.State.Paused, Is.False);
@@ -266,6 +266,108 @@ namespace VRExperienceAGB.Tests
             Click(TreeAction.Pause); Click(TreeAction.Menu); Click(TreeAction.Menu);
             Assert.That(view.Session.State.Paused, Is.True, "Closing menu must preserve an explicit pause.");
         }
+        [UnityTest]
+        public IEnumerator ShortTourLedgerAndDetailedTourReachTheSameFinalResult()
+        {
+            Click(TreeAction.Profile); Click(TreeAction.TourDetail);
+            while (!view.Session.State.AtLeaf) { Click(TreeAction.Step); Arrive(); }
+            Click(TreeAction.GroupRemaining);
+            Assert.That(view.Ensemble.Complete, Is.True);
+            Assert.That(view.Ensemble.RouteTotal, Is.EqualTo(-4.1).Within(1e-12));
+            Assert.That(view.ledgerText.gameObject.activeSelf, Is.True);
+            Assert.That(view.ledgerText.text, Does.Contain("Grouped: 2 trees").And.Contain("tree-02").And.Contain("tree-03"));
+            Assert.That(view.ledgerText.text, Does.Contain("sigmoid(raw score)").And.Contain("Click probability"));
+            Click(TreeAction.CloseResult); Click(TreeAction.TourDetail);
+            Assert.That(view.Ensemble.CompletedCount, Is.EqualTo(1));
+            for (int i = 1; i < 3; i++) { Click(TreeAction.NextTree); while (!view.Session.State.AtLeaf) { Click(TreeAction.Step); Arrive(); } }
+            Assert.That(view.Ensemble.RouteTotal, Is.EqualTo(-4.1).Within(1e-12));
+            Click(TreeAction.Result);
+            Assert.That(view.ledgerText.text, Does.Contain("FINAL RESULT").And.Contain("Complete raw score -4.1"));
+            yield return null;
+        }
+
+        [UnityTest]
+        public IEnumerator DraftCancelAndApplyReplaceAllStateAndRejectDelayedInput()
+        {
+            Click(TreeAction.Profile); Click(TreeAction.Step); view.Advance(.2f);
+            var accepted = view.Ensemble.Evaluation; var old = view.Session;
+            var pending = old.State.PendingDecision;
+            Click(TreeAction.EditProfile); Click(TreeAction.IncreaseValue);
+            Assert.That(view.Ensemble.Evaluation, Is.SameAs(accepted));
+            Assert.That(old.State.PendingDecision, Is.SameAs(pending));
+            Click(TreeAction.CancelEdit); Arrive();
+            Assert.That(view.Session.State.NodeId, Is.EqualTo("t1-visits"));
+            Click(TreeAction.EditProfile); Click(TreeAction.IncreaseValue);
+            Click(TreeAction.CloseEdit);
+            Assert.That(view.Ensemble.Profile.DisplayName, Does.Contain("Hypothetical copy of New visitor"));
+            Assert.That(view.Ensemble.Profile.Id, Is.Not.EqualTo(view.Ensemble.OriginalProfile.Id));
+            Assert.That(view.Ensemble.CompletedCount, Is.Zero); Assert.That(view.Ensemble.Index, Is.Zero);
+            Assert.That(view.Session.State.NodeId, Is.EqualTo("t1-root"));
+            Assert.That(old.CompleteMove(pending.EventId).Accepted, Is.False);
+            Assert.That(view.Session.State.Paused, Is.False);
+            Assert.That(view.Ensemble.Evaluation.RawScore, Is.EqualTo(-4.1).Within(1e-12));
+            var button = view.controls.Single(c => c.action == TreeAction.NextProfile);
+            var pointer = new PointerEventData(EventSystem.current) { pointerId = -1, button = PointerEventData.InputButton.Left };
+            ExecuteEvents.Execute(button.gameObject, pointer, ExecuteEvents.pointerDownHandler);
+            Click(TreeAction.Profile);
+            ExecuteEvents.Execute(button.gameObject, pointer, ExecuteEvents.pointerClickHandler);
+            Click(TreeAction.Profile);
+            Assert.That(view.Ensemble.Profile.Id, Is.EqualTo("new-visitor"), "A delayed selection release must not change the next selected profile.");
+            yield return null;
+        }
+
+        [UnityTest]
+        public IEnumerator ProfileSwitchAtRootMoveLeafAndFinalClearsOldStateTogether()
+        {
+            for (int stage = 0; stage < 4; stage++)
+            {
+                Click(TreeAction.Profile);
+                if (stage == 1) { Click(TreeAction.Step); view.Advance(.2f); }
+                if (stage >= 2) while (!view.Session.State.AtLeaf) { Click(TreeAction.Step); Arrive(); }
+                if (stage == 3) for (int i = 1; i < 3; i++) { Click(TreeAction.NextTree); while (!view.Session.State.AtLeaf) { Click(TreeAction.Step); Arrive(); } }
+                var old = view.Session; var pending = old.State.PendingDecision;
+                Click(TreeAction.NextProfile); Click(TreeAction.Profile);
+                Assert.That(view.Session, Is.Not.SameAs(old));
+                Assert.That(view.Ensemble.CompletedCount, Is.Zero);
+                Assert.That(view.Session.State.Decisions.Count, Is.Zero);
+                Assert.That(view.Session.State.PendingDecision, Is.Null);
+                Assert.That(view.score.text, Does.Contain(view.Ensemble.Profile.DisplayName));
+                if (pending != null) Assert.That(old.CompleteMove(pending.EventId).Accepted, Is.False);
+                Click(TreeAction.Manual);
+                Assert.That(view.Ensemble.Evaluation, Is.Null); Assert.That(view.score.text, Does.Not.Contain("%"));
+                Assert.That(view.Ensemble.Consistency.Status, Is.EqualTo(VRExperienceAGB.Domain.RouteConsistency.Consistent));
+            }
+            yield return null;
+        }
+
+        [UnityTest]
+        public IEnumerator LargerEnsembleManualWarningAllowsFreeExplorationAndRevision()
+        {
+            Click(TreeAction.LargerEnsemble);
+            Assert.That(view.Model.Trees.Count, Is.EqualTo(24));
+            Click(TreeAction.TrueBranch); Arrive(); Click(TreeAction.TrueBranch); Arrive();
+            for (int i = 0; i < 3; i++) Click(TreeAction.NextTree);
+            Click(TreeAction.FalseBranch); Arrive();
+            Assert.That(view.Ensemble.Consistency.Status, Is.EqualTo(VRExperienceAGB.Domain.RouteConsistency.Contradictory));
+            Assert.That(view.feedback.gameObject.activeSelf, Is.True);
+            Assert.That(view.feedback.text, Does.Contain("ensemble-01/t1-root").And.Contain("ensemble-04/t1-root"));
+            var total = view.Ensemble.RouteTotal;
+            Click(TreeAction.ContinueFree);
+            Assert.That(view.Ensemble.RouteTotal, Is.EqualTo(total));
+            Assert.That(view.score.text, Does.Contain("Route score").And.Not.Contain("%"));
+            Click(TreeAction.ReviseChoice);
+            Assert.That(view.Ensemble.Index, Is.Zero); Assert.That(view.Session.State.NodeId, Is.EqualTo("t1-root"));
+            Assert.That(view.Ensemble.Consistency.Status, Is.EqualTo(VRExperienceAGB.Domain.RouteConsistency.Consistent));
+            Assert.That(view.Ensemble.RouteTotal, Is.EqualTo(.5));
+            Click(TreeAction.Profile); Click(TreeAction.TourDetail);
+            while (!view.Session.State.AtLeaf) { Click(TreeAction.Step); Arrive(); }
+            Click(TreeAction.GroupRemaining);
+            Assert.That(view.ledgerText.text, Does.Contain("Grouped: 23 trees").And.Contain("Complete raw score -32.3"));
+            for (int i = 0; i < 5; i++) Click(TreeAction.NextLedgerPage);
+            Assert.That(view.ledgerText.text, Does.Contain("ensemble-24"));
+            yield return null;
+        }
+
         [UnityTest]
         public IEnumerator ProfileTakeoverAndInvalidReloadNeverLeaveMisleadingOutput()
         {

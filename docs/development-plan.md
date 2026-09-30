@@ -1,6 +1,6 @@
 # Development plan
 
-**Current update — 2026-09-29:** deep-tree focus, smoother stone shading/foliage edges, ensemble navigation, profile editing and a basic forest overview are implemented; 111 EditMode and eleven PlayMode tests passed. The prior build had a successful first Quest test reported by the user. The new build's headset and performance acceptance remain open. See [current evidence and remaining scope](development-progress-2026-09-29.md). Earlier dated status paragraphs and milestone estimates below are historical planning records, not the latest completion counts.
+**Current update — 2026-09-30:** M4 ensemble ledger, final result review, staged hypothetical edits, manual consistency diagnostics and equivalent short/detailed tours are implemented on `codex/m4-ensemble`. See the [M4 implementation record](m4-progress-2026-09-30.md) for current automated/build evidence. Quest M4 acceptance, outstanding M1/M3 device checks, actual performance measurements and production AGB verification remain open. Earlier dated records below are historical.
 
 Status: source/configuration foundation recorded; M1 headset acceptance deferred; M2-01–M2-05 implemented and verified by 84 Unity EditMode tests; scene implementation and real-model verification remain open. Updated: 2026-09-28. See the [setup review](setup-review-2026-09-27.md) for the existing `BoostingExperience/` project's configuration and outstanding work.
 
@@ -78,15 +78,17 @@ These checkboxes do not imply a Unity project or VR build exists.
 
 ## M4 — Ensemble and profile takeover
 
+**Implementation status:** synthetic M4 implemented; [evidence](m4-progress-2026-09-30.md). Checkmarks below indicate implemented behavior, not formal Quest acceptance.
+
 **Estimate:** 4–6 days. **Depends on:** M3.
 
-- [ ] Evaluate the complete synthetic ensemble and show baseline plus per-tree contributions.
-- [ ] Connect trees with deliberate transitions and a final output gate.
-- [ ] Add prepared-profile selection and editable profile copies.
-- [ ] Recompute all affected trees after an input edit.
-- [ ] Track manual route constraints; flag contradictions without removing free exploration.
-- [ ] Implement short and detailed tours with identical full-model results.
-- [ ] Add a persistent score display and an alternative to wrist-only UI.
+- [x] Evaluate the complete synthetic ensemble and show baseline plus per-tree contributions.
+- [x] Connect trees with deliberate transitions and a final output gate.
+- [x] Add prepared-profile selection and editable profile copies.
+- [x] Recompute all affected trees after an input edit.
+- [x] Track manual route constraints; flag contradictions without removing free exploration.
+- [x] Implement short and detailed tours with identical full-model results.
+- [x] Add a persistent score display and an alternative to wrist-only UI.
 
 **Exit:** both interaction modes work end to end. Backtracking and switching modes preserve the documented semantics. A shortened tour never becomes a truncated prediction.
 

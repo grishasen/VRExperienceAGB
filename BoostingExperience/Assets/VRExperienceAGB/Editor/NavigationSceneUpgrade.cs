@@ -88,7 +88,8 @@ namespace VRExperienceAGB.Editor
             view.explanation.color = new Color(1,.90f,.69f);
             foreach (var item in view.presentationRoot.GetComponentsInChildren<Transform>(true)) item.gameObject.isStatic = false;
             EditorUtility.SetDirty(view); EditorSceneManager.MarkSceneDirty(scene); EditorSceneManager.SaveScene(scene);
-            return "Navigation controls saved.";
+            M4SceneUpgrade.Apply();
+            return "Navigation and M4 controls saved.";
         }
         private static void Add(OneTreeExperience view, TreeActionButton template, TreeAction action, string text, float x, float y)
         {
