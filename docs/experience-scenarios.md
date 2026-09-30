@@ -143,3 +143,7 @@ Timing is an editorial target, not a guarantee. Detailed playback remains availa
 ## Release boundaries
 
 The first vertical slice includes S01, S02 on one tree, and a small immersive clearing. The demonstration MVP adds the full synthetic ensemble, basic S04, a profile takeover, and a coherent forest environment. S03's richer analytics, S05, S06, S07, S08, hand tracking, and continuous riding are extensions. Real AGB prediction claims require the scoring verification described in [Model contract](model-contract.md).
+
+## M6 in-world explanations
+
+The user approved all twelve additions on September 30, 2026; see [implementation and boundaries](m6-in-world-explanations-2026-09-30.md). Read questions and branch alternatives directly in the tree. Side cards show the inspected segment, observation evidence and numeric cutpoints. Point for full source conditions; hold on a predictor label to link its exact occurrences and matching crowns. Crown passports, separate family-composition strips and an entrance model story extend forest selection without requiring menus. Quest acceptance remains deferred.

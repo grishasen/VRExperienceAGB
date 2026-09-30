@@ -185,6 +185,7 @@ namespace VRExperienceAGB.Presentation
                     View.presentationRoot.Find(name)?.gameObject.SetActive(false);
             }
             Atmosphere.SetActive(simple ? page == NavigationPage.Forest || page == NavigationPage.Diorama : Garden.Visible);
+            Garden.M6?.Refresh();
         }
         private void PlaceOverviewTools()
         {

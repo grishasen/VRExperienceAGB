@@ -14,6 +14,7 @@ namespace VRExperienceAGB.Presentation
         public bool simplifiedNavigation;
         public SimpleExperienceNavigation Navigation { get; private set; }
         public M5ForestPresentation M5 { get; private set; }
+        public M6ExplanationPresentation M6 { get; private set; }
         public Mesh pineMesh, trunkMesh, planterMesh, ringMesh;
         public Material pineMaterial, barkMaterial, stoneMaterial, soilMaterial, pathMaterial, selectedMaterial, completedMaterial;
         public OneTreeExperience Experience { get; private set; }
@@ -29,7 +30,7 @@ namespace VRExperienceAGB.Presentation
         {
             public Transform root;
             public Canvas plaque;
-            public TMP_Text label, hoverLabel;
+            public TMP_Text label, hoverLabel, linkLabel;
             public Renderer ring;
             public Canvas crownTarget;
             public Vector3 ringScale;
@@ -72,6 +73,7 @@ namespace VRExperienceAGB.Presentation
             positiveRing=ContributionMaterial("PositiveContribution",new Color(.05f,.85f,.78f));
             negativeRing=ContributionMaterial("NegativeContribution",new Color(1f,.32f,.055f));
             M5 = gameObject.AddComponent<M5ForestPresentation>(); M5.Configure(this);
+            M6 = gameObject.AddComponent<M6ExplanationPresentation>(); M6.Configure(this);
         }
         private Material ContributionMaterial(string name,Color color)
         {
@@ -93,6 +95,7 @@ namespace VRExperienceAGB.Presentation
             if(garden)RefreshState();
             if(simplifiedNavigation) Navigation.Refresh();
             M5.Refresh();
+
         }
         public Vector3 PlotPosition(int index)
         {
@@ -143,6 +146,7 @@ namespace VRExperienceAGB.Presentation
                 Button(waypoint,"GO HERE",Vector2.zero,new Vector2(430,430),GardenCommand.Path,i,42);
                 waypoints.Add(waypoint);
             }
+            M6.EnsureModel();
             for(int i=0;i<metrics.Length;i++)BuildPlot(i);
             if(simplifiedNavigation) Navigation = new SimpleExperienceNavigation(this, root.transform);
             else { Navigation = null; BuildGuide(); }
@@ -163,15 +167,19 @@ namespace VRExperienceAGB.Presentation
             pineTarget.name="PinePointerTarget-"+(index+1);pineTarget.GetComponent<UnityEngine.UI.Image>().color=Color.clear;
             var button=Button(plaque,"",Vector2.zero,new Vector2(360,62),GardenCommand.SelectTree,index,25);
             button.name="PlanterName-"+(index+1);button.GetComponent<UnityEngine.UI.Image>().color=Color.clear;
-            var hoverLabel=Text(plaque.transform,"HoverDetails","",new Vector2(0,420),new Vector2(400,170),21);
+            var hoverLabel=Text(plaque.transform,"HoverDetails","",new Vector2(0,420),new Vector2(500,390),21);
             var backing=new GameObject("HoverBacking",typeof(RectTransform),typeof(UnityEngine.UI.Image));
             backing.transform.SetParent(plaque.transform,false);
+            backing.transform.localScale=Vector3.one*.8f;
             backing.transform.localPosition=new Vector3(520,420,400);
-            hoverLabel.transform.SetParent(backing.transform,false);hoverLabel.rectTransform.anchoredPosition=Vector2.zero;
-            ((RectTransform)backing.transform).sizeDelta=new Vector2(420,180);
+            hoverLabel.transform.SetParent(backing.transform,false);hoverLabel.rectTransform.anchoredPosition=Vector2.zero;hoverLabel.enableAutoSizing=true;hoverLabel.fontSizeMin=17;hoverLabel.fontSizeMax=21;hoverLabel.richText=false;
+            ((RectTransform)backing.transform).sizeDelta=new Vector2(530,410);
             backing.GetComponent<UnityEngine.UI.Image>().color=new Color(.025f,.065f,.085f,.96f);
             backing.GetComponent<UnityEngine.UI.Image>().raycastTarget=false;
-            plots.Add(new Plot{root=container,plaque=plaque,crownTarget=crown,label=button.GetComponentInChildren<TMP_Text>(),hoverLabel=hoverLabel,ring=ring,ringScale=ring.transform.localScale});
+            var linkCanvas=CanvasAt("PredictorMatch",new Vector3(0,tree.PineHeight+.85f,0),new Vector2(500,60),.0024f,container);
+            var linkLabel=Text(linkCanvas.transform,"Match","",Vector2.zero,new Vector2(500,60),25);
+            M6.AddComposition(container,index,new Vector3(0,.48f,-1.12f),.002f);
+            plots.Add(new Plot{root=container,plaque=plaque,crownTarget=crown,label=button.GetComponentInChildren<TMP_Text>(),hoverLabel=hoverLabel,linkLabel=linkLabel,ring=ring,ringScale=ring.transform.localScale});
         }
         private void BuildGuide()
         {
@@ -258,6 +266,7 @@ namespace VRExperienceAGB.Presentation
             Experience.SelectGardenTree(bed*TreesPerBed);
             Locomotion.Teleport(new Vector3(0,0,6.6f+bed*4.8f-2.1f));PlaceGuide();
         }
+        public void RefreshExplanationLinks() { if (root != null) RefreshState(); }
         public void Hover(int index) { if(index>=0&&index<PlotCount){hovered=index;RefreshState();} }
         public void ClearHover(int index) { if(hovered==index){hovered=-1;hoverDirty=true;} }
         private void RefreshDetails()
@@ -289,12 +298,15 @@ namespace VRExperienceAGB.Presentation
                 float magnitude=reached&&maximumContribution>0?(float)Math.Min(1,Math.Abs(contribution)/maximumContribution):0;
                 var scale=plots[i].ringScale;scale.y*=1+4*magnitude;plots[i].ring.transform.localScale=scale;
                 string sign=!reached?"":contribution>0?" +":contribution<0?" −":" 0";
-                plots[i].label.text="TREE "+(i+1)+sign;
+                plots[i].label.text="TREE "+(i+1)+sign+(M6.LinkedFeature!=null && M6.Analysis.MatchingTrees(M6.LinkedFeature).Contains(i)?" ◆":"");
                 plots[i].label.color=reached&&contribution!=0?material.color:new Color(.88f,.96f,.94f);
+                bool linked=M6.LinkedFeature!=null && M6.Analysis.MatchingTrees(M6.LinkedFeature).Contains(i);
+                plots[i].linkLabel.text=linked?"LINK · "+M6.Analysis.Label(M6.LinkedFeature):"";
+                plots[i].linkLabel.transform.parent.gameObject.SetActive(linked);
                 plots[i].hoverLabel.transform.parent.gameObject.SetActive(i==hovered);
                 string value=contribution.ToString("+0.###;-0.###;0",System.Globalization.CultureInfo.InvariantCulture);
                 string route=reached?(Experience.Ensemble.Mode==ExperienceMode.Manual?"Route contribution: ":"Profile contribution: ")+value:"Contribution not reached";
-                plots[i].hoverLabel.text="TREE "+(i+1)+" · Depth "+tree.MaximumDepth+"\n"+tree.LeafCount+" leaves · "+tree.NodeCount+" nodes\n"+route+"\nClick to explore";
+                plots[i].hoverLabel.text=M6.Analysis.Passport(i)+"\n"+route+"\n"+(M6.LinkedFeature==null?"Point at node names to link predictors":"◆ "+M6.Analysis.Label(M6.LinkedFeature)+" · "+(M6.Analysis.MatchingTrees(M6.LinkedFeature).Contains(i)?"present":"absent"))+"\nTrigger / Click to explore";
             }
             if(simplifiedNavigation) { Navigation.Refresh(); RefreshNearbyPlaques(); return; }
             if(shownBed!=bed)
@@ -339,6 +351,9 @@ namespace VRExperienceAGB.Presentation
             {
                 plot.root.gameObject.SetActive(forest);
                 bool nearby=forest && Vector3.Distance(Locomotion.Head.position,plot.root.position)<12;
+                var link=plot.linkLabel.transform.parent;
+                link.gameObject.SetActive(forest && plot.linkLabel.text.Length>0 && Vector3.Distance(Locomotion.Head.position,plot.root.position)<32);
+                if(link.gameObject.activeSelf)link.rotation=Quaternion.LookRotation(link.position-Locomotion.Head.position);
                 plot.plaque.gameObject.SetActive(nearby);
                 plot.crownTarget.gameObject.SetActive(nearby);
                 if(nearby)
@@ -347,7 +362,7 @@ namespace VRExperienceAGB.Presentation
                     if(direction.sqrMagnitude>.01f)plot.crownTarget.transform.rotation=Quaternion.LookRotation(direction);
                     var card=plot.hoverLabel.transform.parent;
                     card.rotation=plot.crownTarget.transform.rotation;
-                    card.position=plot.crownTarget.transform.position+plot.crownTarget.transform.right*1.25f-plot.crownTarget.transform.forward*.25f;
+                    card.position=plot.crownTarget.transform.position+plot.crownTarget.transform.right*.9f-plot.crownTarget.transform.forward*.05f;
                 }
 
             }

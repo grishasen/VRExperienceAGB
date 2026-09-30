@@ -75,6 +75,7 @@ namespace VRExperienceAGB.Domain
     {
         public string Id { get; }
         public string DisplayName { get; }
+        public string Unit { get; }
         public FeatureKind Kind { get; }
         public bool AllowMissing { get; }
         public bool Integer { get; }
@@ -82,10 +83,11 @@ namespace VRExperienceAGB.Domain
         public double? Maximum { get; }
         public IReadOnlyList<string> Categories { get; }
         public FeatureDefinition(string id, FeatureKind kind, bool allowMissing, string displayName = null,
-            bool integer = false, double? minimum = null, double? maximum = null, IEnumerable<string> categories = null)
+            bool integer = false, double? minimum = null, double? maximum = null, IEnumerable<string> categories = null, string unit = null)
         {
             Id = id; DisplayName = displayName ?? id; Kind = kind; AllowMissing = allowMissing;
             Integer = integer; Minimum = minimum; Maximum = maximum; Categories = Snapshot.List(categories);
+            Unit = unit;
         }
     }
 

@@ -4,7 +4,7 @@
 
 Status: source/configuration foundation recorded; M1 headset acceptance deferred; M2-01–M2-05 implemented and verified by 84 Unity EditMode tests; scene implementation and real-model verification remain open. Updated: 2026-09-28. See the [setup review](setup-review-2026-09-27.md) for the existing `BoostingExperience/` project's configuration and outstanding work.
 
-The [delivery backlog](backlog.md) expands M1–M6 into six business-facing epics and 48 user stories. Each epic maps every checklist item below to its stories and defines acceptance evidence. These are planned requirements, not completed test results.
+The [delivery backlog](backlog.md) expands M1–M6 into six business-facing epics and 60 user stories. Each epic maps every checklist item below to its stories and defines acceptance evidence. These are planned requirements, not completed test results.
 
 ## Delivery approach
 
@@ -108,7 +108,9 @@ These checkboxes do not imply a Unity project or VR build exists.
 
 **Exit:** the full demonstration is understandable without the presenter operating a keyboard. Foreground text stays legible; decorative scenery does not obscure decisions.
 
-## M6 — Quest acceptance and demonstration package
+## M6 — In-world explanations, Quest acceptance and demonstration package
+
+**Scope update — 2026-09-30:** the user approved twelve in-world explanation additions (M6-09–M6-20): readable questions, branch reasons, segment portraits, split significance, observation evidence, leaf explanations, crown passports, family composition strips, pointer-driven predictor links, threshold spectra, explicit missing-data routes, and an entrance model story. Implementation is delivered on `codex/m5-forest-experience`; see [the M6 backlog](backlog/m6-demo-readiness.md). Existing hardware acceptance remains deferred. The original estimate below covered acceptance only; this added implementation scope is additional.
 
 **Estimate:** 4–6 days. **Depends on:** M5.
 

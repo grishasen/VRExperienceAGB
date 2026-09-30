@@ -6,7 +6,7 @@
 
 **Business value:** a credible audience experience with known operating conditions, fewer live-demo failures, and a reproducible build.
 
-**Status:** not started; no headset acceptance or performance evidence exists. **Priority:** Must, with casting conditional. **Dependencies:** accepted M5 and preceding synthetic gates; G2R only if real-model prediction claims are included. **Owner role:** Release/QA owner. **Planning range:** 4–6 working days.
+**Status:** in progress. On September 30, 2026 the user added all twelve in-world explanation stories below. Hardware acceptance remains deferred; no headset performance evidence exists. **Priority:** Must, with casting conditional. **Dependencies:** accepted M5 and preceding synthetic gates; G2R only if real-model prediction claims are included. **Owner role:** Release/QA owner. **Planning range:** 4–6 working days.
 
 ```mermaid
 flowchart TD
@@ -176,3 +176,79 @@ The return arrow means repeat checks affected by a fix, not rerun every unrelate
 | Separate casting test if needed | M6-06 |
 | Named APK, version/commit, presenter guide | M6-07 |
 | Tag after acceptance; APK outside Git | M6-08 |
+
+## Added in-world explanation scope — approved September 30, 2026
+
+These stories extend M6; they do not replace M6-01–M6-08 or close hardware acceptance. Content is English. Short labels are visible in the world; pointing reveals longer evidence with no menu prerequisite. Every metric uses the full accepted model, and inspection cannot mutate routes, tracking or evaluation.
+
+### M6-09 — Readable node questions
+
+**Status:** Implemented; Editor verification recorded in the [M6 implementation record](../m6-in-world-explanations-2026-09-30.md), Quest acceptance pending. **Acceptance:** Show the declared label, operand type and supplied unit. For a prepared profile show its actual value and evaluated result; unknown units remain explicitly unavailable.
+
+**Evidence:** deterministic synthetic checks, Editor interaction/layout verification, then the deferred seated/standing Quest walkthrough.
+
+### M6-10 — Explain each branch
+
+**Status:** Implemented; Editor verification recorded in the [M6 implementation record](../m6-in-world-explanations-2026-09-30.md), Quest acceptance pending. **Acceptance:** Label both outgoing alternatives and the selected-profile reason. Reveal complete membership sets by pointing, without opening a menu.
+
+**Evidence:** deterministic synthetic checks, Editor interaction/layout verification, then the deferred seated/standing Quest walkthrough.
+
+### M6-11 — Accumulated segment portrait
+
+**Status:** Implemented; Editor verification recorded in the [M6 implementation record](../m6-in-world-explanations-2026-09-30.md), Quest acceptance pending. **Acceptance:** Show the conditions leading to the inspected node, merge numeric bounds and flag contradictory accepted choices beside the affected feature. Preserve route state.
+
+**Evidence:** deterministic synthetic checks, Editor interaction/layout verification, then the deferred seated/standing Quest walkthrough.
+
+### M6-12 — Local split significance
+
+**Status:** Implemented; Editor verification recorded in the [M6 implementation record](../m6-in-world-explanations-2026-09-30.md), Quest acceptance pending. **Acceptance:** On pointing show stored gain, its share of tree gain and predictor reuse. Missing or nonpositive denominators cannot produce invented shares; gain is not SHAP or causality.
+
+**Evidence:** deterministic synthetic checks, Editor interaction/layout verification, then the deferred seated/standing Quest walkthrough.
+
+### M6-13 — Node observation evidence
+
+**Status:** Implemented; Editor verification recorded in the [M6 implementation record](../m6-in-world-explanations-2026-09-30.md), Quest acceptance pending. **Acceptance:** Show exported sampleCount and an explicit, neutral low-count review convention. Never convert counts into traffic shares, branch positives or unverified node ages.
+
+**Evidence:** deterministic synthetic checks, Editor interaction/layout verification, then the deferred seated/standing Quest walkthrough.
+
+### M6-14 — Leaf explanation
+
+**Status:** Implemented; Editor verification recorded in the [M6 implementation record](../m6-in-world-explanations-2026-09-30.md), Quest acceptance pending. **Acceptance:** Connect the segment, leaf contribution and accepted before/after subtotal. Show the complete result only for supported prepared profiles; never derive probability from an internal node.
+
+**Evidence:** deterministic synthetic checks, Editor interaction/layout verification, then the deferred seated/standing Quest walkthrough.
+
+### M6-15 — Crown passport
+
+**Status:** Implemented; Editor verification recorded in the [M6 implementation record](../m6-in-world-explanations-2026-09-30.md), Quest acceptance pending. **Acceptance:** Show stable tree identity/order, depth, leaves, frequent predictors, ensemble gain share and leaf contribution bounds. Summarize the root question from actual structure.
+
+**Evidence:** deterministic synthetic checks, Editor interaction/layout verification, then the deferred seated/standing Quest walkthrough.
+
+### M6-16 — Visible tree composition
+
+**Status:** Implemented; Editor verification recorded in the [M6 implementation record](../m6-in-world-explanations-2026-09-30.md), Quest acceptance pending. **Acceptance:** Preserve depth/leaf geometry and signed-contribution rings. Add a separate labelled family strip based on stored split gain, with explicit unavailable/zero states.
+
+**Evidence:** deterministic synthetic checks, Editor interaction/layout verification, then the deferred seated/standing Quest walkthrough.
+
+### M6-17 — Point-driven predictor links
+
+**Status:** Implemented; Editor verification recorded in the [M6 implementation record](../m6-in-world-explanations-2026-09-30.md), Quest acceptance pending. **Acceptance:** After pointing at a predictor, highlight exact-identifier matches across visible nodes and garden crowns with accurate full-model counts, without changing evaluation.
+
+**Evidence:** deterministic synthetic checks, Editor interaction/layout verification, then the deferred seated/standing Quest walkthrough.
+
+### M6-18 — Numeric threshold spectrum
+
+**Status:** Implemented; Editor verification recorded in the [M6 implementation record](../m6-in-world-explanations-2026-09-30.md), Quest acceptance pending. **Acceptance:** Show current and ensemble cutpoints near numeric nodes, with exact values available on pointing. Do not call these values a proven memory horizon.
+
+**Evidence:** deterministic synthetic checks, Editor interaction/layout verification, then the deferred seated/standing Quest walkthrough.
+
+### M6-19 — Explicit missing-data paths
+
+**Status:** Implemented; Editor verification recorded in the [M6 implementation record](../m6-in-world-explanations-2026-09-30.md), Quest acceptance pending. **Acceptance:** Mark actual IsMissing nodes and the prepared-profile route. Do not equate absent history with a new customer or invent unknown-category routing.
+
+**Evidence:** deterministic synthetic checks, Editor interaction/layout verification, then the deferred seated/standing Quest walkthrough.
+
+### M6-20 — Entrance model story
+
+**Status:** Implemented; Editor verification recorded in the [M6 implementation record](../m6-in-world-explanations-2026-09-30.md), Quest acceptance pending. **Acceptance:** Display supplied version/update, model/feature counts, monitoring counts and a factual structural summary near the entrance. Distinguish missing evidence and preserve export order; infer no dated drift events.
+
+**Evidence:** deterministic synthetic checks, Editor interaction/layout verification, then the deferred seated/standing Quest walkthrough.

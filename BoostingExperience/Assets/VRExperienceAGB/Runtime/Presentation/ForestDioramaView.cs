@@ -122,6 +122,7 @@ namespace VRExperienceAGB.Presentation
                 float support = .02f + i / columns * .085f;
                 Mesh("Planter", plot, Vector3.down * (support - .02f), new Vector3(spacing * .8f, support, spacing * .8f), garden.planterMesh, garden.stoneMaterial);
                 Mesh("Pine", plot, new Vector3(0, .02f, 0), new Vector3(diameter, height, diameter), garden.pineMesh, garden.pineMaterial);
+                garden.M6.AddComposition(plot,index,new Vector3(0,.012f,-spacing*.42f),spacing*.0012f);
                 rings.Add(Mesh("Ring", plot, new Vector3(0, .024f, 0), new Vector3(spacing * .8f, .009f, spacing * .8f), garden.ringMesh, garden.completedMaterial));
                 var canvas = garden.CanvasAt("TreeTarget-" + (index + 1), new Vector3(0, .02f + height, 0), new Vector2(100, 60), spacing * .009f, plot);
                 var button = owner.Button(canvas, (index + 1).ToString(), Vector2.zero, new Vector2(85, 52), M5Action.SelectTree, index, 30);

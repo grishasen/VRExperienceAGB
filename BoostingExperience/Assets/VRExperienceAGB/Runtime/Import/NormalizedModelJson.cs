@@ -79,12 +79,12 @@ namespace VRExperienceAGB.Import
                 var f = Object(property.Value);
                 var type = Text(f, "type");
                 if (type != "number" && type != "category") return Fail<FeatureDefinition>("The feature type is unsupported.", f, "InvalidFeatureType");
-                if (type == "number") Fields(f, "type", "displayName", "allowMissing", "integer", "minimum", "maximum");
-                else Fields(f, "type", "displayName", "allowMissing", "values");
+                if (type == "number") Fields(f, "type", "displayName", "allowMissing", "integer", "minimum", "maximum", "unit");
+                else Fields(f, "type", "displayName", "allowMissing", "values", "unit");
                 return new FeatureDefinition(property.Name, type == "number" ? FeatureKind.Number : FeatureKind.Category,
                     Boolean(Required(f, "allowMissing")), f["displayName"] == null ? null : Text(f["displayName"]),
                     f["integer"] != null && Boolean(f["integer"]), OptionalNumber(f, "minimum"), OptionalNumber(f, "maximum"),
-                    type == "category" ? Strings(Required(f, "values")) : null);
+                    type == "category" ? Strings(Required(f, "values")) : null, f["unit"] == null ? null : Text(f["unit"]));
             }).ToArray();
             var trees = Array(Required(root, "trees")).Select(token =>
             {

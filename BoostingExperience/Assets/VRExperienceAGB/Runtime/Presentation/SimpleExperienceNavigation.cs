@@ -114,6 +114,7 @@ namespace VRExperienceAGB.Presentation
             next.GetComponent<UnityEngine.UI.Button>().interactable=(listPage+1)*PageSize<garden.PlotCount;
             pageLabel.text=(listPage*PageSize+1)+"–"+Mathf.Min((listPage+1)*PageSize,garden.PlotCount)+" of "+garden.PlotCount;
             if(Page==NavigationPage.Tree)SimplifyTreeControls();
+            garden.M6?.Refresh();
         }
         public void ToggleTreeMenu()
         {
