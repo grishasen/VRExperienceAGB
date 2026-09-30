@@ -28,7 +28,7 @@ namespace VRExperienceAGB.Presentation
         {
             public Transform root;
             public Canvas plaque;
-            public TMP_Text label;
+            public TMP_Text label, hoverLabel;
             public Renderer ring;
             public Vector3 ringScale;
         }
@@ -136,16 +136,25 @@ namespace VRExperienceAGB.Presentation
         {
             var tree=metrics[index];var container=new GameObject("ModelTree-"+(index+1)).transform;
             container.SetParent(root.transform,false);container.localPosition=PlotPosition(index);
-            MeshObject("Planter",container,Vector3.zero,new Vector3(2.1f,.26f,2.1f),planterMesh,stoneMaterial,true);
-            MeshObject("Soil",container,new Vector3(0,.27f,0),new Vector3(1.84f,.06f,1.84f),planterMesh,soilMaterial,true);
-            MeshObject("Trunk",container,new Vector3(0,.3f,0),new Vector3(.16f,tree.PineHeight,.16f),trunkMesh,barkMaterial,true);
-            MeshObject("Pine",container,new Vector3(0,.3f,0),new Vector3(tree.CrownRadius*2,tree.PineHeight,tree.CrownRadius*2),pineMesh,gardenFoliage,true);
-            var ring=MeshObject("ProgressRing",container,new Vector3(0,.33f,0),new Vector3(1.04f/.555f,1,1.04f/.555f),ringMesh,quietRing,false).GetComponent<Renderer>();
-            var plaque=CanvasAt("TreePlaque-"+(index+1),PlotPosition(index)+new Vector3(0,.76f,-1.1f),new Vector2(640,1100),.0024f,root.transform);
-            var pineTarget=Button(plaque,"",new Vector2(0,(.3f+tree.PineHeight*.5f-.76f)/.0024f),new Vector2(630,tree.PineHeight/.0024f),GardenCommand.SelectTree,index,29);
+            MeshObject("Planter",container,Vector3.zero,new Vector3(2.1f,.36f,2.1f),planterMesh,stoneMaterial,true);
+            MeshObject("Soil",container,new Vector3(0,.37f,0),new Vector3(1.84f,.06f,1.84f),planterMesh,soilMaterial,true);
+            MeshObject("Trunk",container,new Vector3(0,.4f,0),new Vector3(.12f+tree.CrownRadius*.1f,tree.PineHeight,.12f+tree.CrownRadius*.1f),trunkMesh,barkMaterial,true);
+            MeshObject("Pine",container,new Vector3(0,.4f,0),new Vector3(tree.CrownRadius*2,tree.PineHeight,tree.CrownRadius*2),pineMesh,gardenFoliage,true);
+            var ring=MeshObject("ProgressRing",container,new Vector3(0,.40f,0),new Vector3(1.04f/.555f,1,1.04f/.555f),ringMesh,quietRing,false).GetComponent<Renderer>();
+            var plaque=CanvasAt("TreePlaque-"+(index+1),PlotPosition(index)+new Vector3(0,.20f,-1.15f),new Vector2(640,1500),.0024f,root.transform);
+            var pineTarget=Button(plaque,"",new Vector2(0,(.4f+tree.PineHeight*.5f-.20f)/.0024f),new Vector2(tree.CrownRadius*2/.0024f,tree.PineHeight/.0024f),GardenCommand.SelectTree,index,29);
             pineTarget.name="PinePointerTarget-"+(index+1);pineTarget.GetComponent<UnityEngine.UI.Image>().color=Color.clear;
-            var button=Button(plaque,"",Vector2.zero,new Vector2(520,150),GardenCommand.SelectTree,index,29);
-            plots.Add(new Plot{root=container,plaque=plaque,label=button.GetComponentInChildren<TMP_Text>(),ring=ring,ringScale=ring.transform.localScale});
+            var button=Button(plaque,"",Vector2.zero,new Vector2(360,62),GardenCommand.SelectTree,index,25);
+            button.name="PlanterName-"+(index+1);button.GetComponent<UnityEngine.UI.Image>().color=Color.clear;
+            var hoverLabel=Text(plaque.transform,"HoverDetails","",new Vector2(0,420),new Vector2(400,135),21);
+            var backing=new GameObject("HoverBacking",typeof(RectTransform),typeof(UnityEngine.UI.Image));
+            backing.transform.SetParent(plaque.transform,false);
+            backing.transform.localPosition=new Vector3(520,420,400);
+            hoverLabel.transform.SetParent(backing.transform,false);hoverLabel.rectTransform.anchoredPosition=Vector2.zero;
+            ((RectTransform)backing.transform).sizeDelta=new Vector2(420,145);
+            backing.GetComponent<UnityEngine.UI.Image>().color=new Color(.025f,.065f,.085f,.96f);
+            backing.GetComponent<UnityEngine.UI.Image>().raycastTarget=false;
+            plots.Add(new Plot{root=container,plaque=plaque,label=button.GetComponentInChildren<TMP_Text>(),hoverLabel=hoverLabel,ring=ring,ringScale=ring.transform.localScale});
         }
         private void BuildGuide()
         {
@@ -254,7 +263,9 @@ namespace VRExperienceAGB.Presentation
                 var state=Experience.Ensemble.Trees[i].State;var tree=metrics[i];
                 plots[i].ring.sharedMaterial=i==selected?selectedMaterial:state.AtLeaf?completedMaterial:quietRing;
                 plots[i].ring.transform.localScale=plots[i].ringScale*(i==hovered?1.07f:1);
-                plots[i].label.text = simplifiedNavigation ? "TREE " + (i+1) + (i==hovered ? "\nDepth " + tree.MaximumDepth + " · " + tree.LeafCount + " leaves\nClick to explore" : "\nPoint to inspect") : "TREE "+(i+1)+"\nMax depth "+tree.MaximumDepth+" · "+tree.LeafCount+" leaves\n"+(i==hovered?"POINTING":i==selected?"SELECTED":state.AtLeaf?"LEAF REACHED":state.Decisions.Count==0?"UNVISITED":"ROUTE SAVED");
+                plots[i].label.text="TREE "+(i+1);
+                plots[i].hoverLabel.transform.parent.gameObject.SetActive(i==hovered);
+                plots[i].hoverLabel.text="TREE "+(i+1)+" · Depth "+tree.MaximumDepth+"\n"+tree.LeafCount+" leaves · "+tree.NodeCount+" nodes\nClick to explore";
             }
             if(simplifiedNavigation) { Navigation.Refresh(); RefreshNearbyPlaques(); return; }
             if(shownBed!=bed)
@@ -300,11 +311,7 @@ namespace VRExperienceAGB.Presentation
                 plot.root.gameObject.SetActive(forest);
                 bool nearby=forest && Vector3.Distance(Locomotion.Head.position,plot.root.position)<12;
                 plot.plaque.gameObject.SetActive(nearby);
-                if(nearby)
-                {
-                    Vector3 direction=plot.plaque.transform.position-Locomotion.Head.position;direction.y=0;
-                    if(direction.sqrMagnitude>.01f)plot.plaque.transform.rotation=Quaternion.LookRotation(direction);
-                }
+
             }
             foreach(var waypoint in waypoints)waypoint.gameObject.SetActive(forest && Vector3.Distance(Locomotion.Head.position,waypoint.transform.position)<16);
         }

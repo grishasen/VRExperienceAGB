@@ -88,6 +88,28 @@ namespace VRExperienceAGB.Tests
             yield return null;
         }
         [UnityTest]
+        public IEnumerator ForestNamesStayOnBinsAndPinesReflectStructure()
+        {
+            Click(Target(GardenCommand.Forest));yield return null;
+            var root=view.transform.Find("ModelPineGarden");
+            var heights=new System.Collections.Generic.List<float>();
+            for(int i=0;i<Garden.PlotCount;i++)
+            {
+                var plot=root.Find("ModelTree-"+(i+1));var pine=plot.Find("Pine").GetComponent<Renderer>();
+                heights.Add(pine.bounds.size.y);
+                Assert.That(pine.bounds.size.x,Is.EqualTo(Garden.Metrics[i].CrownRadius*2).Within(.01f));
+                var plaque=root.Find("TreePlaque-"+(i+1));var label=plaque.Find("PlanterName-"+(i+1));
+                Assert.That(label.position.y,Is.InRange(.12f,.3f));
+                Assert.That(((RectTransform)label).rect.width*label.lossyScale.x,Is.LessThan(1f));
+                Assert.That(label.GetComponent<UnityEngine.UI.Image>().color.a,Is.Zero);
+                Assert.That(plaque.Find("HoverBacking").gameObject.activeSelf,Is.False);
+            }
+            Assert.That(heights.Max()-heights.Min(),Is.GreaterThan(.7f));
+            Garden.Hover(0);Assert.That(root.Find("TreePlaque-1/HoverBacking").gameObject.activeSelf,Is.True);
+            Garden.ClearHover(0);yield return null;
+            Assert.That(root.Find("TreePlaque-1/HoverBacking").gameObject.activeSelf,Is.False);
+        }
+        [UnityTest]
         public IEnumerator BranchStonesAreTheOnlyControlsUntilATogglesTheMenu()
         {
             Click(Target(GardenCommand.SingleTree));Click(Target(GardenCommand.SelectTree,0));

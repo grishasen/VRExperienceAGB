@@ -1,6 +1,6 @@
 # One-tree branch stones — September 30, 2026
 
-This is the first incremental fix requested after headset feedback. Forest name plaques and tree-size variation are deferred until the user verifies this change.
+This is the first incremental fix requested after headset feedback. The user accepted this change on Quest, then requested the [forest appearance update](m4-forest-appearance-2026-09-30.md).
 
 ## Behavior
 
@@ -14,4 +14,4 @@ All 30 PlayMode tests pass. Coverage includes exactly two normal-view action tar
 
 Two Editor captures were inspected: stones and open submenu. Evidence is in ignored `artifacts/m3-branch-stones-2026-09-30/`. Temporary desktop camera adjustments were not saved.
 
-Android build succeeded with zero errors and four warnings. APK: `artifacts/builds/VRExperienceAGB-m3-branch-stones.apk`, 124,809,993 bytes; SHA-256 `38a6e9b3045340b4af2e22240d597c8f79dccfaf5c55809a54fbae2c7ffb531c`. It was installed successfully on the connected Quest 3 and cold-launched. Its process remained running and the captured startup log contained no fatal exceptions or Unity errors. Headset interaction and visual acceptance await user verification.
+Android build succeeded with zero errors and four warnings. APK: `artifacts/builds/VRExperienceAGB-m3-branch-stones.apk`, 124,809,993 bytes; SHA-256 `38a6e9b3045340b4af2e22240d597c8f79dccfaf5c55809a54fbae2c7ffb531c`. It was installed successfully on the connected Quest 3 and cold-launched. Its process remained running and the captured startup log contained no fatal exceptions or Unity errors. The user subsequently accepted this first fix on Quest. Performance measurements remain separate.

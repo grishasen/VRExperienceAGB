@@ -25,8 +25,8 @@ namespace VRExperienceAGB.Application
                 else LeafCount++;
             }
         }
-        // Fixed, bounded scales keep trees approachable and comparable across models.
-        public float PineHeight => .85f + 1.4f * Math.Min(MaximumDepth, 14) / 14f;
-        public float CrownRadius => .38f + .48f * (float)Math.Min(1, Math.Sqrt(LeafCount / 128d));
+        // Fixed, bounded scales emphasize shallow-tree differences without changing model semantics.
+        public float PineHeight => .65f + .45f * Math.Min(MaximumDepth, 4) + .075f * Math.Min(Math.Max(MaximumDepth - 4, 0), 10);
+        public float CrownRadius => .32f + .58f * (float)Math.Min(1, Math.Sqrt((LeafCount - 1) / 15d));
     }
 }

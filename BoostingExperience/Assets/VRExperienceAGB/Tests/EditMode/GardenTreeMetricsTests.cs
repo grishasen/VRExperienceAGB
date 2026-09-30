@@ -15,6 +15,16 @@ namespace VRExperienceAGB.Tests
             Assert.That(metrics.MaximumDepth,Is.EqualTo(2),"Route progress must not masquerade as structural depth.");
         }
         [Test]
+        public void ShallowTreesHaveVisibleSizeDifferencesAndLargeTreesStayBounded()
+        {
+            var stump=new GardenTreeMetrics(new ModelTree("stump","root",1,new[]{new LeafNode("root",0)}));
+            var small=new GardenTreeMetrics(Fixtures.Model().Trees[0]);
+            Assert.That(small.PineHeight-stump.PineHeight,Is.GreaterThan(.7f));
+            Assert.That(small.CrownRadius-stump.CrownRadius,Is.GreaterThan(.2f));
+            Assert.That(small.CrownRadius,Is.LessThanOrEqualTo(.9f));
+            Assert.That(small.PineHeight,Is.LessThanOrEqualTo(3.1f));
+        }
+        [Test]
         public void AStumpHasDepthZeroOneLeafAndANonzeroPine()
         {
             var tree=new ModelTree("stump","root",1,new[]{new LeafNode("root",.2)});var metrics=new GardenTreeMetrics(tree);
