@@ -6,7 +6,7 @@
 
 **Business value:** a coherent demonstration that visitors can navigate themselves, with a recognizable sense of place and a clear route back.
 
-**Status:** not started. **Priority:** Must. **Dependencies:** accepted M4; visual exploration may begin during M3. **Owner role:** Unity presentation/UX developer. **Planning range:** 4–6 working days.
+**Status:** implemented; combined Quest acceptance deferred by user. See [M5 implementation evidence](../m5-progress-2026-09-30.md). **Priority:** Must. **Dependencies:** accepted M4; visual exploration may begin during M3. **Owner role:** Unity presentation/UX developer. **Planning range:** 4–6 working days.
 
 ```mermaid
 flowchart LR
@@ -23,7 +23,7 @@ flowchart LR
 
 **User story:** As a visitor, I want a miniature forest that I can inspect and select so that I understand the model contains several ordered trees before entering one.
 
-**Priority:** Must. **Status:** Not started. **Owner role:** Unity/UX developer. **Depends on:** M4-01, M4-08.
+**Priority:** Must. **Status:** Implemented; headset acceptance pending. **Owner role:** Unity/UX developer. **Depends on:** M4-01, M4-08.
 
 **Acceptance criteria**
 
@@ -40,7 +40,7 @@ flowchart LR
 
 **User story:** As a visitor, I want to move between overview and detail and return to the same place so that I can explore without feeling lost or restarting my explanation.
 
-**Priority:** Must. **Status:** Not started. **Owner role:** Application/XR developer. **Depends on:** M5-01, M4-08, M3-06.
+**Priority:** Must. **Status:** Implemented; headset acceptance pending. **Owner role:** Application/XR developer. **Depends on:** M5-01, M4-08, M3-06.
 
 **Acceptance criteria**
 
@@ -57,7 +57,7 @@ flowchart LR
 
 **User story:** As a visitor, I want to see which branches belong to each decision so that spatial complexity does not hide the explanation.
 
-**Priority:** Must. **Status:** Not started. **Owner role:** Unity layout/UX developer. **Depends on:** M3-01, M5-02.
+**Priority:** Must. **Status:** Implemented; headset acceptance pending. **Owner role:** Unity layout/UX developer. **Depends on:** M3-01, M5-02.
 
 **Acceptance criteria**
 
@@ -74,7 +74,7 @@ flowchart LR
 
 **User story:** As a visitor inspecting a large tree, I want a focused neighborhood and clear summaries so that I can read the relevant decisions without losing the context of what is hidden.
 
-**Priority:** Must. **Status:** Not started. **Owner role:** Unity presentation developer. **Depends on:** M5-03, M2-04, M4-07.
+**Priority:** Must. **Status:** Implemented; headset acceptance pending. **Owner role:** Unity presentation developer. **Depends on:** M5-03, M2-04, M4-07.
 
 **Acceptance criteria**
 
@@ -91,7 +91,7 @@ flowchart LR
 
 **User story:** As a visitor, I want a coherent twilight forest with clear landmarks so that the experience feels engaging while decisions and controls remain easy to see.
 
-**Priority:** Must. **Status:** Not started. **Owner role:** Environment/technical artist. **Depends on:** M3-01 for early work; M5-03 for final acceptance.
+**Priority:** Must. **Status:** Implemented; headset acceptance pending. **Owner role:** Environment/technical artist. **Depends on:** M3-01 for early work; M5-03 for final acceptance.
 
 **Acceptance criteria**
 
@@ -108,7 +108,7 @@ flowchart LR
 
 **User story:** As the demonstration owner, I want the origin and permitted use of every external asset recorded so that the team can share the final build with confidence.
 
-**Priority:** Must for all introduced external assets. **Status:** Not started. **Owner role:** Content/project maintainer. **Depends on:** assets chosen in M1–M5; complete before M6-07.
+**Priority:** Must for all introduced external assets. **Status:** Provenance register implemented; final release asset/notice review pending. **Owner role:** Content/project maintainer. **Depends on:** assets chosen in M1–M5; complete before M6-07.
 
 **Acceptance criteria**
 
@@ -125,7 +125,7 @@ flowchart LR
 
 **User story:** As a visitor new to VR and boosted trees, I want a short introduction and always-reachable recovery controls so that I can use the demonstration without a keyboard operator.
 
-**Priority:** Must. **Status:** Not started. **Owner role:** UX/application developer. **Depends on:** M5-01–M5-05, M4-08.
+**Priority:** Must. **Status:** Implemented; headset acceptance pending. **Owner role:** UX/application developer. **Depends on:** M5-01–M5-05, M4-08.
 
 **Acceptance criteria**
 

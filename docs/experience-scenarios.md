@@ -1,6 +1,6 @@
 # Experience scenarios
 
-Status: proposed product specification based on the reviewed prototype and slides 6–7. Updated: 2026-09-27.
+Status: product specification; M5 implementation adds left-stick garden walking, crown pointing/trigger entry, optional tabletop overview and selectable subtree focus. Existing path-marker teleports remain available. Combined Quest acceptance is deferred by the user. See [M5 status](m5-progress-2026-09-30.md). Updated: 2026-09-30.
 
 ## Product intent
 

@@ -111,3 +111,10 @@ The user found parts separating in the Android build when changing posture. Mova
 ## M4 ensemble candidate — September 30
 
 The complete final suite passed: **135/135 EditMode and 16/16 PlayMode** in Unity 6000.6.3f1. Independent synthetic fixture checks also passed. The Android Development APK built with zero errors and six tool/library warnings; it has not been installed or device-tested for M4. The [M4 record](m4-progress-2026-09-30.md) identifies source/build/hash and covers large ensembles, ledger/tour equality, drafts, late events, profile/mode switches and manual contradictions. Complete the [M4 Quest walkthrough](m4-device-check-2026-09-30.md) before formal acceptance. Performance and production AGB verification remain open.
+
+
+## M5 verification and deferred device acceptance — September 30
+
+The user reports that the preceding navigation works and requested implementing M5 in a separate branch before a combined headset check. The new left-stick walking/crown entry, tabletop scale/rotation, summaries, guide and spatial audio require that later device check. See [M5 implementation and automated evidence](m5-progress-2026-09-30.md). An Editor pass or APK build does not accept comfort, pointing on hardware, stereo readability, audio or performance.
+
+For that combined walkthrough, check both controllers and both postures: left-stick walking and dead zone, right-stick turning, front/side/rear crown hover and trigger entry, optional teleports, repeated entry/return with a paused profile, tabletop scale/reset/rotation and all tree identities, nested summaries and current-route recovery, Help skip/reopen, sound mute, and system-menu/tracking interruption. Record actual reading positions and label/target readability. Keep performance measurement and the new-user observation open until actually performed.

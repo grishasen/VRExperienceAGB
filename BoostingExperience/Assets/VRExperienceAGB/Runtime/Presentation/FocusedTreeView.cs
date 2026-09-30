@@ -15,6 +15,31 @@ namespace VRExperienceAGB.Presentation
         private readonly LineRenderer[] routes;
         private TreeNeighborhood neighborhood;
         private ModelTree tree;
+        private string focus;
+        private readonly Stack<string> focusHistory = new Stack<string>();
+        public string FocusRoot => focus;
+        public int FocusDepth => focusHistory.Count;
+        public bool Focus(string id)
+        {
+            if (tree == null || !tree.Nodes.Any(n => n.Id == id)) return false;
+            var visible = slots.Where(s => s.gameObject.activeSelf).Select(s => s.nodeId);
+            if (!visible.Contains(id) || id == focus) return false;
+            focusHistory.Push(focus ?? view.Session.State.NodeId); focus = id; return true;
+        }
+        public void ParentFocus()
+        {
+            if (focusHistory.Count == 0) return;
+            focus = focusHistory.Pop();
+            if (focusHistory.Count == 0) focus = null;
+        }
+        public void CurrentFocus() { focus = null; focusHistory.Clear(); }
+        public int Hidden(string id)
+        {
+            if (neighborhood == null || !tree.Nodes.Any(n => n.Id == id)) return 0;
+            var visible = slots.Where(s => s.gameObject.activeSelf).Select(s => s.nodeId).ToArray();
+            var lookup = tree.Nodes.ToDictionary(n => n.Id);
+            return neighborhood.Descendants(id) - visible.Count(n => n != id && IsDescendant(lookup, id, n));
+        }
         public FocusedTreeView(OneTreeExperience view)
         {
             this.view = view; slots = view.nodeViews;
@@ -23,12 +48,13 @@ namespace VRExperienceAGB.Presentation
                 .Where(l => l.transform.parent == view.presentationRoot).Take(6).ToArray();
         }
         public void Bind(ModelTree modelTree)
-        { tree = modelTree; neighborhood = new TreeNeighborhood(tree); }
+        { tree = modelTree; neighborhood = new TreeNeighborhood(tree); CurrentFocus(); }
         public void Refresh(SessionState state, bool map)
         {
-            var ids = neighborhood.Visible(map ? tree.RootId : state.NodeId);
+            string root = focus ?? (map ? tree.RootId : state.NodeId);
+            var ids = neighborhood.Visible(root);
             var lookup = tree.Nodes.ToDictionary(n => n.Id);
-            var addresses = new string[7]; addresses[0] = map ? tree.RootId : state.NodeId;
+            var addresses = new string[7]; addresses[0] = root;
             for (int i = 0; i < 3; i++)
                 if (addresses[i] != null && lookup[addresses[i]] is SplitNode parent)
                 { addresses[i * 2 + 1] = parent.TrueChild; addresses[i * 2 + 2] = parent.FalseChild; }
@@ -58,7 +84,8 @@ namespace VRExperienceAGB.Presentation
                 int hidden = neighborhood.Descendants(addresses[i]) - ids.Count(id => id != addresses[i] && IsDescendant(lookup, addresses[i], id));
                 slot.marker.text = (state.NodeId == addresses[i] ? "CURRENT" : state.Path.Contains(addresses[i]) ? "VISITED" : "") +
                     (hidden > 0 ? "  +" + hidden + " hidden" : "");
-                slot.title.enabled = i != 0; slot.marker.enabled = i != 0 && state.NodeId != addresses[i];
+                slot.title.enabled = i != 0 || focus != null;
+                slot.marker.enabled = i != 0 && state.NodeId != addresses[i];
                 slot.platform.sharedMaterial = state.NodeId == addresses[i] ? view.activeMaterial : state.Path.Contains(addresses[i]) ? view.visitedMaterial : view.idleMaterial;
                 visible[addresses[i]] = position;
             }

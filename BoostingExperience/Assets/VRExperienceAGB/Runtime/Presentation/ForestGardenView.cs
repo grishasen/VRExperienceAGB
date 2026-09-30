@@ -13,6 +13,7 @@ namespace VRExperienceAGB.Presentation
     {
         public bool simplifiedNavigation;
         public SimpleExperienceNavigation Navigation { get; private set; }
+        public M5ForestPresentation M5 { get; private set; }
         public Mesh pineMesh, trunkMesh, planterMesh, ringMesh;
         public Material pineMaterial, barkMaterial, stoneMaterial, soilMaterial, pathMaterial, selectedMaterial, completedMaterial;
         public OneTreeExperience Experience { get; private set; }
@@ -30,6 +31,7 @@ namespace VRExperienceAGB.Presentation
             public Canvas plaque;
             public TMP_Text label, hoverLabel;
             public Renderer ring;
+            public Canvas crownTarget;
             public Vector3 ringScale;
         }
         private readonly List<Plot> plots = new List<Plot>();
@@ -69,12 +71,14 @@ namespace VRExperienceAGB.Presentation
             quietRing.DisableKeyword("_EMISSION");quietRing.SetColor("_EmissionColor",Color.black);
             positiveRing=ContributionMaterial("PositiveContribution",new Color(.05f,.85f,.78f));
             negativeRing=ContributionMaterial("NegativeContribution",new Color(1f,.32f,.055f));
+            M5 = gameObject.AddComponent<M5ForestPresentation>(); M5.Configure(this);
         }
         private Material ContributionMaterial(string name,Color color)
         {
             var material=new Material(completedMaterial){name=name,enableInstancing=true,color=color};
             material.EnableKeyword("_EMISSION");material.SetColor("_EmissionColor",color*2f);return material;
         }
+        internal Material ContributionRing(bool reached, double value) => !reached || value == 0 ? quietRing : value > 0 ? positiveRing : negativeRing;
         public void Sync(bool garden)
         {
             if (Experience == null) return;
@@ -88,6 +92,7 @@ namespace VRExperienceAGB.Presentation
             foreach(var entry in walkthroughObjects) entry.Key.SetActive(!garden && entry.Value);
             if(garden)RefreshState();
             if(simplifiedNavigation) Navigation.Refresh();
+            M5.Refresh();
         }
         public Vector3 PlotPosition(int index)
         {
@@ -149,10 +154,12 @@ namespace VRExperienceAGB.Presentation
             MeshObject("Planter",container,Vector3.zero,new Vector3(2.1f,.36f,2.1f),planterMesh,stoneMaterial,true);
             MeshObject("Soil",container,new Vector3(0,.37f,0),new Vector3(1.84f,.06f,1.84f),planterMesh,soilMaterial,true);
             MeshObject("Trunk",container,new Vector3(0,.4f,0),new Vector3(.12f+tree.CrownRadius*.1f,tree.PineHeight,.12f+tree.CrownRadius*.1f),trunkMesh,barkMaterial,true);
-            MeshObject("Pine",container,new Vector3(0,.4f,0),new Vector3(tree.CrownRadius*2,tree.PineHeight,tree.CrownRadius*2),pineMesh,gardenFoliage,true);
+            var pine=MeshObject("Pine",container,new Vector3(0,.4f,0),new Vector3(tree.CrownRadius*2,tree.PineHeight,tree.CrownRadius*2),pineMesh,gardenFoliage,true);
             var ring=MeshObject("ProgressRing",container,new Vector3(0,.40f,0),new Vector3(1.04f/.555f,1,1.04f/.555f),ringMesh,quietRing,false).GetComponent<Renderer>();
             var plaque=CanvasAt("TreePlaque-"+(index+1),PlotPosition(index)+new Vector3(0,.20f,-1.15f),new Vector2(640,1500),.0024f,root.transform);
-            var pineTarget=Button(plaque,"",new Vector2(0,(.4f+tree.PineHeight*.5f-.20f)/.0024f),new Vector2(tree.CrownRadius*2/.0024f,tree.PineHeight/.0024f),GardenCommand.SelectTree,index,29);
+            // The crown owns its target, independent of the fixed planter label. It faces the observer from every approach.
+            var crown=CanvasAt("PineCrownTarget-"+(index+1),pine.GetComponent<Renderer>().bounds.center-container.position+Vector3.up*tree.PineHeight*.1f,new Vector2(tree.CrownRadius*2/.0024f,tree.PineHeight*.72f/.0024f),.0024f,container);
+            var pineTarget=Button(crown,"",Vector2.zero,((RectTransform)crown.transform).sizeDelta,GardenCommand.SelectTree,index,29);
             pineTarget.name="PinePointerTarget-"+(index+1);pineTarget.GetComponent<UnityEngine.UI.Image>().color=Color.clear;
             var button=Button(plaque,"",Vector2.zero,new Vector2(360,62),GardenCommand.SelectTree,index,25);
             button.name="PlanterName-"+(index+1);button.GetComponent<UnityEngine.UI.Image>().color=Color.clear;
@@ -164,7 +171,7 @@ namespace VRExperienceAGB.Presentation
             ((RectTransform)backing.transform).sizeDelta=new Vector2(420,180);
             backing.GetComponent<UnityEngine.UI.Image>().color=new Color(.025f,.065f,.085f,.96f);
             backing.GetComponent<UnityEngine.UI.Image>().raycastTarget=false;
-            plots.Add(new Plot{root=container,plaque=plaque,label=button.GetComponentInChildren<TMP_Text>(),hoverLabel=hoverLabel,ring=ring,ringScale=ring.transform.localScale});
+            plots.Add(new Plot{root=container,plaque=plaque,crownTarget=crown,label=button.GetComponentInChildren<TMP_Text>(),hoverLabel=hoverLabel,ring=ring,ringScale=ring.transform.localScale});
         }
         private void BuildGuide()
         {
@@ -213,6 +220,8 @@ namespace VRExperienceAGB.Presentation
         public void Activate(GardenCommand command,int index=0)
         {
             if(!Visible)return;
+            if(M5.HelpOpen)return;
+            if(command==GardenCommand.SelectTree && index>=0 && index<PlotCount) M5.Atmosphere.SelectAt(plots[index].root.position+Vector3.up);
             if(simplifiedNavigation && Navigation.Activate(command,index)) return;
             int selected=Experience.Ensemble.Index;
             hovered=-1;
@@ -237,6 +246,7 @@ namespace VRExperienceAGB.Presentation
         }
         public void ToggleGuide()
         {
+            if (M5 != null && M5.HelpOpen) { M5.CloseHelp(); return; }
             if(simplifiedNavigation && Navigation.Page==NavigationPage.Tree) { Navigation.ToggleTreeMenu(); return; }
             if(!Visible)return;
             if(simplifiedNavigation) { Navigation.ShowHome(); return; }
@@ -330,6 +340,15 @@ namespace VRExperienceAGB.Presentation
                 plot.root.gameObject.SetActive(forest);
                 bool nearby=forest && Vector3.Distance(Locomotion.Head.position,plot.root.position)<12;
                 plot.plaque.gameObject.SetActive(nearby);
+                plot.crownTarget.gameObject.SetActive(nearby);
+                if(nearby)
+                {
+                    var direction=plot.crownTarget.transform.position-Locomotion.Head.position;direction.y=0;
+                    if(direction.sqrMagnitude>.01f)plot.crownTarget.transform.rotation=Quaternion.LookRotation(direction);
+                    var card=plot.hoverLabel.transform.parent;
+                    card.rotation=plot.crownTarget.transform.rotation;
+                    card.position=plot.crownTarget.transform.position+plot.crownTarget.transform.right*1.25f-plot.crownTarget.transform.forward*.25f;
+                }
 
             }
             foreach(var waypoint in waypoints)waypoint.gameObject.SetActive(forest && Vector3.Distance(Locomotion.Head.position,waypoint.transform.position)<16);

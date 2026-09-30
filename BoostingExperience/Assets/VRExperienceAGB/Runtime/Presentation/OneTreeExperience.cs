@@ -50,6 +50,7 @@ namespace VRExperienceAGB.Presentation
         public ForestGardenView Garden { get; private set; }
         public bool DeepExampleActive => deepExample;
         private FocusedTreeView focusedView;
+        public FocusedTreeView FocusedView => focusedView;
         private bool deepExample;
         private bool treeMap;
         public TMP_Text routeHistory;
@@ -204,7 +205,7 @@ namespace VRExperienceAGB.Presentation
         }
         public void EnterNavigationTree()
         {
-            MenuOpen=false; treeMap=false; Session.EnterTree(); Session.SetPaused(false); Refresh();
+            MenuOpen=false; treeMap=false; Session.EnterTree(); Refresh();
         }
 
         private string Feature(string id) => model.Features.Single(f => f.Id == id).DisplayName;
@@ -226,6 +227,8 @@ namespace VRExperienceAGB.Presentation
         public void Execute(TreeAction action, long revision, string nodeId)
         {
             if (Session == null || revision != Session.State.Revision || nodeId != Session.State.NodeId) return;
+            if (Garden?.simplifiedNavigation == true && focusedView?.FocusRoot != null &&
+                (action == TreeAction.TrueBranch || action == TreeAction.FalseBranch || action == TreeAction.Step || action == TreeAction.Play)) return;
             NameTooltip?.Hide();
             if (model.StructureOnlyPreview && (action == TreeAction.Profile || action == TreeAction.NextProfile || action == TreeAction.DeepExample || action == TreeAction.LargerEnsemble)) return;
             if(Garden?.simplifiedNavigation == true && Garden.Navigation != null)
@@ -337,6 +340,7 @@ namespace VRExperienceAGB.Presentation
         private void Update() { Advance(Time.unscaledDeltaTime); }
         public void Advance(float seconds)
         {
+            if (Garden?.simplifiedNavigation == true && focusedView?.FocusRoot != null) return;
             if (Session == null || !float.IsFinite(seconds) || seconds < 0) return;
             var state = Session.State;
             if (state.PendingDecision == null)
@@ -446,7 +450,7 @@ namespace VRExperienceAGB.Presentation
             explanation.rectTransform.anchoredPosition = new Vector2(0, inspectingNodes ? 760 : s.Overview && !treeMap ? 650 : 420);
             explanation.rectTransform.sizeDelta = new Vector2(1200, inspectingNodes ? 210 : 100);
             explanation.gameObject.SetActive(!reviewingResult && (!MenuOpen || editingProfile || inspectingNodes));
-            drop.gameObject.SetActive(!reviewingResult && !(s.Overview && !treeMap) && (!treeMap || nodeViews.Any(v => v.gameObject.activeSelf && v.nodeId == s.NodeId)));
+            drop.gameObject.SetActive(!reviewingResult && !(s.Overview && !treeMap) && nodeViews.Any(v => v.gameObject.activeSelf && v.nodeId == s.NodeId));
             if (s.PendingDecision == null) drop.position = Position(s.NodeId);
             foreach (var c in controls)
             {

@@ -5,7 +5,7 @@ using UnityEngine;
 
 namespace VRExperienceAGB.Presentation
 {
-    public enum NavigationPage { Home, TreeList, Forest, Tree }
+    public enum NavigationPage { Home, TreeList, Forest, Tree, Diorama }
 
     /// <summary>Case selection and return destinations; never evaluates or edits model data.</summary>
     public sealed class SimpleExperienceNavigation
@@ -19,6 +19,12 @@ namespace VRExperienceAGB.Presentation
         private int listPage;
         public bool TreeMenuOpen { get; private set; }
         private bool pausedBeforeTreeMenu;
+        public bool ExplicitlyPaused => TreeMenuOpen ? pausedBeforeTreeMenu : View.Session.State.Paused;
+        public void ToggleExplicitPause()
+        {
+            if(TreeMenuOpen) pausedBeforeTreeMenu=!pausedBeforeTreeMenu;
+            else View.Session.SetPaused(!View.Session.State.Paused);
+        }
         private const int PageSize = 6;
         public NavigationPage Page { get; private set; } = NavigationPage.Home;
         public NavigationPage ReturnPage { get; private set; } = NavigationPage.TreeList;
@@ -45,7 +51,7 @@ namespace VRExperienceAGB.Presentation
 
             forest=Panel("ForestNavigation",new Vector2(600,210),root);
             garden.Button(forest,"Menu · A / Tab",new Vector2(0,60),new Vector2(350,64),GardenCommand.Home,0,27);
-            garden.Text(forest.transform,"Hint","Point at a pine to inspect · Click to enter\nSelect a path marker to move · Right stick to turn",new Vector2(0,-36),new Vector2(565,105),25);
+            garden.Text(forest.transform,"Hint","Point at a crown · Trigger to enter\nLeft stick: walk · Right stick: turn\nPath markers: teleport",new Vector2(0,-36),new Vector2(565,105),25);
             Refresh();Place();
         }
         private Canvas Panel(string name,Vector2 size,Transform root)
@@ -55,6 +61,9 @@ namespace VRExperienceAGB.Presentation
             return canvas;
         }
         public void ShowHome() => Show(NavigationPage.Home);
+        public void ShowDiorama() => Show(NavigationPage.Diorama);
+        public void ShowForest() => Show(NavigationPage.Forest);
+        public void InvalidatePointerPresses() { Revision++; }
         public void ReturnFromTree() => Show(ReturnPage);
         private void Show(NavigationPage page)
         {
@@ -65,7 +74,7 @@ namespace VRExperienceAGB.Presentation
         }
         public void OpenTree(int index)
         {
-            if(index<0||index>=garden.PlotCount || (Page!=NavigationPage.Forest && Page!=NavigationPage.TreeList))return;
+            if(index<0||index>=garden.PlotCount || (Page!=NavigationPage.Forest && Page!=NavigationPage.TreeList && Page!=NavigationPage.Diorama))return;
             ReturnPage=Page;
             View.SelectGardenTree(index);
             Page=NavigationPage.Tree;Revision++;
@@ -154,7 +163,7 @@ namespace VRExperienceAGB.Presentation
                     case TreeAction.Menu:rect.anchoredPosition=new Vector2(0,-128);control.label.text="Close menu";break;
                     case TreeAction.Restart:rect.anchoredPosition=new Vector2(160,25);control.label.text="Restart tree";break;
                     case TreeAction.Seated:rect.anchoredPosition=new Vector2(-160,-52);control.label.text=View.IsSeated?"Use standing layout":"Use seated layout";break;
-                    case TreeAction.Overview:rect.anchoredPosition=new Vector2(160,-52);control.label.text=ReturnPage==NavigationPage.Forest?"Back to forest":"Back to tree list";break;
+                    case TreeAction.Overview:rect.anchoredPosition=new Vector2(160,-52);control.label.text=ReturnPage==NavigationPage.Forest?"Back to forest":ReturnPage==NavigationPage.Diorama?"Back to tabletop":"Back to tree list";break;
                 }
                 if(!branch)control.GetComponent<UnityEngine.UI.Button>().interactable=true;
             }
