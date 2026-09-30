@@ -12,7 +12,7 @@ Initial audience: a presenter explaining a model to stakeholders and a visitor t
 
 ## One world at two scales
 
-The model is a twilight forest with luminous routes inspired by AGB Grid Drive. A miniature forest sits on a stone table at the entry clearing. Selecting a tree opens an immersive view of its structure.
+The model is a twilight forest with luminous routes inspired by AGB Grid Drive. The ensemble overview is a walkable garden of miniature pines in low circular planters. Numbered beds preserve boosting order. Pine height encodes maximum decision depth and crown width encodes leaf count, with exact values on nearby plaques. Selection and route progress use separate rings and text. Selecting a pine and choosing Enter opens the decision walkthrough.
 
 Within a tree, the root is the entry node. Branches lead upward and outward through a readable three-dimensional hierarchy. Nodes sit on stable platforms, leaves terminate in contribution stations, and a portal connects one tree to the next. Depth is visible without forcing the user to climb or look vertically for long periods.
 
@@ -73,7 +73,7 @@ The actual values determine the landscape. Later trees need not be smaller than 
 
 **Purpose:** move between ensemble overview and readable detail.
 
-The user rotates and scales the miniature forest using controllers, selects a tree, and chooses “Enter tree”. A brief transition places them at a stable viewpoint. “Return to forest” restores the selection and progress. Scaling the model does not resize the user's tracking space.
+The user explores the pine garden through room-scale movement or deliberate teleports to path standing points. Numbered controls provide seated access to every tree. Snap turns use the right thumbstick or explicit buttons. A collapsible field guide provides selection details and navigation; A or desktop Tab reopens it. Entering a selected tree opens the separate walkthrough through a short fade. Returning restores the garden location, selected tree and accepted route. Navigation moves an observer origin, never the tracked head or controller transforms. Rotating and scaling a tabletop model remain a possible later mode.
 
 For dense trees, show a bounded neighborhood around the selected node. Collapsed branches retain their identity and a count of hidden nodes. Selecting a branch can place an enlarged subtree on an inspection table, with a marker connecting it to its original location.
 

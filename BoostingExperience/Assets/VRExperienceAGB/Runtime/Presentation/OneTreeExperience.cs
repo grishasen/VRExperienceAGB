@@ -47,6 +47,7 @@ namespace VRExperienceAGB.Presentation
         public AgbPreviewResult ExportPreview { get; private set; }
         private string exportName;
         public FullNameTooltip NameTooltip { get; private set; }
+        public ForestGardenView Garden { get; private set; }
         public bool DeepExampleActive => deepExample;
         private FocusedTreeView focusedView;
         private bool deepExample;
@@ -118,7 +119,7 @@ namespace VRExperienceAGB.Presentation
                 branchLabels[i * 2].text = "TRUE\n" + Condition(splits[i], true);
                 branchLabels[i * 2 + 1].text = "FALSE\n" + Condition(splits[i], false);
             }
-            PrepareNameHover(); return StartEnsemble(null, true);
+            PrepareNameHover(); Garden = GetComponent<ForestGardenView>(); Garden?.Configure(this); return StartEnsemble(null, true);
         }
 
         public string FullNodeName(string nodeId)
@@ -187,6 +188,13 @@ namespace VRExperienceAGB.Presentation
             if (overview) Session.ReturnToOverview();
             movingEvent = -1; dwell = 0; displayedRevision = -1; Refresh();
         }
+        public void SelectGardenTree(int index)
+        {
+            if (Garden == null || !Garden.Visible || index < 0 || index >= model.Trees.Count) return;
+            NameTooltip?.Hide();
+            if (Ensemble.Select(index)) AdoptCurrent(true);
+        }
+
         private string Feature(string id) => model.Features.Single(f => f.Id == id).DisplayName;
         public string Condition(SplitNode node, bool branch)
         {
@@ -407,7 +415,7 @@ namespace VRExperienceAGB.Presentation
                 ledgerText.text = LedgerCopy();
             }
             if (menuBackdrop != null) menuBackdrop.SetActive(MenuOpen || reviewingResult);
-            if (s.Overview && !treeMap) focusedView.Forest(Ensemble);
+            if (s.Overview && !treeMap) { if (Garden == null) focusedView.Forest(Ensemble); }
             else focusedView.Refresh(s, treeMap || Session.Tree.Nodes.Count <= 7);
             if (inspectingNodes && !(s.Overview && !treeMap))
                 foreach (var node in nodeViews.Where(v => v.gameObject.activeSelf && v.nodeId == inspectionIds[inspectedNode]))
@@ -475,6 +483,7 @@ namespace VRExperienceAGB.Presentation
                 c.GetComponent<UnityEngine.UI.Button>().interactable = enabled;
 
             }
+            Garden?.Sync(s.Overview && !treeMap);
         }
         public static bool IsSecondary(TreeAction action) => action == TreeAction.LargerEnsemble || action == TreeAction.DeepExample || action == TreeAction.TreeMap ||
             action == TreeAction.PreviousTree || action == TreeAction.NextTree || action == TreeAction.EditProfile ||

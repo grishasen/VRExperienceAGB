@@ -28867,6 +28867,7 @@ GameObject:
   - component: {fileID: 1391082505}
   - component: {fileID: 1391082504}
   - component: {fileID: 1391082503}
+  - component: {fileID: 1391082506}
   m_Layer: 0
   m_Name: OneTreeExperience
   m_TagString: Untagged
@@ -29015,6 +29016,29 @@ Transform:
   - {fileID: 1370110460}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1391082506
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1391082502}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b3d9d1314bc534a919613c51009d94ba, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: VRExperienceAGB.Presentation::VRExperienceAGB.Presentation.ForestGardenView
+  pineMesh: {fileID: 4300000, guid: 8170da8733a5d4e7ebcf25e224474367, type: 2}
+  trunkMesh: {fileID: 4300000, guid: 2e7bb8b06f27141c8bcf46fd389978fb, type: 2}
+  planterMesh: {fileID: 4300000, guid: f2c44eab911c545398f02f573bd6a51a, type: 2}
+  ringMesh: {fileID: 4300000, guid: 303d98eff538e4c2684d735059d9154f, type: 2}
+  pineMaterial: {fileID: 2100000, guid: 7ca5cb930e11c4a64bfb83e77105b568, type: 2}
+  barkMaterial: {fileID: 2100000, guid: f5fe5f7a801874388a0fd9ed24b5964a, type: 2}
+  stoneMaterial: {fileID: 2100000, guid: 428efad0420c74ab78a324e3587860e5, type: 2}
+  soilMaterial: {fileID: 2100000, guid: 8ae12da60e23a4a7f85897f565e39a9b, type: 2}
+  pathMaterial: {fileID: 2100000, guid: 428efad0420c74ab78a324e3587860e5, type: 2}
+  selectedMaterial: {fileID: 2100000, guid: 2d4f12a0464be406abae0afa3b533e6b, type: 2}
+  completedMaterial: {fileID: 2100000, guid: 57ab34e90414645299c8faf6111374ec, type: 2}
 --- !u!1 &1402288975
 GameObject:
   m_ObjectHideFlags: 0

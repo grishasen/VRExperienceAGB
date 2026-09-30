@@ -29,6 +29,13 @@ namespace VRExperienceAGB.Presentation
         private void Update()
         {
             if (!preview || Mouse.current == null || EventSystem.current == null) return;
+            if (Mouse.current.rightButton.isPressed)
+            {
+                // Explicit desktop look input; headset builds never execute this preview path.
+                var delta=Mouse.current.delta.ReadValue();var angles=previewCamera.transform.localEulerAngles;
+                float pitch=angles.x>180?angles.x-360:angles.x;
+                previewCamera.transform.localRotation=Quaternion.Euler(Mathf.Clamp(pitch-delta.y*.12f,-65,65),angles.y+delta.x*.12f,0);
+            }
             var pointer = new PointerEventData(EventSystem.current) { pointerId = -1, position = Mouse.current.position.ReadValue(), button = PointerEventData.InputButton.Left };
             hits.Clear(); EventSystem.current.RaycastAll(pointer, hits);
             var target = hits.Count == 0 ? null : ExecuteEvents.GetEventHandler<IPointerClickHandler>(hits[0].gameObject);

@@ -26,6 +26,19 @@ namespace VRExperienceAGB.Tests
         }
         private void Click(TreeAction action,int pointerId=1)
         {
+            if (view.Garden != null && view.Garden.Visible)
+            {
+                var gardenButton=view.Garden.ButtonFor(action);
+                if(gardenButton!=null)
+                {
+                    var gardenPointer=new PointerEventData(EventSystem.current) { pointerId=pointerId,button=PointerEventData.InputButton.Left };
+                    ExecuteEvents.Execute(gardenButton,gardenPointer,ExecuteEvents.pointerDownHandler);
+                    ExecuteEvents.Execute(gardenButton,gardenPointer,ExecuteEvents.pointerUpHandler);
+                    ExecuteEvents.Execute(gardenButton,gardenPointer,ExecuteEvents.pointerClickHandler);
+                    return;
+                }
+                view.Garden.EnterSelected();
+            }
             bool editorAction = action == TreeAction.CancelEdit || action == TreeAction.SetMissing || action == TreeAction.NextLedgerPage || action == TreeAction.CloseResult || action == TreeAction.NextFeature || action == TreeAction.DecreaseValue || action == TreeAction.IncreaseValue || action == TreeAction.RestoreProfile || action == TreeAction.CloseEdit || action == TreeAction.NextNode || action == TreeAction.CloseInspect;
             if (OneTreeExperience.IsSecondary(action) && !view.MenuOpen) Click(TreeAction.Menu, pointerId);
             else if (!OneTreeExperience.IsSecondary(action) && !editorAction && action != TreeAction.Menu && view.MenuOpen) Click(TreeAction.Menu, pointerId);
