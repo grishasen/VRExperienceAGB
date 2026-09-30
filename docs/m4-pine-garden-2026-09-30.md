@@ -25,7 +25,7 @@ All 100 trees in the local sample matched independently calculated depth, leaf a
 
 Local evidence is stored under ignored `artifacts/m4-garden-2026-09-30/`: test reports, independent expected metrics, actual sample checks, screenshots and build evidence.
 
-The final Android development build succeeded with zero errors and four warnings. The APK is `artifacts/builds/VRExperienceAGB-m4-garden.apk` (104,704,566 bytes; SHA-256 `ab17ccf3ec55a8f40998fe1475cd456983d2a93cf6f46ff246369b9b572a0a01`). It has not been installed or tested on a headset.
+The final Android development build succeeded with zero errors and four warnings. The APK is `artifacts/builds/VRExperienceAGB-m4-garden.apk` (104,704,566 bytes; SHA-256 `ab17ccf3ec55a8f40998fe1475cd456983d2a93cf6f46ff246369b9b572a0a01`). It was subsequently installed on the connected Quest 3 with `adb install -r` (Success) and cold-launched successfully. The application process remained running during the launch-log check. Interactive headset acceptance and performance remain unverified. The launch log includes an OVRMetricsToolClient `NumberFormatException` for `0-stub`; no performance acceptance is inferred from that capture. Installation and launch evidence is saved as `quest-install.json` and `quest-launch.log` in the evidence folder.
 
 Three Editor captures show the actual sample: `01-garden-wide.png`, `02-pine-field-guide.png`, and `03-tree-walkthrough.png` in the evidence folder. The desktop camera was manually aimed for these captures; the authored camera and headset tracking were unchanged.
 
