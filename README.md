@@ -5,7 +5,7 @@ An immersive explanation of adaptive gradient boosted decision trees for Meta Qu
 
 Explore a miniature forest, enter a tree, choose branches yourself, or follow a prepared customer profile. Watch each selected leaf contribute to the ensemble score in a twilight forest with luminous paths inspired by the existing AGB Grid Drive prototype.
 
-**Status: implementation underway.** M4 synthetic behavior is implemented on `codex/m4-ensemble`; current automated tests and Android build evidence are recorded in the [M4 record](docs/m4-progress-2026-09-30.md). The earlier M3 appearance/posture/lantern iteration was approved by the user on Quest 3. M4 headset acceptance, remaining device checks, real AGB verification and actual performance measurements remain pending. Open `BoostingExperience/Assets/VRExperienceAGB/Scenes/OneTreeLearning.unity` for the mouse preview. Both manual exploration and deterministic prepared-profile playback remain available.
+**Status: implementation underway.** M4 synthetic behavior is implemented on `codex/m4-ensemble`; **135 EditMode and 16 PlayMode tests pass**, and the Android candidate built successfully. Evidence is recorded in the [M4 record](docs/m4-progress-2026-09-30.md). The earlier M3 appearance/posture/lantern iteration was approved by the user on Quest 3. M4 headset acceptance, remaining device checks, real AGB verification and actual performance measurements remain pending. Open `BoostingExperience/Assets/VRExperienceAGB/Scenes/OneTreeLearning.unity` for the mouse preview. Both manual exploration and deterministic prepared-profile playback remain available.
 
 All project documentation, code, comments, identifiers, commit messages, and initial application copy are in English.
 

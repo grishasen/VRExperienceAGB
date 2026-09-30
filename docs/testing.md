@@ -107,3 +107,7 @@ All 111 EditMode and 11 PlayMode tests passed after the final M3 changes. New co
 ## Posture regression — September 29
 
 The user found parts separating in the Android build when changing posture. Movable Presentation geometry had static flags; these are now cleared in the saved scene and generators. All 12 PlayMode tests pass after the correction. The added test checks three seated/standing round trips, equal movement of node meshes/rims/labels/anchors/sample/console, non-static teaching objects and unchanged preview camera pose. The lower tree layout and foreground bark/branches require renewed device observation. Reports: `artifacts/posture-fix/`.
+
+## M4 ensemble candidate — September 30
+
+The complete final suite passed: **135/135 EditMode and 16/16 PlayMode** in Unity 6000.6.3f1. Independent synthetic fixture checks also passed. The Android Development APK built with zero errors and six tool/library warnings; it has not been installed or device-tested for M4. The [M4 record](m4-progress-2026-09-30.md) identifies source/build/hash and covers large ensembles, ledger/tour equality, drafts, late events, profile/mode switches and manual contradictions. Complete the [M4 Quest walkthrough](m4-device-check-2026-09-30.md) before formal acceptance. Performance and production AGB verification remain open.
