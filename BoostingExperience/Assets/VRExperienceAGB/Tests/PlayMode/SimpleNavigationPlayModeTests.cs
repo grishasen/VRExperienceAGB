@@ -88,6 +88,35 @@ namespace VRExperienceAGB.Tests
             yield return null;
         }
         [UnityTest]
+        public IEnumerator ContributionGlowUsesReachedLeavesAndClearsAfterUndo()
+        {
+            Click(Target(GardenCommand.Forest));
+            var root=view.transform.Find("ModelPineGarden");bool positive=false,negative=false;
+            for(int i=0;i<10;i++)
+            {
+                var ring=root.Find("ModelTree-"+(i+1)+"/ProgressRing").GetComponent<Renderer>();
+                Assert.That(ring.sharedMaterial.name,Is.EqualTo("UnvisitedPlanterRing"));
+                Assert.That(ring.sharedMaterial.IsKeywordEnabled("_EMISSION"),Is.False);
+                Garden.Navigation.OpenTree(i);
+                while(!view.Session.State.AtLeaf){Action(TreeAction.TrueBranch);view.Advance(2);}
+                double contribution=view.Session.State.Contribution;
+                Action(TreeAction.Overview);Garden.Hover(i);
+                Assert.That(ring.sharedMaterial.name,Is.EqualTo(contribution>0?"PositiveContribution":contribution<0?"NegativeContribution":"UnvisitedPlanterRing"));
+                positive|=contribution>0;negative|=contribution<0;
+                Assert.That(ring.transform.localScale.y,Is.InRange(1f,5f));
+                if(contribution!=0)Assert.That(ring.transform.localScale.y,Is.GreaterThan(1f));
+                var text=root.Find("TreePlaque-"+(i+1)+"/HoverBacking/HoverDetails").GetComponent<TMPro.TMP_Text>().text;
+                Assert.That(text,Does.Contain("Route contribution:").And.Not.Contain("probability"));
+                var scale=ring.transform.localScale;Garden.ClearHover(i);Garden.Hover(i);
+                Assert.That(ring.transform.localScale,Is.EqualTo(scale),"Hover must not change contribution magnitude.");
+                Garden.Navigation.OpenTree(i);Action(TreeAction.Back);Action(TreeAction.Overview);
+                Assert.That(ring.sharedMaterial.name,Is.EqualTo("UnvisitedPlanterRing"));
+                Assert.That(ring.transform.localScale.y,Is.EqualTo(1f));
+            }
+            Assert.That(positive&&negative,Is.True,"Exercise both signs using real demo leaves.");
+            yield return null;
+        }
+        [UnityTest]
         public IEnumerator ForestNamesStayOnBinsAndPinesReflectStructure()
         {
             Click(Target(GardenCommand.Forest));yield return null;

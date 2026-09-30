@@ -45,7 +45,8 @@ namespace VRExperienceAGB.Presentation
         private Material gardenFoliage;
         private TMP_Text header;
         private GameObject profileButton;
-        private Material quietRing;
+        private Material quietRing, positiveRing, negativeRing;
+        private double maximumContribution;
         private int hovered = -1;
         private bool hoverDirty;
         private float nextPlaqueRefresh;
@@ -65,6 +66,14 @@ namespace VRExperienceAGB.Presentation
             gardenFoliage.EnableKeyword("_EMISSION");gardenFoliage.SetColor("_EmissionColor",new Color(.01f,.045f,.016f));
             quietRing=new Material(completedMaterial) { name="UnvisitedPlanterRing" };
             quietRing.color=new Color(.10f,.25f,.27f); quietRing.enableInstancing=true;
+            quietRing.DisableKeyword("_EMISSION");quietRing.SetColor("_EmissionColor",Color.black);
+            positiveRing=ContributionMaterial("PositiveContribution",new Color(.05f,.85f,.78f));
+            negativeRing=ContributionMaterial("NegativeContribution",new Color(1f,.32f,.055f));
+        }
+        private Material ContributionMaterial(string name,Color color)
+        {
+            var material=new Material(completedMaterial){name=name,enableInstancing=true,color=color};
+            material.EnableKeyword("_EMISSION");material.SetColor("_EmissionColor",color*2f);return material;
         }
         public void Sync(bool garden)
         {
@@ -93,6 +102,7 @@ namespace VRExperienceAGB.Presentation
             if(root!=null){root.SetActive(false);Destroy(root);}
             plots.Clear();waypoints.Clear();numberButtons.Clear();hovered=-1;shownBed=-1;
             builtModel=Experience.Model;metrics=builtModel.Trees.Select(t=>new GardenTreeMetrics(t)).ToArray();
+            maximumContribution=builtModel.Trees.SelectMany(t=>t.Nodes.OfType<LeafNode>().Select(n=>Math.Abs(t.Weight*n.Score))).DefaultIfEmpty(0).Max();
             root=new GameObject("ModelPineGarden");root.transform.SetParent(Experience.transform,false);root.SetActive(false);
             int rows=(metrics.Length+TreesPerBed-1)/TreesPerBed;
             float length=rows*4.8f+12;
@@ -146,12 +156,12 @@ namespace VRExperienceAGB.Presentation
             pineTarget.name="PinePointerTarget-"+(index+1);pineTarget.GetComponent<UnityEngine.UI.Image>().color=Color.clear;
             var button=Button(plaque,"",Vector2.zero,new Vector2(360,62),GardenCommand.SelectTree,index,25);
             button.name="PlanterName-"+(index+1);button.GetComponent<UnityEngine.UI.Image>().color=Color.clear;
-            var hoverLabel=Text(plaque.transform,"HoverDetails","",new Vector2(0,420),new Vector2(400,135),21);
+            var hoverLabel=Text(plaque.transform,"HoverDetails","",new Vector2(0,420),new Vector2(400,170),21);
             var backing=new GameObject("HoverBacking",typeof(RectTransform),typeof(UnityEngine.UI.Image));
             backing.transform.SetParent(plaque.transform,false);
             backing.transform.localPosition=new Vector3(520,420,400);
             hoverLabel.transform.SetParent(backing.transform,false);hoverLabel.rectTransform.anchoredPosition=Vector2.zero;
-            ((RectTransform)backing.transform).sizeDelta=new Vector2(420,145);
+            ((RectTransform)backing.transform).sizeDelta=new Vector2(420,180);
             backing.GetComponent<UnityEngine.UI.Image>().color=new Color(.025f,.065f,.085f,.96f);
             backing.GetComponent<UnityEngine.UI.Image>().raycastTarget=false;
             plots.Add(new Plot{root=container,plaque=plaque,label=button.GetComponentInChildren<TMP_Text>(),hoverLabel=hoverLabel,ring=ring,ringScale=ring.transform.localScale});
@@ -258,14 +268,23 @@ namespace VRExperienceAGB.Presentation
             profileButton.GetComponent<UnityEngine.UI.Button>().interactable=!Experience.Model.StructureOnlyPreview;
             PreviousButton.GetComponent<UnityEngine.UI.Button>().interactable=selected>0;NextButton.GetComponent<UnityEngine.UI.Button>().interactable=selected+1<PlotCount;
             }
+            var ledger=Experience.Ensemble.Ledger;
             for(int i=0;i<plots.Count;i++)
             {
                 var state=Experience.Ensemble.Trees[i].State;var tree=metrics[i];
-                plots[i].ring.sharedMaterial=i==selected?selectedMaterial:state.AtLeaf?completedMaterial:quietRing;
-                plots[i].ring.transform.localScale=plots[i].ringScale*(i==hovered?1.07f:1);
-                plots[i].label.text="TREE "+(i+1);
+                var row=ledger[i];bool reached=row.Progress!=ContributionProgress.Pending;
+                double contribution=row.PresentedContribution;
+                var material=!reached||contribution==0?quietRing:contribution>0?positiveRing:negativeRing;
+                plots[i].ring.sharedMaterial=material;
+                float magnitude=reached&&maximumContribution>0?(float)Math.Min(1,Math.Abs(contribution)/maximumContribution):0;
+                var scale=plots[i].ringScale;scale.y*=1+4*magnitude;plots[i].ring.transform.localScale=scale;
+                string sign=!reached?"":contribution>0?" +":contribution<0?" −":" 0";
+                plots[i].label.text="TREE "+(i+1)+sign;
+                plots[i].label.color=reached&&contribution!=0?material.color:new Color(.88f,.96f,.94f);
                 plots[i].hoverLabel.transform.parent.gameObject.SetActive(i==hovered);
-                plots[i].hoverLabel.text="TREE "+(i+1)+" · Depth "+tree.MaximumDepth+"\n"+tree.LeafCount+" leaves · "+tree.NodeCount+" nodes\nClick to explore";
+                string value=contribution.ToString("+0.###;-0.###;0",System.Globalization.CultureInfo.InvariantCulture);
+                string route=reached?(Experience.Ensemble.Mode==ExperienceMode.Manual?"Route contribution: ":"Profile contribution: ")+value:"Contribution not reached";
+                plots[i].hoverLabel.text="TREE "+(i+1)+" · Depth "+tree.MaximumDepth+"\n"+tree.LeafCount+" leaves · "+tree.NodeCount+" nodes\n"+route+"\nClick to explore";
             }
             if(simplifiedNavigation) { Navigation.Refresh(); RefreshNearbyPlaques(); return; }
             if(shownBed!=bed)
@@ -359,6 +378,6 @@ namespace VRExperienceAGB.Presentation
             if(fit)go.transform.localPosition-=Vector3.Scale(bounds.center,go.transform.localScale)-Vector3.up*size.y*.5f;
             go.GetComponent<MeshFilter>().sharedMesh=mesh;go.GetComponent<MeshRenderer>().sharedMaterial=material;return go;
         }
-        private void OnDestroy() { if(quietRing!=null)Destroy(quietRing);if(gardenFoliage!=null)Destroy(gardenFoliage); }
+        private void OnDestroy() { if(quietRing!=null)Destroy(quietRing);if(gardenFoliage!=null)Destroy(gardenFoliage);if(positiveRing!=null)Destroy(positiveRing);if(negativeRing!=null)Destroy(negativeRing); }
     }
 }
