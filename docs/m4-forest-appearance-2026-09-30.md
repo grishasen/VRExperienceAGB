@@ -14,3 +14,5 @@ Evidence is stored under ignored `artifacts/m4-forest-appearance-2026-09-30/`. 1
 
 
 Android build succeeded with zero errors and four warnings. APK: `artifacts/builds/VRExperienceAGB-m4-forest-appearance.apk`, 124,815,201 bytes; SHA-256 `3aeca9d2067d16a76d6ed0e4c37d54c38683c3fe3a62067a03be2744fd3a2b4a`. Installation on the connected Quest 3 succeeded, followed by a successful cold launch.
+
+The process remained running. The captured launch log contains repeated OpenXR Meta lookup errors for `xrDiscoverSpacesMETA`; no fatal exception or managed null-reference exception was captured. Startup is therefore not recorded as a clean log. Headset rendering and interactions still require the user check.
