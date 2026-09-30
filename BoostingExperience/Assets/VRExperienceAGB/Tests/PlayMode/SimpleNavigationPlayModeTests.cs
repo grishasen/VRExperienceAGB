@@ -88,12 +88,34 @@ namespace VRExperienceAGB.Tests
             yield return null;
         }
         [UnityTest]
+        public IEnumerator BranchStonesAreTheOnlyControlsUntilATogglesTheMenu()
+        {
+            Click(Target(GardenCommand.SingleTree));Click(Target(GardenCommand.SelectTree,0));
+            CollectionAssert.AreEquivalent(new[]{TreeAction.TrueBranch,TreeAction.FalseBranch},view.controls.Where(c=>c.gameObject.activeInHierarchy).Select(c=>c.action));
+            Assert.That(view.menuBackdrop.activeSelf,Is.False);
+            foreach(var name in new[]{"TrueChoiceStone","FalseChoiceStone"})Assert.That(view.presentationRoot.Find(name).gameObject.activeInHierarchy,Is.True);
+            foreach(var branch in view.controls.Where(c=>c.action==TreeAction.TrueBranch||c.action==TreeAction.FalseBranch))
+            {
+                var stone=view.presentationRoot.Find(branch.action==TreeAction.TrueBranch?"TrueChoiceStone":"FalseChoiceStone");
+                Assert.That(Mathf.Abs(branch.transform.position.x-stone.position.x),Is.LessThan(.01f));
+                Assert.That(Mathf.Abs(branch.transform.position.y-stone.position.y),Is.LessThan(.01f));
+                Assert.That(branch.GetComponent<UnityEngine.UI.Image>().color.a,Is.Zero);
+            }
+            Garden.ToggleGuide();Assert.That(Garden.Navigation.TreeMenuOpen,Is.True);
+            CollectionAssert.AreEquivalent(new[]{TreeAction.Back,TreeAction.Restart,TreeAction.Seated,TreeAction.Overview,TreeAction.Menu},view.controls.Where(c=>c.gameObject.activeInHierarchy).Select(c=>c.action));
+            Assert.That(view.presentationRoot.Find("TrueChoiceStone").gameObject.activeSelf,Is.False);
+            Garden.ToggleGuide();Assert.That(Garden.Navigation.TreeMenuOpen,Is.False);
+            Click(view.controls.Single(c=>c.action==TreeAction.TrueBranch).gameObject);view.Advance(2);
+            Assert.That(view.Session.State.Decisions.Count,Is.EqualTo(1));
+            yield return null;
+        }
+        [UnityTest]
         public IEnumerator TreeSubmenuRestoresPostureWithoutChangingTrackingOrRoute()
         {
             Click(Target(GardenCommand.SingleTree));Click(Target(GardenCommand.SelectTree,0));
             var head=Garden.Locomotion.Head;var local=head.localPosition;var rotation=head.localRotation;
             Action(TreeAction.TrueBranch);view.Advance(.2f);var pending=view.Session.State.PendingDecision;
-            Click(view.controls.Single(c=>c.action==TreeAction.Menu).gameObject);
+            Garden.ToggleGuide();
             Assert.That(Garden.Navigation.TreeMenuOpen,Is.True);Assert.That(view.Session.State.Paused,Is.True);
             view.Advance(2);Assert.That(view.Session.State.PendingDecision,Is.EqualTo(pending));
             var standing=view.presentationRoot.localPosition;
@@ -102,7 +124,7 @@ namespace VRExperienceAGB.Tests
             Assert.That(head.localPosition,Is.EqualTo(local));Assert.That(head.localRotation,Is.EqualTo(rotation));
             Assert.That(view.presentationRoot.Find("ConsoleStone").GetComponent<Renderer>().bounds.min.y,Is.GreaterThanOrEqualTo(0));
             Click(view.controls.Single(c=>c.action==TreeAction.Seated).gameObject);Assert.That(view.IsSeated,Is.False);
-            Click(view.controls.Single(c=>c.action==TreeAction.Menu).gameObject);Assert.That(view.Session.State.Paused,Is.False);
+            Garden.ToggleGuide();Assert.That(view.Session.State.Paused,Is.False);
             view.Advance(2);Assert.That(view.Session.State.Decisions.Count,Is.EqualTo(1));
             yield return null;
         }
@@ -118,7 +140,7 @@ namespace VRExperienceAGB.Tests
                 {
                     if(menu)Action(TreeAction.Menu);
                     yield return null;Canvas.ForceUpdateCanvases();
-                    var active=view.controls.Where(c=>c.gameObject.activeInHierarchy).ToArray();Assert.That(active.Length,Is.EqualTo(4));
+                    var active=view.controls.Where(c=>c.gameObject.activeInHierarchy).ToArray();Assert.That(active.Length,Is.EqualTo(menu?5:2));
                     foreach(var button in active)
                     {
                         var pointer=new PointerEventData(EventSystem.current){position=camera.WorldToScreenPoint(button.transform.position)};

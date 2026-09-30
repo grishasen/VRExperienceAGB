@@ -2,6 +2,8 @@
 
 The user reported that the one-tree view floated too high and that large text/buttons overlapped the objects. This iteration applies to the simplified M3/M4 demo flow.
 
+The [branch-stone follow-up](m3-branch-stones-2026-09-30.md) supersedes the normal-view controls described below: TRUE/FALSE are stones again, and the remaining buttons open with A.
+
 ## Changes
 
 - Tree platforms use lower, flatter standing heights: 1.30 m, 1.50 m and 1.85 m for the three displayed generations. Node positions still belong only to presentation.
