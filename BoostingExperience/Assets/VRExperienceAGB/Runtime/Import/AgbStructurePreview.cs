@@ -28,8 +28,9 @@ namespace VRExperienceAGB.Import
         public ModelDefinition Model { get; }
         public IReadOnlyDictionary<string, ExportNodeMetadata> Metadata { get; }
         public string Sha256 { get; }
-        internal AgbPreviewResult(ModelDefinition model, Dictionary<string, ExportNodeMetadata> metadata, string sha)
-        { Model = model; Metadata = new System.Collections.ObjectModel.ReadOnlyDictionary<string, ExportNodeMetadata>(metadata); Sha256 = sha; }
+        public ExportMonitoring Monitoring { get; }
+        internal AgbPreviewResult(ModelDefinition model, Dictionary<string, ExportNodeMetadata> metadata, string sha, ExportMonitoring monitoring)
+        { Model = model; Metadata = new System.Collections.ObjectModel.ReadOnlyDictionary<string, ExportNodeMetadata>(metadata); Sha256 = sha; Monitoring = monitoring; }
     }
 
     /// <summary>Imports complete structure for manual inspection. Observed categories are not a feature dictionary; scoring is disabled.</summary>
@@ -139,7 +140,7 @@ namespace VRExperienceAGB.Import
                     "Export structure preview: " + displayName + ". Feature domains, missing policies and source scoring are unverified.",
                     "binary_logistic", "Output unavailable in structure preview", 0, dictionary, trees, structureOnlyPreview: true);
                 var errors = ModelValidator.Validate(model);
-                return errors.Count == 0 ? Outcome<AgbPreviewResult>.Success(new AgbPreviewResult(model, metadata, sha)) : Outcome<AgbPreviewResult>.Failure(errors);
+                return errors.Count == 0 ? Outcome<AgbPreviewResult>.Success(new AgbPreviewResult(model, metadata, sha, ExportMonitoring.Read(root))) : Outcome<AgbPreviewResult>.Failure(errors);
             }
             catch (PreviewError e) { return Outcome<AgbPreviewResult>.Failure(new[] { new Diagnostic("UnsupportedExportStructure", e.Message, e.Address) }); }
             catch (JsonException) { return Failure("MalformedExport", "The export contains malformed JSON or duplicate fields."); }

@@ -13,14 +13,18 @@ namespace VRExperienceAGB.Presentation
         public bool InGarden { get; private set; }
         private Vector3 gardenPosition;
         private Vector3 entrancePosition;
+        private Vector3 treeObserverOffset;
         private Transform presentation;
         private Quaternion presentationRotation;
         private UnityEngine.UI.Image fade;
         private Coroutine fading;
         private bool stickReleased = true;
+        private OneTreeExperience experience;
+        public float WalkSpeed { get; set; } = 1.35f;
         public void Configure(OneTreeExperience view)
         {
             if (Origin != null) return;
+            experience = view;
             var preview = view.GetComponent<DesktopTreePreview>();
             Origin = new GameObject("GardenObserverOrigin").transform;
             if (preview.trackedRig != null) preview.trackedRig.transform.SetParent(Origin, true);
@@ -28,6 +32,8 @@ namespace VRExperienceAGB.Presentation
             Head = preview.previewCamera.gameObject.activeInHierarchy ? preview.previewCamera.transform :
                 (preview.trackedRig.GetComponentsInChildren<Camera>(true).FirstOrDefault(c=>c.name=="CenterEyeAnchor") ?? preview.trackedRig.GetComponentsInChildren<Camera>(true)[0]).transform;
             entrancePosition = Origin.position; gardenPosition = Origin.position;
+            treeObserverOffset = preview.previewCamera.transform.position - entrancePosition;
+            treeObserverOffset.y = 0;
             presentation = view.presentationRoot; presentationRotation = presentation.rotation;
             var canvasObject = new GameObject("ComfortFade", typeof(RectTransform), typeof(Canvas));
             canvasObject.transform.SetParent(Head, false); canvasObject.transform.localPosition = new Vector3(0, 0, .25f);
@@ -51,6 +57,10 @@ namespace VRExperienceAGB.Presentation
             {
                 gardenPosition = Origin.position;
                 Origin.position = entrancePosition;
+                // Resolve the current room position only at deliberate tree entry. Preserve tracked height and rotation.
+                var entryOffset = entrancePosition + Origin.rotation * treeObserverOffset - Head.position;
+                entryOffset.y = 0;
+                Origin.position += entryOffset;
                 // Orient the teaching content to the observer's chosen reference direction, not their head.
                 presentation.rotation = Origin.rotation * presentationRotation;
             }
@@ -76,10 +86,32 @@ namespace VRExperienceAGB.Presentation
         private void Update()
         {
             if (!InGarden) return;
+            var left = InputDevices.GetDeviceAtXRNode(XRNode.LeftHand);
+            if (left.TryGetFeatureValue(CommonUsages.primary2DAxis, out var walkAxis)) Move(walkAxis, Mathf.Min(Time.unscaledDeltaTime, .05f));
             var right = InputDevices.GetDeviceAtXRNode(XRNode.RightHand);
             if (!right.TryGetFeatureValue(CommonUsages.primary2DAxis, out var axis)) return;
             if (Mathf.Abs(axis.x) < .25f) stickReleased = true;
             if (stickReleased && Mathf.Abs(axis.x) > .75f) { stickReleased = false; SnapTurn(Mathf.Sign(axis.x) * 30); }
+        }
+        public void Move(Vector2 axis, float seconds)
+        {
+            var garden = experience.Garden;
+            if (!InGarden || garden == null || garden.M5.HelpOpen ||
+                (garden.simplifiedNavigation && garden.Navigation?.Page != NavigationPage.Forest) || seconds <= 0 ||
+                !float.IsFinite(seconds) || !float.IsFinite(axis.x) || !float.IsFinite(axis.y) || !float.IsFinite(WalkSpeed)) return;
+            float magnitude = Mathf.Clamp01(axis.magnitude);
+            if (magnitude < .2f) return;
+            var forward = Head.forward; forward.y = 0;
+            if (forward.sqrMagnitude < .01f) forward = Origin.forward;
+            forward.Normalize(); var right = Vector3.Cross(Vector3.up, forward);
+            var direction = axis.normalized;
+            var delta = (forward * direction.y + right * direction.x) * ((magnitude - .2f) / .8f) * Mathf.Clamp(WalkSpeed, 0, 2) * Mathf.Min(seconds, .1f);
+            var desired = Head.position + delta;
+            // Match the authored garden ground. Keep physical tracking and vertical head pose untouched.
+            desired.x = Mathf.Clamp(desired.x, -20, 20);
+            desired.z = Mathf.Clamp(desired.z, -4, ((garden.PlotCount + 9) / 10) * 4.8f + 6);
+            delta = desired - Head.position; delta.y = 0;
+            Origin.position += delta; gardenPosition = Origin.position;
         }
         private void FadeFromBlack()
         {

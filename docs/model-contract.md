@@ -146,3 +146,7 @@ The separate verified scoring fixture has three trees and four prepared fictiona
 `demo-model.json` is the normalized runtime representation; `demo-agb-export.json` is its nested export-shaped counterpart. A declared feature dictionary and readable labels live in the normalized file, since the export shape does not provide them. The runtime also accepts nested AGB exports directly for structure and manual preview. The fixture checker only verifies this known example's mapping.
 
 For production verification, collect an approved export and representative source-model profiles with full predictions and preferably visited leaves. Keep sensitive material under ignored `data/private/`. Track only fictional or separately approved anonymized fixtures. Passing example checks does not certify production scoring.
+
+## M6 explanatory metadata
+
+The normalized feature dictionary accepts an optional English `unit` string for presentation only. Nested AGB preview imports retain optional modelVersion, factoryUpdateTime, trainingStats and auc independently of evaluator data. Unknown or invalid monitoring fields remain unavailable. The [M6 explanation record](m6-in-world-explanations-2026-09-30.md) defines gain shares, namespace grouping, threshold bins and the neutral observation-count review convention. None of these descriptions verifies real-model scoring or changes evaluator inputs.

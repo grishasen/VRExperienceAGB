@@ -260,8 +260,7 @@ namespace VRExperienceAGB.Editor
         private static void Tree(Transform root,Vector3 p,float height,bool far)
         {
             var tree=new GameObject("PineTree").transform;tree.SetParent(root,false);tree.localPosition=p;tree.localRotation=Quaternion.Euler(0,Range(0,360),0);
-            // Crossed alpha-tested foliage cards provide a detailed silhouette from multiple viewing angles.
-            // They are stationary environment art, not model-bearing trees or interaction targets.
+            // Radial branch geometry gives stationary environment trees depth from every viewing angle.
             if (p.z <= 6.1f)
             {
                 var detailedBark=AssetDatabase.LoadAssetAtPath<Material>(Folder+"/DetailedBark.mat");
@@ -278,7 +277,35 @@ namespace VRExperienceAGB.Editor
                 }
                 Obj("RadialBranches",tree,Vector3.zero,Vector3.one*height,foregroundFoliageMesh,foliage);
             }
-            else Obj("Foliage",tree,Vector3.zero,Vector3.one*height,foliageMesh,foliage);
+            else {
+                Obj("RadialBranches",tree,Vector3.zero,Vector3.one*height,foregroundFoliageMesh,foliage);
+                Obj("Trunk",tree,Vector3.zero,Vector3.one*height,trunkMesh,
+                    AssetDatabase.LoadAssetAtPath<Material>(Folder+"/DetailedBark.mat"));
+            }
+        }
+        public static string UpgradeBackgroundPines()
+        {
+            if(EditorApplication.isPlaying)throw new InvalidOperationException("Stop preview before upgrading trees.");
+            var view=UnityEngine.Object.FindAnyObjectByType<OneTreeExperience>();
+            var environment=view?.transform.Find("MoonlitEnvironment");
+            if(environment==null)throw new InvalidOperationException("Open the teaching scene first.");
+            var branches=AssetDatabase.LoadAssetAtPath<Mesh>(Folder+"/ForegroundPineBranches.asset");
+            var trunk=AssetDatabase.LoadAssetAtPath<Mesh>(Folder+"/ForegroundPineTrunk.asset");
+            var barkMaterial=AssetDatabase.LoadAssetAtPath<Material>(Folder+"/DetailedBark.mat");
+            if(branches==null||trunk==null||barkMaterial==null)throw new InvalidOperationException("Existing pine artwork is missing.");
+            Undo.RegisterFullObjectHierarchyUndo(environment.gameObject,"Give background pines radial branches");
+            int changed=0;
+            foreach(Transform tree in environment)
+            {
+                if(tree.name!="PineTree")continue;
+                var cards=tree.Find("Foliage"); if(cards==null)continue;
+                cards.GetComponent<MeshFilter>().sharedMesh=branches; cards.name="RadialBranches";
+                if(tree.Find("Trunk")==null)Obj("Trunk",tree,Vector3.zero,cards.localScale,trunk,barkMaterial);
+                changed++;
+            }
+            EditorSceneManager.MarkSceneDirty(view.gameObject.scene);
+            EditorSceneManager.SaveScene(view.gameObject.scene);
+            return "Upgraded "+changed+" background pines; model trees and foreground trees preserved.";
         }
         private static GameObject Obj(string name,Transform parent,Vector3 p,Vector3 scale,Mesh mesh,Material material)
         {var go=new GameObject(name,typeof(MeshFilter),typeof(MeshRenderer));go.transform.SetParent(parent,false);go.transform.localPosition=p;go.transform.localScale=scale;go.GetComponent<MeshFilter>().sharedMesh=mesh;go.GetComponent<Renderer>().sharedMaterial=material;go.isStatic=true;return go;}

@@ -21,11 +21,13 @@ namespace VRExperienceAGB.Presentation
         private void Awake() { button = GetComponent<UnityEngine.UI.Button>(); originalScale = transform.localScale; }
         public void OnPointerDown(PointerEventData data)
         {
+            TraceInput("down", data.pointerId);
             if (button.IsInteractable() && data.button == PointerEventData.InputButton.Left && experience.Session != null)
             { var state = experience.Session.State; presses[data.pointerId] = (experience.Session, state.Revision, state.NodeId, experience.Ensemble.Revision); }
         }
         public void OnPointerClick(PointerEventData data)
         {
+            TraceInput("click", data.pointerId);
             if (!presses.TryGetValue(data.pointerId, out var press)) return;
             presses.Remove(data.pointerId);
             if (ReferenceEquals(press.session, experience.Session) && experience.Session.State.Revision == press.revision && experience.Ensemble.Revision == press.ensembleRevision && button.IsInteractable() && data.button == PointerEventData.InputButton.Left)
@@ -34,8 +36,14 @@ namespace VRExperienceAGB.Presentation
                 ControllerSelectionFeedback.Pulse(data.pointerId);
             }
         }
-        public void OnPointerEnter(PointerEventData data) { if (button.IsInteractable()) transform.localScale = originalScale * 1.035f; }
+        public void OnPointerEnter(PointerEventData data) { TraceInput("hover", data.pointerId); if (button.IsInteractable()) transform.localScale = originalScale * 1.035f; }
         public void OnPointerExit(PointerEventData data) { transform.localScale = originalScale; presses.Remove(data.pointerId); }
         private void OnDisable() { presses.Clear(); if (originalScale != Vector3.zero) transform.localScale = originalScale; }
+        private void TraceInput(string phase, int pointer)
+        {
+            if(!Debug.isDebugBuild || experience?.Session==null)return;
+            var state=experience.Session.State;
+            Debug.Log($"[TreeInput] {phase} {action} pointer={pointer} tree={experience.Ensemble.Index+1} enabled={button.IsInteractable()} press={presses.ContainsKey(pointer)} paused={state.Paused} overview={state.Overview} pending={state.PendingDecision!=null} leaf={state.AtLeaf} browsing={experience.FocusedView.FocusRoot!=null} revision={state.Revision}");
+        }
     }
 }

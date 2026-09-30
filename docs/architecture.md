@@ -1,6 +1,6 @@
 # Architecture
 
-**Current update — 2026-09-30:** The default demonstration now uses [simplified M3/M4 navigation](m4-simple-navigation-2026-09-30.md): empty clearing, case selection, paginated tree list or walkable forest, and an explicit return destination. Presentation owns this navigation; model evaluation remains independent. M4 ensemble ledger, final result review, staged hypothetical edits, manual consistency diagnostics and equivalent short/detailed tours are implemented on `codex/m4-ensemble`. See the [M4 implementation record](m4-progress-2026-09-30.md) for current automated/build evidence. Quest M4 acceptance, outstanding M1/M3 device checks, actual performance measurements and production AGB verification remain open. Earlier dated records below are historical.
+**Current update — 2026-09-30:** M5 forest presentation is implemented on `codex/m5-forest-experience`: left-stick walking, direct crown selection, bounded tabletop scale/rotation, shared-state return, selectable hidden-subtree summaries, guidance/recovery and original spatial audio. See the [M5 record](m5-progress-2026-09-30.md). The user reports that the preceding navigation works and requested deferring the combined headset check. Formal Quest acceptance, actual performance measurements and production AGB scoring verification remain open. Earlier dated records below are historical.
 
 Status: Domain and normalized synthetic Import implemented for M2-01–M2-05; 84 EditMode tests pass. A one-tree Application/session layer and Presentation scene are now implemented and Editor-tested; full-ensemble sessions, advanced presentation, XR hardware qualification and environment polish remain planned. See the [M3 record](m3-progress-2026-09-28.md). See [implementation record](m2-foundation-2026-09-28.md).
 
@@ -75,3 +75,7 @@ Keep a common world-space legend. Use separate encodings for split truth, signed
 Tracked demo data is synthetic. Real exports and profiles live in ignored `data/private/` and are admitted to builds deliberately. No network service is required by the MVP. Package installation may need network access, but the built experience should run offline.
 
 The initial repository's Python verifier is a small executable specification for synthetic fixtures. Production evaluation belongs in C# and requires independent reference checks for real AGB imports.
+
+## M6 explanatory presentation
+
+`ForestExplanation` in Import caches full-model structure, predictor occurrences, threshold sets, tree summaries and optional exported monitoring. It is independent of Unity and never invokes or modifies model evaluation. `M6ExplanationPresentation` binds those descriptions to the accepted session and focused neighborhood, adding bounded world-space labels, source-detail hover, segment/evidence cards and predictor links. Garden and tabletop composition strips share that index. Source-model verification and Quest performance acceptance remain separate gates; see the [M6 record](m6-in-world-explanations-2026-09-30.md).

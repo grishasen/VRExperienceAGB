@@ -1,10 +1,10 @@
 # Development plan
 
-**Current update — 2026-09-30:** M4 ensemble ledger, final result review, staged hypothetical edits, manual consistency diagnostics and equivalent short/detailed tours are implemented on `codex/m4-ensemble`. See the [M4 implementation record](m4-progress-2026-09-30.md) for current automated/build evidence. Quest M4 acceptance, outstanding M1/M3 device checks, actual performance measurements and production AGB verification remain open. Earlier dated records below are historical.
+**Current update — 2026-09-30:** M5 forest presentation is implemented on `codex/m5-forest-experience`: left-stick walking, direct crown selection, bounded tabletop scale/rotation, shared-state return, selectable hidden-subtree summaries, guidance/recovery and original spatial audio. See the [M5 record](m5-progress-2026-09-30.md). The user reports that the preceding navigation works and requested deferring the combined headset check. Formal Quest acceptance, actual performance measurements and production AGB scoring verification remain open. Earlier dated records below are historical.
 
 Status: source/configuration foundation recorded; M1 headset acceptance deferred; M2-01–M2-05 implemented and verified by 84 Unity EditMode tests; scene implementation and real-model verification remain open. Updated: 2026-09-28. See the [setup review](setup-review-2026-09-27.md) for the existing `BoostingExperience/` project's configuration and outstanding work.
 
-The [delivery backlog](backlog.md) expands M1–M6 into six business-facing epics and 48 user stories. Each epic maps every checklist item below to its stories and defines acceptance evidence. These are planned requirements, not completed test results.
+The [delivery backlog](backlog.md) expands M1–M6 into six business-facing epics and 60 user stories. Each epic maps every checklist item below to its stories and defines acceptance evidence. These are planned requirements, not completed test results.
 
 ## Delivery approach
 
@@ -94,19 +94,23 @@ These checkboxes do not imply a Unity project or VR build exists.
 
 ## M5 — Diorama, depth, and environment
 
+**Implementation status:** implemented; [evidence and device limits](m5-progress-2026-09-30.md). Checkmarks indicate implementation, not Quest acceptance. Headset checks are deferred at the user's request.
+
 **Estimate:** 4–6 days. **Depends on:** M4; visual work can start during M3.
 
-- [ ] Add forest overview, tree selection, bounded scaling, and immersive entry/return.
-- [ ] Preserve selected profile, path, and node when switching scale.
-- [ ] Lay out branches in readable depth with controlled occlusion.
-- [ ] Add collapsed-subtree summaries and a focused local view.
-- [ ] Integrate coherent materials, restrained lighting, distant scenery, and spatial audio.
-- [ ] Track licenses and provenance for any introduced external assets.
-- [ ] Add a short onboarding sequence and visible recovery controls.
+- [x] Add forest overview, tree selection, bounded scaling, and immersive entry/return.
+- [x] Preserve selected profile, path, and node when switching scale.
+- [x] Lay out branches in readable depth with controlled occlusion.
+- [x] Add collapsed-subtree summaries and a focused local view.
+- [x] Integrate coherent materials, restrained lighting, distant scenery, and spatial audio.
+- [x] Track licenses and provenance for any introduced external assets.
+- [x] Add a short onboarding sequence and visible recovery controls.
 
 **Exit:** the full demonstration is understandable without the presenter operating a keyboard. Foreground text stays legible; decorative scenery does not obscure decisions.
 
-## M6 — Quest acceptance and demonstration package
+## M6 — In-world explanations, Quest acceptance and demonstration package
+
+**Scope update — 2026-09-30:** the user approved twelve in-world explanation additions (M6-09–M6-20): readable questions, branch reasons, segment portraits, split significance, observation evidence, leaf explanations, crown passports, family composition strips, pointer-driven predictor links, threshold spectra, explicit missing-data routes, and an entrance model story. Implementation is delivered on `codex/m5-forest-experience`; see [the M6 backlog](backlog/m6-demo-readiness.md). Existing hardware acceptance remains deferred. The original estimate below covered acceptance only; this added implementation scope is additional.
 
 **Estimate:** 4–6 days. **Depends on:** M5.
 

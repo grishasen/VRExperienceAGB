@@ -11,7 +11,7 @@ namespace VRExperienceAGB.Presentation
         public TMP_Text Text { get; private set; }
         private GameObject panel;
         private ScrollRect scroll;
-        private NodeNameHover source;
+        private object source;
         private bool overPanel;
         private float hideAt = float.PositiveInfinity;
         public bool Visible => panel != null && panel.activeSelf;
@@ -42,13 +42,14 @@ namespace VRExperienceAGB.Presentation
             var rect=(RectTransform)panel.transform;rect.anchoredPosition=new Vector2(0,330);rect.sizeDelta=new Vector2(760,260);
             Text.fontSize=20;
         }
-        public void Show(NodeNameHover owner, string text)
+        public void Show(object owner, string text)
         {
             source=owner; overPanel=false; hideAt=float.PositiveInfinity;
+            Text.richText=false;
             Text.text="FULL NAME AND CONDITION\n"+text+"\n\nRead-only. Scroll for longer conditions.";
             panel.SetActive(true); LayoutRebuilder.ForceRebuildLayoutImmediate(Text.rectTransform); scroll.verticalNormalizedPosition=1;
         }
-        public void Leave(NodeNameHover owner) { if (source == owner) hideAt=Time.unscaledTime+.2f; }
+        public void Leave(object owner) { if (source == owner) hideAt=Time.unscaledTime+.2f; }
         public void Hide() { source=null; overPanel=false; hideAt=float.PositiveInfinity; if(panel!=null)panel.SetActive(false); }
         public void OnPointerEnter(PointerEventData data) { overPanel=true; }
         public void OnPointerExit(PointerEventData data) { overPanel=false; hideAt=Time.unscaledTime+.2f; }
