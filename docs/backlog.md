@@ -1,6 +1,6 @@
 # Delivery backlog — M1 to M6
 
-**Current update — 2026-09-29:** deep-tree focus, smoother stone shading/foliage edges, ensemble navigation, profile editing and a basic forest overview are implemented; 111 EditMode and eleven PlayMode tests passed. The prior build had a successful first Quest test reported by the user. The new build's headset and performance acceptance remain open. See [current evidence and remaining scope](development-progress-2026-09-29.md). Earlier dated status paragraphs and milestone estimates below are historical planning records, not the latest completion counts.
+**Current update — 2026-09-30:** M4 ensemble ledger, final result review, staged hypothetical edits, manual consistency diagnostics and equivalent short/detailed tours are implemented on `codex/m4-ensemble`. See the [M4 implementation record](m4-progress-2026-09-30.md) for current automated/build evidence. Quest M4 acceptance, outstanding M1/M3 device checks, actual performance measurements and production AGB verification remain open. Earlier dated records below are historical.
 
 Updated: 2026-09-28. Planning baseline: [development plan](development-plan.md), [experience scenarios](experience-scenarios.md), [model contract](model-contract.md), [architecture](architecture.md), and [acceptance strategy](testing.md).
 
@@ -17,7 +17,7 @@ This backlog contains **six epics and 48 user stories**. Acceptance criteria are
 | [M1 — A dependable first headset experience](backlog/m1-headset-foundation.md) | A visitor can put on Quest 3 and select an object in an app that works without the Mac. | M1-01–M1-09 | Partially configured; not accepted | 1–2 working days |
 | [M2 — Results that can be explained and trusted](backlog/m2-model-trust.md) | Every shown route and contribution has a repeatable, checkable meaning. | M2-01–M2-08 | Synthetic foundation implemented; 84 EditMode tests pass; real-model track open | 3–5 days for synthetic contract; real-model verification depends on evidence |
 | [M3 — Understand one tree by exploring it](backlog/m3-one-tree.md) | A first-time visitor understands a fork, a leaf contribution, and undo in one small forest clearing. | M3-01–M3-08 | Playable Editor slice; Quest acceptance pending | 4–6 days |
-| [M4 — Explain the complete prediction and try a change](backlog/m4-ensemble.md) | A visitor sees how all trees contribute and how a hypothetical profile edit changes the result. | M4-01–M4-08 | Not started | 4–6 days |
+| [M4 — Explain the complete prediction and try a change](backlog/m4-ensemble.md) | A visitor sees how all trees contribute and how a hypothetical profile edit changes the result. | M4-01–M4-08 | Synthetic implementation delivered; Quest acceptance pending | 4–6 days |
 | [M5 — Navigate an understandable forest](backlog/m5-forest-experience.md) | Visitors move between overview and detail without losing their place or needing keyboard help. | M5-01–M5-07 | Not started | 4–6 days |
 | [M6 — A demonstration ready for an audience](backlog/m6-demo-readiness.md) | The presenter receives a tested, comfortable, reproducible headset build and clear operating instructions. | M6-01–M6-08 | Not started | 4–6 days |
 

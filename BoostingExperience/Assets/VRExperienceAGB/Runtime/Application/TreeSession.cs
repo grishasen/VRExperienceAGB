@@ -102,6 +102,16 @@ namespace VRExperienceAGB.Application
             return Outcome<TreeSession>.Success(new TreeSession(model, tree, profile, evaluated));
         }
 
+        internal static Outcome<TreeSession> ManualFromValidatedModel(ModelDefinition model, ModelTree tree)
+        {
+            if (tree.Nodes.OfType<LeafNode>().Any(l => !ModelValidator.IsFinite(tree.Weight * l.Score) || !ModelValidator.IsFinite(model.BaseScore + tree.Weight * l.Score)))
+                return Outcome<TreeSession>.Failure(new[] { new Diagnostic("ScoreOverflow", "A leaf cannot produce a finite teaching subtotal.", modelId: model.Id, treeId: tree.Id) });
+            return Outcome<TreeSession>.Success(new TreeSession(model, tree, null, null));
+        }
+
+        internal static TreeSession FromEvaluation(ModelDefinition model, ModelTree tree, PreparedProfile profile, TreeEvaluation evaluated)
+            => new TreeSession(model, tree, profile, evaluated);
+
         private CommandReply Accept(string message) { Revision++; return new CommandReply(true, message); }
         private static CommandReply Reject(string message) => new CommandReply(false, message);
         private bool Matches(long revision, string nodeId) => revision == Revision && nodeId == CurrentNode.Id;

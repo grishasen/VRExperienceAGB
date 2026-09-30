@@ -29,14 +29,28 @@ namespace VRExperienceAGB.Presentation
         private void Update()
         {
             if (!preview || Mouse.current == null || EventSystem.current == null) return;
+            if (Mouse.current.rightButton.isPressed)
+            {
+                // Explicit desktop look input; headset builds never execute this preview path.
+                var delta=Mouse.current.delta.ReadValue();var angles=previewCamera.transform.localEulerAngles;
+                float pitch=angles.x>180?angles.x-360:angles.x;
+                previewCamera.transform.localRotation=Quaternion.Euler(Mathf.Clamp(pitch-delta.y*.12f,-65,65),angles.y+delta.x*.12f,0);
+            }
             var pointer = new PointerEventData(EventSystem.current) { pointerId = -1, position = Mouse.current.position.ReadValue(), button = PointerEventData.InputButton.Left };
             hits.Clear(); EventSystem.current.RaycastAll(pointer, hits);
             var target = hits.Count == 0 ? null : ExecuteEvents.GetEventHandler<IPointerClickHandler>(hits[0].gameObject);
-            if (hovered != target)
+            var hoverTarget = hits.Count == 0 ? null : ExecuteEvents.GetEventHandler<IPointerEnterHandler>(hits[0].gameObject);
+            if (hovered != hoverTarget)
             {
                 if (hovered != null) ExecuteEvents.Execute(hovered, pointer, ExecuteEvents.pointerExitHandler);
-                hovered = target;
+                hovered = hoverTarget;
                 if (hovered != null) ExecuteEvents.Execute(hovered, pointer, ExecuteEvents.pointerEnterHandler);
+            }
+            var wheel = Mouse.current.scroll.ReadValue();
+            if (wheel != Vector2.zero && hits.Count > 0)
+            {
+                pointer.scrollDelta = wheel / 120f;
+                ExecuteEvents.ExecuteHierarchy(hits[0].gameObject, pointer, ExecuteEvents.scrollHandler);
             }
             if (Mouse.current.leftButton.wasPressedThisFrame)
             {

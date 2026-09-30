@@ -12,7 +12,7 @@ Initial audience: a presenter explaining a model to stakeholders and a visitor t
 
 ## One world at two scales
 
-The model is a twilight forest with luminous routes inspired by AGB Grid Drive. A miniature forest sits on a stone table at the entry clearing. Selecting a tree opens an immersive view of its structure.
+The model is a twilight forest with luminous routes inspired by AGB Grid Drive. The ensemble overview is a walkable garden of miniature pines in low circular planters. Numbered beds preserve boosting order. Pine height encodes maximum decision depth and crown width encodes leaf count, with exact values on nearby plaques. Selection and route progress use separate rings and text. Selecting a pine and choosing Enter opens the decision walkthrough.
 
 Within a tree, the root is the entry node. Branches lead upward and outward through a readable three-dimensional hierarchy. Nodes sit on stable platforms, leaves terminate in contribution stations, and a portal connects one tree to the next. Depth is visible without forcing the user to climb or look vertically for long periods.
 
@@ -73,7 +73,9 @@ The actual values determine the landscape. Later trees need not be smaller than 
 
 **Purpose:** move between ensemble overview and readable detail.
 
-The user rotates and scales the miniature forest using controllers, selects a tree, and chooses “Enter tree”. A brief transition places them at a stable viewpoint. “Return to forest” restores the selection and progress. Scaling the model does not resize the user's tracking space.
+Startup shows an empty forest clearing with two cases. M3 opens a paginated list of every tree in the selected model, followed by the existing individual-tree walkthrough. M4 opens the complete pine garden. Pointing at a pine reveals structural information; clicking enters that tree directly. Returning restores the garden location and saved route, or the originating M3 list page.
+
+The current default is the user-selected 50-tree nested demonstration export. In M4, explicit standing-point markers along the central and cross-paths provide deliberate teleports to groups and planters. The right thumbstick provides snap turns. A small Menu button and A / desktop Tab recall the two-case menu. The former field-guide dashboard and auxiliary profile, tour and ledger buttons are hidden in this structure-preview flow. Navigation moves an observer origin, never tracked head/controller local transforms. Prepared-profile mechanics and their verified synthetic fixtures remain independent of this default preview. See the [simplified navigation record](m4-simple-navigation-2026-09-30.md).
 
 For dense trees, show a bounded neighborhood around the selected node. Collapsed branches retain their identity and a count of hidden nodes. Selecting a branch can place an enlarged subtree on an inspection table, with a marker connecting it to its original location.
 

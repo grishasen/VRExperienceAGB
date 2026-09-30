@@ -38,17 +38,29 @@ namespace VRExperienceAGB.Presentation
                 var slot = slots[i]; bool active = addresses[i] != null;
                 slot.gameObject.SetActive(active); slot.title.transform.parent.gameObject.SetActive(active);
                 if (!active) continue;
-                slot.nodeId = addresses[i]; slot.transform.localPosition = positions[i];
-                slot.dropAnchor.localPosition = positions[i] + Vector3.up * .29f;
-                slot.title.transform.parent.localPosition = positions[i] + new Vector3(0, i < 3 ? .32f : .36f, -.16f);
+                bool compact = view.Garden?.simplifiedNavigation == true;
+                var position = positions[i];
+                if(compact)position.y = i==0 ? 1.3f : i<3 ? 1.5f : 1.85f;
+                slot.nodeId = addresses[i]; slot.transform.localPosition = position;
+                slot.dropAnchor.localPosition = position + Vector3.up * .29f;
+                slot.title.transform.parent.localPosition = position + new Vector3(0, compact ? .48f : i < 3 ? .32f : .36f, -.16f);
+                slot.title.transform.parent.localScale = Vector3.one * (compact ? .0035f : .0045f);
                 var node = lookup[addresses[i]];
-                slot.title.text = node is SplitNode split ? view.Condition(split, true) : "LEAF  " + (tree.Weight * ((LeafNode)node).Score).ToString("0.###", System.Globalization.CultureInfo.InvariantCulture);
+                bool preview = view.Model.StructureOnlyPreview;
+                slot.title.enableAutoSizing = preview;
+                slot.title.fontSizeMin = compact ? 16 : 18; slot.title.fontSizeMax = compact ? 22 : 29;
+                slot.title.rectTransform.sizeDelta = new Vector2(compact ? 300 : preview ? 400 : i == 0 ? 610 : 520, compact || preview ? 110 : 65);
+                slot.marker.rectTransform.anchoredPosition = new Vector2(0, compact ? -70 : preview ? -64 : -37);
+                if(compact) { slot.marker.fontSize=15; slot.marker.rectTransform.sizeDelta=new Vector2(300,30); }
+                slot.title.textWrappingMode = TMPro.TextWrappingModes.Normal;
+                slot.title.text = node is SplitNode split ? (preview && split.Condition.Categories.Count > 3 ?
+                    view.Model.Features.Single(f => f.Id == split.FeatureId).DisplayName + " in set (" + split.Condition.Categories.Count + " categories)" : view.Condition(split, true)) : "LEAF  " + (tree.Weight * ((LeafNode)node).Score).ToString("0.###", System.Globalization.CultureInfo.InvariantCulture);
                 int hidden = neighborhood.Descendants(addresses[i]) - ids.Count(id => id != addresses[i] && IsDescendant(lookup, addresses[i], id));
                 slot.marker.text = (state.NodeId == addresses[i] ? "CURRENT" : state.Path.Contains(addresses[i]) ? "VISITED" : "") +
                     (hidden > 0 ? "  +" + hidden + " hidden" : "");
                 slot.title.enabled = i != 0; slot.marker.enabled = i != 0 && state.NodeId != addresses[i];
                 slot.platform.sharedMaterial = state.NodeId == addresses[i] ? view.activeMaterial : state.Path.Contains(addresses[i]) ? view.visitedMaterial : view.idleMaterial;
-                visible[addresses[i]] = positions[i];
+                visible[addresses[i]] = position;
             }
             int edge = 0;
             foreach (string id in ids)
@@ -75,6 +87,9 @@ namespace VRExperienceAGB.Presentation
                 var position = new Vector3((i % 3 - (System.Math.Min(3,count)-1)*.5f) * 2.3f, 2.05f + (i/3)*.65f, 6.5f + (i/3)*1.3f);
                 slot.transform.localPosition = position;
                 slot.title.transform.parent.localPosition = position + Vector3.up * .4f;
+                slot.title.enableAutoSizing = false; slot.title.fontSize = 29;
+                slot.title.rectTransform.sizeDelta = new Vector2(520,65);
+                slot.marker.rectTransform.anchoredPosition = new Vector2(0,-37);
                 slot.title.text = "TREE " + (index + 1) + "  |  " + session.Tree.Nodes.Count + " nodes";
                 slot.marker.text = (index == ensemble.Index ? "SELECTED  |  " : "") +
                     (session.State.AtLeaf ? "Leaf " + session.State.Contribution.ToString("0.###", System.Globalization.CultureInfo.InvariantCulture) : "Depth " + session.State.Decisions.Count);

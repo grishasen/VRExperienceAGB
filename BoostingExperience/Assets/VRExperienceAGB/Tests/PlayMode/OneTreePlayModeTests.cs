@@ -19,6 +19,10 @@ namespace VRExperienceAGB.Tests
             yield return SceneManager.LoadSceneAsync("OneTreeLearning", LoadSceneMode.Single);
             yield return null;
             view = Object.FindAnyObjectByType<OneTreeExperience>();
+            // Regression coverage uses the verified synthetic profile fixture, independently of the startup demo.
+            view.Garden.simplifiedNavigation=false;
+            view.modelFile=new TextAsset(System.IO.File.ReadAllText(System.IO.Path.Combine(UnityEngine.Application.dataPath,"VRExperienceAGB/Data/demo-model.json")));
+            Assert.That(view.Initialize(),Is.True);
             Assert.That(view,Is.Not.Null); Assert.That(view.Ready,Is.True);
             // Drive deterministic time explicitly; production uses the same Advance entry point from Update.
             view.enabled = false;
@@ -26,7 +30,20 @@ namespace VRExperienceAGB.Tests
         }
         private void Click(TreeAction action,int pointerId=1)
         {
-            bool editorAction = action == TreeAction.NextFeature || action == TreeAction.DecreaseValue || action == TreeAction.IncreaseValue || action == TreeAction.RestoreProfile || action == TreeAction.CloseEdit || action == TreeAction.NextNode || action == TreeAction.CloseInspect;
+            if (view.Garden != null && view.Garden.Visible)
+            {
+                var gardenButton=view.Garden.ButtonFor(action);
+                if(gardenButton!=null)
+                {
+                    var gardenPointer=new PointerEventData(EventSystem.current) { pointerId=pointerId,button=PointerEventData.InputButton.Left };
+                    ExecuteEvents.Execute(gardenButton,gardenPointer,ExecuteEvents.pointerDownHandler);
+                    ExecuteEvents.Execute(gardenButton,gardenPointer,ExecuteEvents.pointerUpHandler);
+                    ExecuteEvents.Execute(gardenButton,gardenPointer,ExecuteEvents.pointerClickHandler);
+                    return;
+                }
+                view.Garden.EnterSelected();
+            }
+            bool editorAction = action == TreeAction.CancelEdit || action == TreeAction.SetMissing || action == TreeAction.NextLedgerPage || action == TreeAction.CloseResult || action == TreeAction.NextFeature || action == TreeAction.DecreaseValue || action == TreeAction.IncreaseValue || action == TreeAction.RestoreProfile || action == TreeAction.CloseEdit || action == TreeAction.NextNode || action == TreeAction.CloseInspect;
             if (OneTreeExperience.IsSecondary(action) && !view.MenuOpen) Click(TreeAction.Menu, pointerId);
             else if (!OneTreeExperience.IsSecondary(action) && !editorAction && action != TreeAction.Menu && view.MenuOpen) Click(TreeAction.Menu, pointerId);
             var button=view.controls.Single(c=>c.action==action);
@@ -36,6 +53,71 @@ namespace VRExperienceAGB.Tests
             ExecuteEvents.Execute(button.gameObject,pointer,ExecuteEvents.pointerClickHandler);
         }
         private void Arrive() { view.Advance(2); }
+        [UnityTest]
+        public IEnumerator NameHoverShowsCompleteSourceAndScrollsWithoutChangingTheRoute()
+        {
+            var categories = string.Join(", ", Enumerable.Range(0,108).Select(i => "FictionalCategory_" + i));
+            var raw = "Audience.VeryLongPredictorName in { " + categories + " }";
+            var json = "{\"type\":\"AdaptiveBoostScoringModel\",\"algorithm\":\"GRADIENT_BOOST\",\"model\":{\"booster\":{\"trees\":[{\"score\":999,\"gain\":1,\"sampleCount\":10,\"split\":\"PREDICATE\",\"left\":{\"score\":-0.25,\"gain\":0,\"sampleCount\":5},\"right\":{\"score\":0.75,\"gain\":0,\"sampleCount\":5}}]}}}".Replace("PREDICATE", raw);
+            Assert.That(view.LoadAgbStructure(json.ToString(),"Fictional hover example").IsSuccess,Is.True);
+            Click(TreeAction.Manual);
+            var state=view.Session.State; var total=view.Ensemble.RouteTotal;
+            // Keep the physical mouse from injecting a second pointer during this deterministic event test.
+            Object.FindAnyObjectByType<DesktopTreePreview>().enabled=false;
+            var hover=view.explanation.GetComponent<NodeNameHover>();
+            var pointer=new PointerEventData(EventSystem.current) { pointerId=-1 };
+            ExecuteEvents.Execute(hover.gameObject,pointer,ExecuteEvents.pointerEnterHandler);
+            Assert.That(view.NameTooltip.Visible,Is.True);
+            Assert.That(view.NameTooltip.Text.text,Does.Contain("Audience.VeryLongPredictorName").And.Contain(raw).And.Contain("FictionalCategory_107"));
+            Canvas.ForceUpdateCanvases();
+            var scroll=view.NameTooltip.Text.GetComponentInParent<UnityEngine.UI.ScrollRect>();
+            Assert.That(scroll.content.rect.height,Is.GreaterThan(scroll.viewport.rect.height));
+            pointer.scrollDelta=new Vector2(0,-5); scroll.OnScroll(pointer);
+            Assert.That(scroll.verticalNormalizedPosition,Is.LessThan(1));
+            Assert.That(view.Session.State.Revision,Is.EqualTo(state.Revision));
+            Assert.That(view.Ensemble.RouteTotal,Is.EqualTo(total));
+            ExecuteEvents.Execute(hover.gameObject,pointer,ExecuteEvents.pointerExitHandler);
+            yield return new WaitForSecondsRealtime(.25f);
+            Assert.That(view.NameTooltip.Visible,Is.False);
+            foreach(var node in view.nodeViews)
+            {
+                Assert.That(node.title.raycastTarget,Is.True);
+                Assert.That(node.title.GetComponentInParent<Canvas>(true).GetComponent<UnityEngine.UI.GraphicRaycaster>(),Is.Not.Null);
+            }
+        }
+
+        [UnityTest]
+        public IEnumerator NestedExportLoadsDirectlyAndManualUndoNeverProducesProbability()
+        {
+            const string json = "{\"type\":\"AdaptiveBoostScoringModel\",\"algorithm\":\"GRADIENT_BOOST\",\"model\":{\"booster\":{\"trees\":[{\"score\":999,\"gain\":4,\"sampleCount\":10,\"split\":\"Audience.Score < 5.017708e-4\",\"left\":{\"score\":-0.25,\"gain\":0,\"sampleCount\":5},\"right\":{\"score\":0.75,\"gain\":0,\"sampleCount\":5}}]}}}";
+            var camera = Object.FindAnyObjectByType<DesktopTreePreview>().previewCamera;
+            var position = camera.transform.position; var rotation = camera.transform.rotation;
+            view.modelFile = new TextAsset(json) { name = "Fictional nested export" };
+            view.profilesFile = null;
+            Assert.That(view.Initialize(), Is.True);
+            Assert.That(view.Model.StructureOnlyPreview, Is.True);
+            Assert.That(view.score.text, Does.Contain("Export structure").And.Contain("No profile probability"));
+            Assert.That(view.controls.Single(c => c.action == TreeAction.Profile).GetComponent<UnityEngine.UI.Button>().interactable, Is.False);
+            var accepted = view.Ensemble;
+            Assert.That(view.LoadAgbStructure("{}", "Invalid").IsSuccess, Is.False);
+            Assert.That(view.Ensemble, Is.SameAs(accepted));
+            Click(TreeAction.Manual);
+            Assert.That(view.explanation.text, Does.Not.Contain("< 0?"));
+            Click(TreeAction.TrueBranch); Arrive();
+            Assert.That(view.Session.State.NodeId, Is.EqualTo("root/left"));
+            Assert.That(view.Ensemble.RouteTotal, Is.EqualTo(-.25));
+            Assert.That(view.Ensemble.Evaluation, Is.Null);
+            Click(TreeAction.Result);
+            Assert.That(view.ledgerText.text, Does.Contain("Export structure").And.Contain("No complete customer probability"));
+            Click(TreeAction.CloseResult); Click(TreeAction.Back);
+            Assert.That(view.Ensemble.RouteTotal, Is.Zero);
+            Click(TreeAction.FalseBranch); Arrive();
+            Assert.That(view.Ensemble.RouteTotal, Is.EqualTo(.75));
+            Assert.That(camera.transform.position, Is.EqualTo(position));
+            Assert.That(camera.transform.rotation, Is.EqualTo(rotation));
+            yield return null;
+        }
+
         [UnityTest]
         public IEnumerator PostureMovesAllTeachingPartsTogetherAndReturnsWithoutDrift()
         {
@@ -219,9 +301,9 @@ namespace VRExperienceAGB.Tests
             Assert.That(view.Session.State.NodeId, Is.EqualTo(saved));
             var original = view.Ensemble.OriginalProfile;
             Click(TreeAction.EditProfile); Click(TreeAction.IncreaseValue);
-            Assert.That(view.Ensemble.CompletedCount, Is.Zero);
+            Assert.That(view.Ensemble.CompletedCount, Is.EqualTo(3), "A draft must preserve accepted route progress until Apply.");
             Assert.That(view.Ensemble.OriginalProfile, Is.SameAs(original));
-            Assert.That(view.score.text, Does.Contain("Updated full synthetic prediction"));
+            Assert.That(view.score.text, Does.Contain("Accepted full synthetic prediction"));
             Click(TreeAction.RestoreProfile); Click(TreeAction.CloseEdit);
             Assert.That(view.Ensemble.Evaluation.RawScore, Is.EqualTo(-4.1).Within(1e-12));
             Assert.That(view.Session.State.Paused, Is.False);
@@ -266,6 +348,108 @@ namespace VRExperienceAGB.Tests
             Click(TreeAction.Pause); Click(TreeAction.Menu); Click(TreeAction.Menu);
             Assert.That(view.Session.State.Paused, Is.True, "Closing menu must preserve an explicit pause.");
         }
+        [UnityTest]
+        public IEnumerator ShortTourLedgerAndDetailedTourReachTheSameFinalResult()
+        {
+            Click(TreeAction.Profile); Click(TreeAction.TourDetail);
+            while (!view.Session.State.AtLeaf) { Click(TreeAction.Step); Arrive(); }
+            Click(TreeAction.GroupRemaining);
+            Assert.That(view.Ensemble.Complete, Is.True);
+            Assert.That(view.Ensemble.RouteTotal, Is.EqualTo(-4.1).Within(1e-12));
+            Assert.That(view.ledgerText.gameObject.activeSelf, Is.True);
+            Assert.That(view.ledgerText.text, Does.Contain("Grouped: 2 trees").And.Contain("tree-02").And.Contain("tree-03"));
+            Assert.That(view.ledgerText.text, Does.Contain("sigmoid(raw score)").And.Contain("Click probability"));
+            Click(TreeAction.CloseResult); Click(TreeAction.TourDetail);
+            Assert.That(view.Ensemble.CompletedCount, Is.EqualTo(1));
+            for (int i = 1; i < 3; i++) { Click(TreeAction.NextTree); while (!view.Session.State.AtLeaf) { Click(TreeAction.Step); Arrive(); } }
+            Assert.That(view.Ensemble.RouteTotal, Is.EqualTo(-4.1).Within(1e-12));
+            Click(TreeAction.Result);
+            Assert.That(view.ledgerText.text, Does.Contain("FINAL RESULT").And.Contain("Complete raw score -4.1"));
+            yield return null;
+        }
+
+        [UnityTest]
+        public IEnumerator DraftCancelAndApplyReplaceAllStateAndRejectDelayedInput()
+        {
+            Click(TreeAction.Profile); Click(TreeAction.Step); view.Advance(.2f);
+            var accepted = view.Ensemble.Evaluation; var old = view.Session;
+            var pending = old.State.PendingDecision;
+            Click(TreeAction.EditProfile); Click(TreeAction.IncreaseValue);
+            Assert.That(view.Ensemble.Evaluation, Is.SameAs(accepted));
+            Assert.That(old.State.PendingDecision, Is.SameAs(pending));
+            Click(TreeAction.CancelEdit); Arrive();
+            Assert.That(view.Session.State.NodeId, Is.EqualTo("t1-visits"));
+            Click(TreeAction.EditProfile); Click(TreeAction.IncreaseValue);
+            Click(TreeAction.CloseEdit);
+            Assert.That(view.Ensemble.Profile.DisplayName, Does.Contain("Hypothetical copy of New visitor"));
+            Assert.That(view.Ensemble.Profile.Id, Is.Not.EqualTo(view.Ensemble.OriginalProfile.Id));
+            Assert.That(view.Ensemble.CompletedCount, Is.Zero); Assert.That(view.Ensemble.Index, Is.Zero);
+            Assert.That(view.Session.State.NodeId, Is.EqualTo("t1-root"));
+            Assert.That(old.CompleteMove(pending.EventId).Accepted, Is.False);
+            Assert.That(view.Session.State.Paused, Is.False);
+            Assert.That(view.Ensemble.Evaluation.RawScore, Is.EqualTo(-4.1).Within(1e-12));
+            var button = view.controls.Single(c => c.action == TreeAction.NextProfile);
+            var pointer = new PointerEventData(EventSystem.current) { pointerId = -1, button = PointerEventData.InputButton.Left };
+            ExecuteEvents.Execute(button.gameObject, pointer, ExecuteEvents.pointerDownHandler);
+            Click(TreeAction.Profile);
+            ExecuteEvents.Execute(button.gameObject, pointer, ExecuteEvents.pointerClickHandler);
+            Click(TreeAction.Profile);
+            Assert.That(view.Ensemble.Profile.Id, Is.EqualTo("new-visitor"), "A delayed selection release must not change the next selected profile.");
+            yield return null;
+        }
+
+        [UnityTest]
+        public IEnumerator ProfileSwitchAtRootMoveLeafAndFinalClearsOldStateTogether()
+        {
+            for (int stage = 0; stage < 4; stage++)
+            {
+                Click(TreeAction.Profile);
+                if (stage == 1) { Click(TreeAction.Step); view.Advance(.2f); }
+                if (stage >= 2) while (!view.Session.State.AtLeaf) { Click(TreeAction.Step); Arrive(); }
+                if (stage == 3) for (int i = 1; i < 3; i++) { Click(TreeAction.NextTree); while (!view.Session.State.AtLeaf) { Click(TreeAction.Step); Arrive(); } }
+                var old = view.Session; var pending = old.State.PendingDecision;
+                Click(TreeAction.NextProfile); Click(TreeAction.Profile);
+                Assert.That(view.Session, Is.Not.SameAs(old));
+                Assert.That(view.Ensemble.CompletedCount, Is.Zero);
+                Assert.That(view.Session.State.Decisions.Count, Is.Zero);
+                Assert.That(view.Session.State.PendingDecision, Is.Null);
+                Assert.That(view.score.text, Does.Contain(view.Ensemble.Profile.DisplayName));
+                if (pending != null) Assert.That(old.CompleteMove(pending.EventId).Accepted, Is.False);
+                Click(TreeAction.Manual);
+                Assert.That(view.Ensemble.Evaluation, Is.Null); Assert.That(view.score.text, Does.Not.Contain("%"));
+                Assert.That(view.Ensemble.Consistency.Status, Is.EqualTo(VRExperienceAGB.Domain.RouteConsistency.Consistent));
+            }
+            yield return null;
+        }
+
+        [UnityTest]
+        public IEnumerator LargerEnsembleManualWarningAllowsFreeExplorationAndRevision()
+        {
+            Click(TreeAction.LargerEnsemble);
+            Assert.That(view.Model.Trees.Count, Is.EqualTo(24));
+            Click(TreeAction.TrueBranch); Arrive(); Click(TreeAction.TrueBranch); Arrive();
+            for (int i = 0; i < 3; i++) Click(TreeAction.NextTree);
+            Click(TreeAction.FalseBranch); Arrive();
+            Assert.That(view.Ensemble.Consistency.Status, Is.EqualTo(VRExperienceAGB.Domain.RouteConsistency.Contradictory));
+            Assert.That(view.feedback.gameObject.activeSelf, Is.True);
+            Assert.That(view.feedback.text, Does.Contain("ensemble-01/t1-root").And.Contain("ensemble-04/t1-root"));
+            var total = view.Ensemble.RouteTotal;
+            Click(TreeAction.ContinueFree);
+            Assert.That(view.Ensemble.RouteTotal, Is.EqualTo(total));
+            Assert.That(view.score.text, Does.Contain("Route score").And.Not.Contain("%"));
+            Click(TreeAction.ReviseChoice);
+            Assert.That(view.Ensemble.Index, Is.Zero); Assert.That(view.Session.State.NodeId, Is.EqualTo("t1-root"));
+            Assert.That(view.Ensemble.Consistency.Status, Is.EqualTo(VRExperienceAGB.Domain.RouteConsistency.Consistent));
+            Assert.That(view.Ensemble.RouteTotal, Is.EqualTo(.5));
+            Click(TreeAction.Profile); Click(TreeAction.TourDetail);
+            while (!view.Session.State.AtLeaf) { Click(TreeAction.Step); Arrive(); }
+            Click(TreeAction.GroupRemaining);
+            Assert.That(view.ledgerText.text, Does.Contain("Grouped: 23 trees").And.Contain("Complete raw score -32.3"));
+            for (int i = 0; i < 5; i++) Click(TreeAction.NextLedgerPage);
+            Assert.That(view.ledgerText.text, Does.Contain("ensemble-24"));
+            yield return null;
+        }
+
         [UnityTest]
         public IEnumerator ProfileTakeoverAndInvalidReloadNeverLeaveMisleadingOutput()
         {

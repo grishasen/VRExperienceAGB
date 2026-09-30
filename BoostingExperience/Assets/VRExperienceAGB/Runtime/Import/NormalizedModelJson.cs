@@ -154,6 +154,7 @@ namespace VRExperienceAGB.Import
 
         public static Outcome<string> WriteModel(ModelDefinition model)
         {
+            if (model != null && model.StructureOnlyPreview) return Outcome<string>.Failure(new[] { new Diagnostic("PreviewNotInterchange", "An export structure preview cannot be serialized as a verified normalized feature contract.") });
             var errors = ModelValidator.Validate(model);
             if (errors.Count != 0) return Outcome<string>.Failure(errors);
             var features = new JObject();
