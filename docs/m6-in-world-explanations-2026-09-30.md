@@ -40,3 +40,9 @@ Editor screenshots and tests supplement the deferred Quest walkthrough; they do 
 ## Deferred device acceptance
 
 Include the two side cards, six visible edge labels, long membership tooltip, distant predictor markers, composition strips, entrance story and dense focused subtree in the M6 worst-visible-scene workload. Verify trigger reachability from both controllers, seated/standing reading positions, pointer dwell behavior, full-condition scrolling and forest return. Preserve the original 72 Hz/72 FPS target, actual CPU/GPU and memory measurement, 30-minute soak and three-new-user checks. Do not tag a demo release until the existing acceptance gates pass.
+
+## Android candidate
+
+Development Android build `build_4f4baeeffa6e` succeeded from runtime source commit `6f33a0c18d76e3ead0c0c2396fa5056de835b734` in 70.968 seconds, with zero errors and five warnings. APK: `artifacts/builds/VRExperienceAGB-m6-in-world-explanations.apk`, **98,883,871 bytes**; SHA-256 `a23422fe1ba0fc4e2ef7fe7db08643e4bcdbe67951b2b8666167bc6c842356b1`. The APK was not installed or run on Quest. Subsequent commits record documentation only.
+
+Warnings concern the intentionally absent Player Pipeline configuration, an existing TextMesh Pro shader debug-symbol pragma and three TextMesh Pro IL2CPP large-method diagnostics. Package versions and project settings were not migrated. Incidental font/material serialization by the Editor is excluded from the source change. Build details and the APK identity manifest are retained in ignored `artifacts/m6-2026-09-30/`.

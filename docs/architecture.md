@@ -75,3 +75,7 @@ Keep a common world-space legend. Use separate encodings for split truth, signed
 Tracked demo data is synthetic. Real exports and profiles live in ignored `data/private/` and are admitted to builds deliberately. No network service is required by the MVP. Package installation may need network access, but the built experience should run offline.
 
 The initial repository's Python verifier is a small executable specification for synthetic fixtures. Production evaluation belongs in C# and requires independent reference checks for real AGB imports.
+
+## M6 explanatory presentation
+
+`ForestExplanation` in Import caches full-model structure, predictor occurrences, threshold sets, tree summaries and optional exported monitoring. It is independent of Unity and never invokes or modifies model evaluation. `M6ExplanationPresentation` binds those descriptions to the accepted session and focused neighborhood, adding bounded world-space labels, source-detail hover, segment/evidence cards and predictor links. Garden and tabletop composition strips share that index. Source-model verification and Quest performance acceptance remain separate gates; see the [M6 record](m6-in-world-explanations-2026-09-30.md).
