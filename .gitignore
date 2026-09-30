@@ -58,3 +58,4 @@ __pycache__/
 # Unity automatic recovery scenes are local backups, not authored content.
 BoostingExperience/Assets/_Recovery/
 BoostingExperience/Assets/_Recovery.meta
+/data/examples/export_Mobile_Click_Through_Rate_AGB_sample.json
