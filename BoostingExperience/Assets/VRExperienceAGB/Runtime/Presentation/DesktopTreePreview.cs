@@ -32,11 +32,18 @@ namespace VRExperienceAGB.Presentation
             var pointer = new PointerEventData(EventSystem.current) { pointerId = -1, position = Mouse.current.position.ReadValue(), button = PointerEventData.InputButton.Left };
             hits.Clear(); EventSystem.current.RaycastAll(pointer, hits);
             var target = hits.Count == 0 ? null : ExecuteEvents.GetEventHandler<IPointerClickHandler>(hits[0].gameObject);
-            if (hovered != target)
+            var hoverTarget = hits.Count == 0 ? null : ExecuteEvents.GetEventHandler<IPointerEnterHandler>(hits[0].gameObject);
+            if (hovered != hoverTarget)
             {
                 if (hovered != null) ExecuteEvents.Execute(hovered, pointer, ExecuteEvents.pointerExitHandler);
-                hovered = target;
+                hovered = hoverTarget;
                 if (hovered != null) ExecuteEvents.Execute(hovered, pointer, ExecuteEvents.pointerEnterHandler);
+            }
+            var wheel = Mouse.current.scroll.ReadValue();
+            if (wheel != Vector2.zero && hits.Count > 0)
+            {
+                pointer.scrollDelta = wheel / 120f;
+                ExecuteEvents.ExecuteHierarchy(hits[0].gameObject, pointer, ExecuteEvents.scrollHandler);
             }
             if (Mouse.current.leftButton.wasPressedThisFrame)
             {

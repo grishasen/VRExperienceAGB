@@ -67,7 +67,7 @@ namespace VRExperienceAGB.Application
             if (profile != null) trees = model.Trees.Select((t, i) => TreeSession.FromEvaluation(model, t, profile, evaluation.Trees[i])).ToArray();
             else
             {
-                var outcomes = model.Trees.Select(t => TreeSession.CreateManual(model, t.Id)).ToArray();
+                var outcomes = model.Trees.Select(t => TreeSession.ManualFromValidatedModel(model, t)).ToArray();
                 var failures = outcomes.Where(o => !o.IsSuccess).SelectMany(o => o.Diagnostics).ToArray();
                 if (failures.Length > 0) return Outcome<EnsembleSession>.Failure(failures);
                 trees = outcomes.Select(o => o.Value).ToArray();

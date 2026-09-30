@@ -21,14 +21,14 @@ namespace VRExperienceAGB.Domain
             if (!HasId(model.OutcomeLabel)) Error("OutcomeRequired", "A named outcome is required.");
             if (model.Objective != "binary_logistic") Error("UnsupportedObjective", "Only the synthetic binary logistic contract is supported.");
             if (!IsFinite(model.BaseScore)) Error("InvalidBaseline", "The raw-score baseline must be finite.");
-            if (model.Features.Count == 0) Error("FeaturesRequired", "At least one feature definition is required.");
+            if (model.Features.Count == 0 && !model.StructureOnlyPreview) Error("FeaturesRequired", "At least one feature definition is required.");
             var features = new Dictionary<string, FeatureDefinition>(StringComparer.Ordinal);
             foreach (var f in model.Features)
             {
                 if (f == null || !HasId(f.Id)) { Error("InvalidFeatureId", "Every feature requires a nonempty ID."); continue; }
                 if (features.ContainsKey(f.Id)) { Error("DuplicateFeatureId", "Feature IDs must be unique.", feature: f.Id); continue; }
                 features.Add(f.Id, f);
-                if (!Enum.IsDefined(typeof(FeatureKind), f.Kind)) Error("InvalidFeatureType", "Unsupported feature type.", feature: f.Id);
+                if (!Enum.IsDefined(typeof(FeatureKind), f.Kind) || (f.Kind == FeatureKind.Unknown && !model.StructureOnlyPreview)) Error("InvalidFeatureType", "Unsupported feature type.", feature: f.Id);
                 if (f.Kind == FeatureKind.Number)
                 {
                     if ((f.Minimum.HasValue && !IsFinite(f.Minimum.Value)) || (f.Maximum.HasValue && !IsFinite(f.Maximum.Value)) ||
@@ -145,6 +145,7 @@ namespace VRExperienceAGB.Domain
             var errors = new List<Diagnostic>();
             void Error(string code, string message, string feature = null) => errors.Add(new Diagnostic(code, message,
                 modelId: model.Id, featureId: feature));
+            if (model.StructureOnlyPreview) { Error("ProfileEvaluationUnavailable", "This export preview has no verified feature domains, missing policy or source scoring reference."); return Snapshot.List(errors); }
             if (profile == null) { Error("ProfileRequired", "A prepared profile is required."); return Snapshot.List(errors); }
             if (profile.SchemaVersion != 1) Error("UnsupportedSchema", "Only profile schema version 1 is supported.");
             if (profile.ModelId != model.Id) Error("ModelMismatch", "The profile belongs to a different model.");

@@ -1,6 +1,6 @@
 # Model and profile contract
 
-Status: the normalized fictional AGB-like example is implemented. Production AGB import and source-scorer reconciliation remain planned under M2-06–M2-08. The scoring and structural requirements below are solution-design decisions, not a claim of production verification.
+Status: the normalized fictional AGB-like example is implemented. Nested production-shaped AGB structure import and manual preview are implemented; feature-policy and source-scorer reconciliation remain pending under M2-06–M2-08. The scoring and structural requirements below are solution-design decisions, not a claim of production verification.
 
 ## Separate the model from its presentation
 
@@ -36,6 +36,16 @@ sigmoid(z) = 1 / (1 + exp(-z))
 ```
 
 Use a numerically stable sigmoid implementation and define numeric tolerances. The example is invented and is not a fitted business model. Production support requires the verification gates below.
+
+## Direct nested-export preview
+
+`OneTreeExperience.modelFile` accepts the nested `AdaptiveBoostScoringModel` / `GRADIENT_BOOST` JSON as well as the normalized teaching fixture. A normalized file is an internal runtime representation, not a format the export producer must supply. `AgbStructurePreview.Read` imports every tree and node without a display cap, generates stable tree/path addresses, and retains each original split, node estimate, gain and sample count in companion metadata. `LoadAgbStructure` can replace the active preview from JSON; rejected imports preserve the accepted session.
+
+The current adapter accepts strict numeric `<`, plain comma-separated categorical membership, and `is Missing`. Unsupported or ambiguous conditions reject the complete import with a source address. Category lists observed in splits are not complete feature domains; predictors used only in missing predicates retain an unknown type. The model carries `StructureOnlyPreview`, so profile evaluation and serialization as a verified normalized model are refused, and manual consistency remains unverified. Manual totals use reached leaves, neutral baseline and unit weights as the design target, without asserting source prediction agreement.
+
+Compact tree labels summarize large category sets. Hover over a predictor label or the current condition to read the complete identifier and original condition in a scrollable panel. Hover and scrolling do not change decisions, scores or camera pose. Mouse and Meta canvas pointer event wiring are implemented; headset pointer behavior still requires a device check.
+
+See [the export preview test record](m4-mobile-export-preview-2026-09-30.md) for the tested sample and evidence.
 
 ## Prepared profiles
 
@@ -131,6 +141,6 @@ The formula is the design target; agreement with the official scorer is a separa
 
 The bundled example has three trees and four prepared fictional profiles. The first tree has seven nodes; other trees demonstrate treatment membership and an explicit missing predicate. Scores, gains, counts, treatment names and monitoring values are invented. The compact ensemble teaches scoring mechanics; its score distribution is not a claim about trained-model performance.
 
-`demo-model.json` is the normalized runtime representation; `demo-agb-export.json` is its nested export-shaped counterpart. A declared feature dictionary and readable labels live in the normalized file, since the export shape does not provide them. Production parsing is still planned; the fixture checker only verifies this known example's mapping.
+`demo-model.json` is the normalized runtime representation; `demo-agb-export.json` is its nested export-shaped counterpart. A declared feature dictionary and readable labels live in the normalized file, since the export shape does not provide them. The runtime also accepts nested AGB exports directly for structure and manual preview. The fixture checker only verifies this known example's mapping.
 
 For production verification, collect an approved export and representative source-model profiles with full predictions and preferably visited leaves. Keep sensitive material under ignored `data/private/`. Track only fictional or separately approved anonymized fixtures. Passing example checks does not certify production scoring.

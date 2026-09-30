@@ -44,6 +44,9 @@ namespace VRExperienceAGB.Presentation
         private int featureIndex;
         public bool Ready => Session != null;
         public ModelDefinition Model => model;
+        public AgbPreviewResult ExportPreview { get; private set; }
+        private string exportName;
+        public FullNameTooltip NameTooltip { get; private set; }
         public bool DeepExampleActive => deepExample;
         private FocusedTreeView focusedView;
         private bool deepExample;
@@ -61,17 +64,41 @@ namespace VRExperienceAGB.Presentation
         private string message = "Choose either branch, or follow a synthetic profile.";
         private static string Number(double value) => value.ToString("0.###", CultureInfo.InvariantCulture);
 
+        public Outcome<AgbPreviewResult> LoadAgbStructure(string json, string displayName)
+        {
+            var imported = AgbStructurePreview.Read(json, displayName);
+            if (!imported.IsSuccess) return imported;
+            if (!Ready && !Initialize()) return Outcome<AgbPreviewResult>.Failure(new[] { new Diagnostic("SceneUnavailable", "The teaching scene is unavailable.") });
+            model = imported.Value.Model; ExportPreview = imported.Value; exportName = displayName;
+            profiles = new ProfileSet(1, model.Id, Array.Empty<PreparedProfile>());
+            profileIndex = 0; deepExample = false; treeMap = false; showProfileDetails = false;
+            message = "Export structure loaded. Explore branches; profile scoring is unverified.";
+            StartEnsemble(null, true); Refresh(); return imported;
+        }
+
         private void Start() { Initialize(); }
         public bool Initialize()
         {
-            Session = null;
-            if (modelFile == null || profilesFile == null) return Fail("Bundled synthetic data is missing.");
+            Session = null; ExportPreview = null;
+            if (modelFile == null) return Fail("The model file is missing.");
             var input = NormalizedModelJson.ReadModel(modelFile.text);
-            if (!input.IsSuccess) return Fail(string.Join("; ", input.Diagnostics.Select(d => d.Code)));
-            model = input.Value;
-            var prepared = NormalizedModelJson.ReadProfiles(profilesFile.text, model);
-            if (!prepared.IsSuccess) return Fail(string.Join("; ", prepared.Diagnostics.Select(d => d.Code)));
-            profiles = prepared.Value;
+            if (input.IsSuccess)
+            {
+                model = input.Value;
+                if (profilesFile == null) return Fail("Bundled synthetic profiles are missing.");
+                var prepared = NormalizedModelJson.ReadProfiles(profilesFile.text, model);
+                if (!prepared.IsSuccess) return Fail(string.Join("; ", prepared.Diagnostics.Select(d => d.Code)));
+                profiles = prepared.Value;
+            }
+            else
+            {
+                var imported = AgbStructurePreview.Read(modelFile.text, modelFile.name);
+                if (!imported.IsSuccess) return Fail(string.Join("; ", imported.Diagnostics.Select(d => d.Code + ": " + d.Message)));
+                ExportPreview = imported.Value; exportName = modelFile.name; model = imported.Value.Model;
+                profiles = new ProfileSet(1, model.Id, Array.Empty<PreparedProfile>());
+                showProfileDetails = false;
+                message = "Export structure loaded. Explore branches; profile scoring is unverified.";
+            }
             if (nodeViews == null || nodeViews.Any(v => v == null || v.platform == null || v.title == null || v.marker == null || v.dropAnchor == null) ||
                 nodeViews.Length != 7)
                 return Fail("The scene does not match the model's node identities.");
@@ -85,13 +112,55 @@ namespace VRExperienceAGB.Presentation
             var branchLabels = presentationRoot.GetComponentsInChildren<TMP_Text>(true)
                 .Where(label => label.name == "Meaning" && label.transform.parent.name == "BranchMeaning").ToArray();
             var splits = model.Trees[0].Nodes.OfType<SplitNode>().ToArray();
-            if (branchLabels.Length != splits.Length * 2) return Fail("The scene's branch labels do not match the model.");
-            for (var i = 0; i < splits.Length; i++)
+            if (!model.StructureOnlyPreview && branchLabels.Length != splits.Length * 2) return Fail("The scene's branch labels do not match the model.");
+            for (var i = 0; !model.StructureOnlyPreview && i < splits.Length; i++)
             {
                 branchLabels[i * 2].text = "TRUE\n" + Condition(splits[i], true);
                 branchLabels[i * 2 + 1].text = "FALSE\n" + Condition(splits[i], false);
             }
-            return StartEnsemble(null, true);
+            PrepareNameHover(); return StartEnsemble(null, true);
+        }
+
+        public string FullNodeName(string nodeId)
+        {
+            var node = Session.Tree.Nodes.Single(n => n.Id == nodeId);
+            if (!(node is SplitNode split)) return Session.Tree.Id + "/" + nodeId + "\nLeaf score " + ((LeafNode)node).Score.ToString("G17", CultureInfo.InvariantCulture);
+            if (ExportPreview != null && ExportPreview.Metadata.TryGetValue(Session.Tree.Id + "/" + nodeId, out var audit))
+                return split.FeatureId + "\n" + audit.SplitText + "\nSource: " + audit.SourceAddress;
+            return split.FeatureId + "\n" + Condition(split, true);
+        }
+        private void PrepareNameHover()
+        {
+            if (NameTooltip == null)
+            {
+                NameTooltip = gameObject.AddComponent<FullNameTooltip>();
+                NameTooltip.Build(explanation.transform.parent, explanation);
+            }
+            foreach (var node in nodeViews)
+            {
+                var canvas = node.title.GetComponentInParent<Canvas>(true);
+                if (canvas.GetComponent<UnityEngine.UI.GraphicRaycaster>() == null) canvas.gameObject.AddComponent<UnityEngine.UI.GraphicRaycaster>();
+                node.title.raycastTarget = true;
+                var hover = node.title.GetComponent<NodeNameHover>() ?? node.title.gameObject.AddComponent<NodeNameHover>();
+                hover.experience = this; hover.node = node;
+                // Reuse the already configured Meta canvas interaction prefab with its plane and ray surface.
+                if (canvas.GetComponentInChildren<Oculus.Interaction.PointableCanvas>(true) == null)
+                {
+                    var template = explanation.GetComponentInParent<Canvas>(true).GetComponentInChildren<Oculus.Interaction.PointableCanvas>(true);
+                    if (template != null)
+                    {
+                        var holder = new GameObject("NamePointerSurface", typeof(RectTransform));
+                        holder.SetActive(false); holder.transform.SetParent(canvas.transform,false);
+                        var bounds = (RectTransform)holder.transform; bounds.anchorMin=Vector2.zero; bounds.anchorMax=Vector2.one; bounds.sizeDelta=Vector2.zero;
+                        var interaction = Instantiate(template.gameObject, holder.transform);
+                        interaction.GetComponent<Oculus.Interaction.PointableCanvas>().InjectCanvas(canvas);
+                        holder.SetActive(true);
+                    }
+                }
+            }
+            explanation.raycastTarget = true;
+            var current = explanation.GetComponent<NodeNameHover>() ?? explanation.gameObject.AddComponent<NodeNameHover>();
+            current.experience = this; current.node = null;
         }
 
         private bool Fail(string reason)
@@ -105,6 +174,7 @@ namespace VRExperienceAGB.Presentation
         }
         private bool StartEnsemble(PreparedProfile profile, bool overview, int treeIndex = 0)
         {
+            NameTooltip?.Hide();
             var outcome = EnsembleSession.Create(model, profile);
             if (!outcome.IsSuccess) return Fail(string.Join("; ", outcome.Diagnostics.Select(d => d.Code)));
             if (Ensemble != null) foreach (var retired in Ensemble.Trees) retired.ReturnToOverview();
@@ -123,11 +193,12 @@ namespace VRExperienceAGB.Presentation
             var f = Feature(node.FeatureId);
             switch (node.Condition.Operator)
             {
-                case DecisionOperator.LessThan: return f + (branch ? " < " : " >= ") + Number(node.Condition.Threshold.Value);
-                case DecisionOperator.In: return f + (branch ? " in " : " not in ") + string.Join(", ", node.Condition.Categories);
+                case DecisionOperator.LessThan: return f + (branch ? " < " : " >= ") + Threshold(node.Condition.Threshold.Value);
+                case DecisionOperator.In: return f + (branch ? " in " : " not in ") + string.Join(", ", node.Condition.Categories.Take(3)) + (node.Condition.Categories.Count > 3 ? " (+" + (node.Condition.Categories.Count - 3) + " categories)" : "");
                 default: return f + (branch ? " is missing" : " is present");
             }
         }
+        private static string Threshold(double value) => value.ToString("G15", CultureInfo.InvariantCulture);
         private static string Value(ProfileValue value) => value.Kind == ValueKind.Number ? Number(value.Number) :
             value.Kind == ValueKind.Category ? value.Category : value.Kind == ValueKind.Missing ? "Missing (explicit null)" : "Not supplied";
         private Vector3 Position(string nodeId) => (nodeViews.FirstOrDefault(v => v.gameObject.activeSelf && v.nodeId == nodeId) ?? nodeViews[0]).dropAnchor.position;
@@ -135,6 +206,8 @@ namespace VRExperienceAGB.Presentation
         public void Execute(TreeAction action, long revision, string nodeId)
         {
             if (Session == null || revision != Session.State.Revision || nodeId != Session.State.NodeId) return;
+            NameTooltip?.Hide();
+            if (model.StructureOnlyPreview && (action == TreeAction.Profile || action == TreeAction.NextProfile || action == TreeAction.DeepExample || action == TreeAction.LargerEnsemble)) return;
             CommandReply reply = default;
             switch (action)
             {
@@ -270,7 +343,7 @@ namespace VRExperienceAGB.Presentation
             var s = Session.State; displayedRevision = s.Revision;
             status.text = (s.Overview ? "FOREST ENTRY  |  " : "TREE " + (Ensemble.Index + 1) + " / " + model.Trees.Count + "  |  ") + (s.Mode == ExperienceMode.Manual ? "EXPLORE BRANCHES" : "FOLLOW A PROFILE") +
                 (s.Paused ? "  |  PAUSED" : s.PendingDecision != null ? "  |  MOVING" : s.Playing ? "  |  PLAYING" : "");
-            var chosen = profiles.Profiles[profileIndex];
+            var chosen = profiles.Profiles.Count > 0 ? profiles.Profiles[profileIndex] : null;
             if (s.Overview)
                 explanation.text = treeMap ? "Root overview - your route is saved" : "Forest overview\nTree " + (Ensemble.Index + 1) + " selected - enter to continue";
             else if (Session.CurrentNode is SplitNode split)
@@ -293,11 +366,14 @@ namespace VRExperienceAGB.Presentation
             if (Ensemble.Mode == ExperienceMode.Manual)
                 score.text += "\nRoute score. No profile probability. " + (Ensemble.Consistency.Status == RouteConsistency.Contradictory ? "Conflicting choices" :
                     Ensemble.Consistency.Status == RouteConsistency.NotVerified ? "Consistency not verified" : "Partial route; consistent choices");
+            if (model.StructureOnlyPreview)
+                score.text = exportName + " | Export structure\n" + model.Trees.Count + " trees | " + model.Trees.Sum(t => t.Nodes.Count) + " nodes | " + model.Features.Count + " predictors\n" +
+                    "Manual route score " + Number(Ensemble.RouteTotal) + " | " + Ensemble.CompletedCount + " / " + model.Trees.Count + " leaves\nConsistency not verified. No profile probability.";
             if (Ensemble.Mode == ExperienceMode.PreparedProfile)
                 score.text += "\n" + Ensemble.Profile.DisplayName + " | " + Ensemble.Detail + " tour";
-            feedback.text = showProfileDetails && MenuOpen ? "Selected for next run: " + chosen.DisplayName + "\n" +
+            feedback.text = showProfileDetails && MenuOpen && chosen != null ? "Selected for next run: " + chosen.DisplayName + "\n" +
                 string.Join("  |  ", chosen.Values.Select(p => Feature(p.Key) + ": " + Value(p.Value))) + "\n" + message :
-                s.Overview ? "Choose Explore branches or Follow a profile to begin" : message;
+                s.Overview ? (model.StructureOnlyPreview ? "Explore branches to inspect the export" : "Choose Explore branches or Follow a profile to begin") : message;
             if (editingProfile)
             {
                 var feature = model.Features[featureIndex];
@@ -318,6 +394,8 @@ namespace VRExperienceAGB.Presentation
                     (inspected is SplitNode sn ? "TRUE: " + Condition(sn, true) + "\nFALSE: " + Condition(sn, false) :
                     "Leaf contribution: " + Number(Session.Tree.Weight * ((LeafNode)inspected).Score));
                 feedback.text = "Read-only inspection. Your route and score are preserved.";
+                if (ExportPreview != null && ExportPreview.Metadata.TryGetValue(Session.Tree.Id + "/" + inspected.Id, out var audit))
+                    feedback.text += "\nSource " + audit.SourceAddress + " | Node estimate " + Number(audit.Score) + " | Gain " + Number(audit.Gain) + " | Samples " + audit.SampleCount;
             }
             var consistency = Ensemble.Consistency;
             if (Ensemble.Mode == ExperienceMode.Manual && consistency.Status == RouteConsistency.Contradictory && !editingProfile && !inspectingNodes && !reviewingResult)
@@ -338,7 +416,7 @@ namespace VRExperienceAGB.Presentation
                 (s.Decisions.Count == 0 ? "At root" : string.Join(" > ", s.Decisions.Select(d => d.Matched ? "TRUE" : "FALSE"))) +
                 (treeMap ? "\nRoot overview - return to focus to continue" : "\nBack retraces your accepted decisions");
             if (routeHistory != null) routeHistory.gameObject.SetActive(MenuOpen && !reviewingResult && !editingProfile && !inspectingNodes);
-            explanation.rectTransform.anchoredPosition = new Vector2(0, inspectingNodes ? 760 : 420);
+            explanation.rectTransform.anchoredPosition = new Vector2(0, inspectingNodes ? 760 : s.Overview && !treeMap ? 650 : 420);
             explanation.rectTransform.sizeDelta = new Vector2(1200, inspectingNodes ? 210 : 100);
             explanation.gameObject.SetActive(!reviewingResult && (!MenuOpen || editingProfile || inspectingNodes));
             drop.gameObject.SetActive(!reviewingResult && !(s.Overview && !treeMap) && (!treeMap || nodeViews.Any(v => v.gameObject.activeSelf && v.nodeId == s.NodeId)));
@@ -349,6 +427,7 @@ namespace VRExperienceAGB.Presentation
                 switch (c.action)
                 {
                     case TreeAction.Menu: label.text = MenuOpen ? "Close menu" : "Menu"; break;
+                    case TreeAction.Profile: case TreeAction.NextProfile: enabled = profiles.Profiles.Count > 0; break;
                     case TreeAction.PreviousTree: enabled = Ensemble.Index > 0; break;
                     case TreeAction.NextTree: enabled = Ensemble.Index + 1 < model.Trees.Count; break;
                     case TreeAction.EditProfile: enabled = Ensemble.Profile != null; break;
@@ -358,15 +437,15 @@ namespace VRExperienceAGB.Presentation
                     case TreeAction.GroupRemaining: enabled = Ensemble.Mode == ExperienceMode.PreparedProfile && Ensemble.Detail == Application.TourDetail.Short && s.AtLeaf && Ensemble.Index < model.Trees.Count - 1; break;
                     case TreeAction.ReviseChoice: case TreeAction.ContinueFree: enabled = Ensemble.Mode == ExperienceMode.Manual && consistency.Status == RouteConsistency.Contradictory; break;
                     case TreeAction.Result: label.text = Ensemble.Complete ? "Review final result" : "Review contributions"; break;
-                    case TreeAction.LargerEnsemble: label.text = model.Id == "synthetic-ensemble-24" ? "Original three-tree example" : "Larger ensemble: 24 trees"; break;
-                    case TreeAction.DeepExample: label.text = deepExample ? "Original example" : "Deep tree: 8 levels"; break;
+                    case TreeAction.LargerEnsemble: enabled = !model.StructureOnlyPreview; label.text = model.Id == "synthetic-ensemble-24" ? "Original three-tree example" : "Larger ensemble: 24 trees"; break;
+                    case TreeAction.DeepExample: enabled = !model.StructureOnlyPreview; label.text = deepExample ? "Original example" : "Deep tree: 8 levels"; break;
                     case TreeAction.TreeMap: label.text = treeMap ? "Return to focus" : "Tree overview"; break;
                     case TreeAction.TrueBranch: case TreeAction.FalseBranch:
                         enabled = s.CanAdvance;
                         label.text = Session.CurrentNode is SplitNode n ?
                             (c.action == TreeAction.TrueBranch ? "TRUE\n" : "FALSE\n") +
                             (n.Condition.Operator == DecisionOperator.LessThan ?
-                                (c.action == TreeAction.TrueBranch ? "Fewer than " : "At least ") + Number(n.Condition.Threshold.Value) :
+                                (c.action == TreeAction.TrueBranch ? "Fewer than " : "At least ") + Threshold(n.Condition.Threshold.Value) :
                                 Condition(n, c.action == TreeAction.TrueBranch)) : "Leaf reached";
                         break;
                     case TreeAction.Step: enabled = s.CanAdvance && s.Mode == ExperienceMode.PreparedProfile; break;
@@ -412,7 +491,7 @@ namespace VRExperienceAGB.Presentation
             var rows = Ensemble.Ledger;
             var output = Ensemble.Evaluation;
             string text = (Ensemble.Complete ? "FINAL RESULT" : "CONTRIBUTION LEDGER") + "  |  Page " + (ledgerPage + 1) + " / " + Math.Max(1, (rows.Count + 3) / 4) +
-                "\nSynthetic data | " + (Ensemble.Mode == ExperienceMode.Manual ? "Manual Route score" : Ensemble.Profile.DisplayName) +
+                (model.StructureOnlyPreview ? "\nExport structure | " : "\nSynthetic data | ") + (Ensemble.Mode == ExperienceMode.Manual ? "Manual Route score" : Ensemble.Profile.DisplayName) +
                 "\nBaseline " + Number(model.BaseScore) + " | Explained " + Ensemble.CompletedCount + " / " + rows.Count + " | Running raw total " + Number(Ensemble.RouteTotal);
             foreach (var row in rows.Skip(ledgerPage * 4).Take(4))
                 text += "\n" + (row.Index + 1) + ". " + row.TreeId + " | " + (row.Progress == ContributionProgress.Pending ? "Pending" : row.Progress == ContributionProgress.Grouped ? "Grouped" : "Explained") + " | " +

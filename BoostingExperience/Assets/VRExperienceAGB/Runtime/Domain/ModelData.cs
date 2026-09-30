@@ -52,7 +52,7 @@ namespace VRExperienceAGB.Domain
         }
     }
 
-    public enum FeatureKind { Number, Category }
+    public enum FeatureKind { Number, Category, Unknown }
     public enum DecisionOperator { LessThan, In, IsMissing }
     public enum ValueKind { NotSupplied, Missing, Number, Category }
 
@@ -138,14 +138,15 @@ namespace VRExperienceAGB.Domain
         public string Objective { get; }
         public string OutcomeLabel { get; }
         public double BaseScore { get; }
+        public bool StructureOnlyPreview { get; }
         public IReadOnlyList<FeatureDefinition> Features { get; }
         public IReadOnlyList<ModelTree> Trees { get; }
         public ModelDefinition(int schemaVersion, string id, string provenance, string objective, string outcomeLabel,
-            double baseScore, IEnumerable<FeatureDefinition> features, IEnumerable<ModelTree> trees)
+            double baseScore, IEnumerable<FeatureDefinition> features, IEnumerable<ModelTree> trees, bool structureOnlyPreview = false)
         {
             SchemaVersion = schemaVersion; Id = id; Provenance = provenance; Objective = objective;
             OutcomeLabel = outcomeLabel; BaseScore = baseScore;
-            Features = Snapshot.List(features); Trees = Snapshot.List(trees);
+            Features = Snapshot.List(features); Trees = Snapshot.List(trees); StructureOnlyPreview = structureOnlyPreview;
         }
     }
 
