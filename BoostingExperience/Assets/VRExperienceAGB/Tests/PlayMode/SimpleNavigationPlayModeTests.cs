@@ -30,6 +30,34 @@ namespace VRExperienceAGB.Tests
         private void Action(TreeAction action)
         {var s=view.Session.State;view.Execute(action,s.Revision,s.NodeId);}
         [UnityTest]
+        public IEnumerator SeatedRoomOffsetDoesNotLeaveTreeControlsFarAway()
+        {
+            var head=Garden.Locomotion.Head;
+            var reference=head.position; reference.y=0;
+            head.localPosition+=new Vector3(4,-.5f,-6);
+            var trackedPosition=head.localPosition; var trackedRotation=head.localRotation;
+            Garden.Navigation.ShowForest();
+            Garden.Locomotion.Teleport(Garden.StandingPoint(12)); Garden.Locomotion.SnapTurn(30);
+            var forestOrigin=Garden.Locomotion.Origin.position;
+            Garden.Navigation.OpenTree(1);
+            var expected=Garden.Locomotion.Origin.rotation*reference;
+            Assert.That(head.position.x,Is.EqualTo(expected.x).Within(.001f));
+            Assert.That(head.position.z,Is.EqualTo(expected.z).Within(.001f));
+            Assert.That(head.localPosition,Is.EqualTo(trackedPosition));
+            Assert.That(head.localRotation,Is.EqualTo(trackedRotation));
+            foreach(var branch in new[]{TreeAction.TrueBranch,TreeAction.FalseBranch})
+            {
+                var button=view.controls.Single(c=>c.action==branch);
+                Assert.That(Vector3.Distance(head.position,button.transform.position),Is.LessThan(4.5f));
+                Click(button.gameObject); view.Advance(2);
+                Assert.That(view.Session.State.Decisions.Count,Is.EqualTo(1)); Action(TreeAction.Back);
+            }
+            Action(TreeAction.Overview);
+            Assert.That(Garden.Locomotion.Origin.position,Is.EqualTo(forestOrigin));
+            Assert.That(head.localPosition,Is.EqualTo(trackedPosition));
+            yield return null;
+        }
+        [UnityTest]
         public IEnumerator SecondTreeAcceptsBothBranchesAfterMenuReturnAndTurns()
         {
             Garden.Navigation.ShowForest(); Garden.Navigation.OpenTree(0);

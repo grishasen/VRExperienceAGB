@@ -71,3 +71,21 @@ A subsequent live capture contains controller sleep/reconnection, switching from
 Inspecting the actual saved scene revealed both controller ray visuals inherited `hideWhenNoInteractable = true` and a maximum visible length of 0.25 m. The teaching scene now overrides these two controller visuals to keep the ray visible without an interactable and extends its maximum visible length to 1.5 m. The SDK still hides disabled/untracked interactors; this does not fabricate tracking or change selection distance. Both overrides were verified after reloading the scene in Unity. This is a targeted scene-only visibility correction, not proof that intermittent tracking loss has been solved.
 
 Pointer visibility build `build_ed3e2da4a1c0` succeeded in 16.302 seconds with 0 errors and 3 warnings. APK `artifacts/builds/VRExperienceAGB-m6-visible-pointer.apk`: 118,629,537 bytes, SHA-256 `3c0d35ddef462946570c9fb037cd375804f2af80998330117d255578615653de`. Update installation succeeded; launch returned `Status: ok` and the running process was verified. Headset verification of continuous pointer visibility is pending.
+
+### Seated entry, selection reach and ASTC
+
+The user reported that the tree could be far away when wearing the headset while seated and that only one button was reachable. The scene controller rays previously selected within 5 m, independently of their shorter visible length. Both actual selection range and maximum visual length are now 30 m, with empty-space visibility retained.
+
+Tree entry now compensates the observer's horizontal room offset against the authored viewing point during the existing deliberate transition. It preserves physical head/controller local tracking, tracked height and rotation; it does not continuously follow the head. The saved forest origin is restored on return. A new scene regression simulates a seated observer offset by 4 m sideways and 6 m backward, verifies both choices are within 4.5 m, accepts both branches after undo, and checks return-position preservation.
+
+The open Editor already reported the ASTC Android subtarget. The Android project default was separately set to ASTC and saved in `ProjectSettings.asset` so it is tracked with the project. Android Manifest settings were not changed. Validation and deployment evidence follows below.
+
+The user resolved the Editor scene-save dialog. All **49 PlayMode tests passed** in 27.97 seconds, including the new seated-entry regression. Evidence: ignored `artifacts/m6-interaction-fix/seated-tests.json`.
+
+### Volumetric decorative background pines
+
+At the user's request, the 40 distant decorative pines now use the existing radial branch mesh and a bark trunk instead of two crossed whole-tree cards. The two existing detailed foreground pines and all model-bearing trees were preserved. There are now 42 decorative pines with trunks and no `Foliage` card objects. Shared mesh/material assets are reused; the complete decorative-pine geometry totals 96,600 triangles, including the existing foreground woody branches. This count is not a Quest performance measurement.
+
+`MoonlitClearingStyler.UpgradeBackgroundPines` upgrades only these background trees and leaves teaching layout and interactions untouched; the environment generator also creates radial background trees on future full rebuilds. A temporary side-view camera capture was visually inspected and saved in ignored `artifacts/m6-interaction-fix/volumetric-pines.png`. No temporary camera pose or screenshot asset was saved into the teaching scene.
+
+Combined Android Development build `build_92942efc4b53` succeeded in 39.669 seconds, with zero errors and 6 warnings (Pipeline runtime intentionally absent; existing TMP font-importer, shader and IL2CPP diagnostics). APK `artifacts/builds/VRExperienceAGB-m6-seated-astc-pines.apk`: 100,584,017 bytes; SHA-256 `331e9c698063cef5d3700c4d11d71b114b6af175821f9c4f0ca32947bd2fe9ed`. ADB update installation succeeded; launch returned `Status: ok` and the process was verified running. Quest seated comfort, ASTC texture appearance and performance with the new pines remain user/device checks. The user's existing Unity Editor was left open.

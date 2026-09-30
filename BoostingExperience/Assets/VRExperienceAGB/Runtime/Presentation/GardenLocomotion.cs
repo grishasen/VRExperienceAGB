@@ -13,6 +13,7 @@ namespace VRExperienceAGB.Presentation
         public bool InGarden { get; private set; }
         private Vector3 gardenPosition;
         private Vector3 entrancePosition;
+        private Vector3 treeObserverOffset;
         private Transform presentation;
         private Quaternion presentationRotation;
         private UnityEngine.UI.Image fade;
@@ -31,6 +32,8 @@ namespace VRExperienceAGB.Presentation
             Head = preview.previewCamera.gameObject.activeInHierarchy ? preview.previewCamera.transform :
                 (preview.trackedRig.GetComponentsInChildren<Camera>(true).FirstOrDefault(c=>c.name=="CenterEyeAnchor") ?? preview.trackedRig.GetComponentsInChildren<Camera>(true)[0]).transform;
             entrancePosition = Origin.position; gardenPosition = Origin.position;
+            treeObserverOffset = preview.previewCamera.transform.position - entrancePosition;
+            treeObserverOffset.y = 0;
             presentation = view.presentationRoot; presentationRotation = presentation.rotation;
             var canvasObject = new GameObject("ComfortFade", typeof(RectTransform), typeof(Canvas));
             canvasObject.transform.SetParent(Head, false); canvasObject.transform.localPosition = new Vector3(0, 0, .25f);
@@ -54,6 +57,10 @@ namespace VRExperienceAGB.Presentation
             {
                 gardenPosition = Origin.position;
                 Origin.position = entrancePosition;
+                // Resolve the current room position only at deliberate tree entry. Preserve tracked height and rotation.
+                var entryOffset = entrancePosition + Origin.rotation * treeObserverOffset - Head.position;
+                entryOffset.y = 0;
+                Origin.position += entryOffset;
                 // Orient the teaching content to the observer's chosen reference direction, not their head.
                 presentation.rotation = Origin.rotation * presentationRotation;
             }
