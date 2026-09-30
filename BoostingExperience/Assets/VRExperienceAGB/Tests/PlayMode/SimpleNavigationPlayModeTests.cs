@@ -30,6 +30,62 @@ namespace VRExperienceAGB.Tests
         private void Action(TreeAction action)
         {var s=view.Session.State;view.Execute(action,s.Revision,s.NodeId);}
         [UnityTest]
+        public IEnumerator SecondTreeAcceptsBothBranchesAfterMenuReturnAndTurns()
+        {
+            Garden.Navigation.ShowForest(); Garden.Navigation.OpenTree(0);
+            Click(view.controls.Single(c=>c.action==TreeAction.TrueBranch).gameObject); view.Advance(2);
+            Action(TreeAction.Menu); Click(view.controls.Single(c=>c.action==TreeAction.Overview).gameObject);
+            for(int turn=0;turn<12;turn++)
+            {
+                Garden.Locomotion.SnapTurn(30); Garden.Navigation.OpenTree(1);
+                yield return new WaitForSecondsRealtime(.2f);
+                foreach(var branch in new[]{TreeAction.TrueBranch,TreeAction.FalseBranch})
+                {
+                    var button=view.controls.Single(c=>c.action==branch);
+                    Assert.That(button.GetComponent<UnityEngine.UI.Button>().interactable,Is.True);
+                    var origin=Garden.Locomotion.Head.position-Vector3.up*.4f;
+                    var ray=new Ray(origin,button.transform.position-origin);
+                    var hits=Object.FindObjectsByType<Oculus.Interaction.RayInteractable>(FindObjectsSortMode.None)
+                        .Select(r=>new { target=r, distance=r.Raycast(ray,out var hit,20,false)?hit.Distance:float.PositiveInfinity })
+                        .OrderBy(h=>h.distance).ToArray();
+                    Assert.That(hits[0].target.GetComponent<Oculus.Interaction.PointableCanvas>().Canvas,
+                        Is.EqualTo(button.GetComponentInParent<Canvas>()),"Controller ray blocked at turn "+turn);
+                    Click(button.gameObject); view.Advance(2);
+                    Assert.That(view.Session.State.Decisions.Count,Is.EqualTo(1));
+                    Action(TreeAction.Back);
+                }
+                Action(TreeAction.Menu); Click(view.controls.Single(c=>c.action==TreeAction.Overview).gameObject);
+            }
+        }
+        [UnityTest]
+        public IEnumerator ForestHintExpiresAndDismissesOnMovementAndTreeEntry()
+        {
+            Garden.Navigation.ShowForest(); Assert.That(Garden.Navigation.ForestHintVisible,Is.True);
+            Garden.Locomotion.Teleport(Garden.StandingPoint(1)); yield return null;
+            Assert.That(Garden.Navigation.ForestHintVisible,Is.False);
+            Garden.Navigation.ShowForest(); Assert.That(Garden.Navigation.ForestHintVisible,Is.True);
+            yield return new WaitForSecondsRealtime(8.1f);
+            Assert.That(Garden.Navigation.ForestHintVisible,Is.False);
+            Garden.Navigation.Refresh(); Assert.That(Garden.Navigation.ForestHintVisible,Is.False);
+            Garden.Navigation.OpenTree(1); Assert.That(Garden.Navigation.ForestHintVisible,Is.False);
+        }
+        [UnityTest]
+        public IEnumerator FocusRecoveryResumesTemporaryPauseButPreservesExplicitPause()
+        {
+            Garden.Navigation.ShowForest(); Garden.Navigation.OpenTree(0);
+            view.SendMessage("OnApplicationFocus",false); view.SendMessage("OnApplicationPause",true);
+            Assert.That(view.Session.State.Paused,Is.True);
+            view.SendMessage("OnApplicationFocus",true); Assert.That(view.Session.State.Paused,Is.True);
+            view.SendMessage("OnApplicationPause",false); Assert.That(view.Session.State.CanAdvance,Is.True);
+            Action(TreeAction.Menu); Action(TreeAction.Overview); Garden.Navigation.OpenTree(1);
+            Click(view.controls.Single(c=>c.action==TreeAction.FalseBranch).gameObject); view.Advance(2);
+            Assert.That(view.Session.State.Decisions.Count,Is.EqualTo(1));
+            view.Session.SetPaused(true);
+            view.SendMessage("OnApplicationPause",true); view.SendMessage("OnApplicationPause",false);
+            Assert.That(view.Session.State.Paused,Is.True);
+            yield return null;
+        }
+        [UnityTest]
         public IEnumerator StartupUsesExactDemoAndOnlyTwoCaseChoices()
         {
             var raw=System.IO.File.ReadAllText(System.IO.Path.Combine(UnityEngine.Application.dataPath,"../../data/examples/export_Mobile_Click_Through_Rate_AGB_demo.json"));

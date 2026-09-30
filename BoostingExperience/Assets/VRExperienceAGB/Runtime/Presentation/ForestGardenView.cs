@@ -331,6 +331,7 @@ namespace VRExperienceAGB.Presentation
         }
         private void Update()
         {
+            Navigation?.RefreshForestHint();
             if(!Visible && !(simplifiedNavigation && Navigation?.Page==NavigationPage.Tree))return;
             if(hoverDirty) { hoverDirty=false; RefreshState(); }
             if(UnityEngine.InputSystem.Keyboard.current != null && UnityEngine.InputSystem.Keyboard.current.tabKey.wasPressedThisFrame)ToggleGuide();

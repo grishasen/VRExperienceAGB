@@ -17,6 +17,9 @@ namespace VRExperienceAGB.Presentation
         private readonly List<GameObject> rows = new List<GameObject>();
         private readonly GameObject previous, next;
         private int listPage;
+        private float forestHintUntil;
+        private Vector3 forestHintOrigin;
+        public bool ForestHintVisible => forest.gameObject.activeSelf;
         public bool TreeMenuOpen { get; private set; }
         private bool pausedBeforeTreeMenu;
         public bool ExplicitlyPaused => TreeMenuOpen ? pausedBeforeTreeMenu : View.Session.State.Paused;
@@ -70,6 +73,10 @@ namespace VRExperienceAGB.Presentation
             if(TreeMenuOpen) { TreeMenuOpen=false; View.Session.SetPaused(pausedBeforeTreeMenu); }
             Page=page;Revision++;
             View.ShowNavigationOverview();
+            if(page==NavigationPage.Forest) {
+                forestHintUntil=Time.unscaledTime+8f;
+                forestHintOrigin=garden.Locomotion.Origin.position;
+            }
             Refresh();Place();
         }
         public void OpenTree(int index)
@@ -102,7 +109,7 @@ namespace VRExperienceAGB.Presentation
         {
             home.gameObject.SetActive(Page==NavigationPage.Home);
             list.gameObject.SetActive(Page==NavigationPage.TreeList);
-            forest.gameObject.SetActive(Page==NavigationPage.Forest);
+            RefreshForestHint();
             for(int i=0;i<rows.Count;i++)
             {
                 int index=listPage*PageSize+i;rows[i].SetActive(index<garden.PlotCount);
@@ -115,6 +122,12 @@ namespace VRExperienceAGB.Presentation
             pageLabel.text=(listPage*PageSize+1)+"–"+Mathf.Min((listPage+1)*PageSize,garden.PlotCount)+" of "+garden.PlotCount;
             if(Page==NavigationPage.Tree)SimplifyTreeControls();
             garden.M6?.Refresh();
+        }
+        public void RefreshForestHint()
+        {
+            if(Page!=NavigationPage.Forest || Vector3.Distance(forestHintOrigin,garden.Locomotion.Origin.position)>.25f)
+                forestHintUntil=0;
+            forest.gameObject.SetActive(Page==NavigationPage.Forest && Time.unscaledTime<forestHintUntil && garden.M5?.HelpOpen!=true);
         }
         public void ToggleTreeMenu()
         {

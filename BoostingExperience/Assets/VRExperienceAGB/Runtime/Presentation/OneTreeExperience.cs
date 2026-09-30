@@ -567,7 +567,22 @@ namespace VRExperienceAGB.Presentation
             else { message = "Draft updated. Apply change to evaluate, or Cancel edit to keep the accepted result."; }
             Refresh();
         }
-        private void OnApplicationPause(bool paused) { if (paused && Session != null) { Session.SetPaused(true); Refresh(); } }
-        private void OnApplicationFocus(bool focus) { if (!focus && Session != null) { Session.SetPaused(true); Refresh(); } }
+        private bool applicationPaused, applicationUnfocused, lifecycleSuspended, pausedBeforeSuspension;
+        private void OnApplicationPause(bool paused) { applicationPaused=paused; RefreshApplicationSuspension(); }
+        private void OnApplicationFocus(bool focus) { applicationUnfocused=!focus; RefreshApplicationSuspension(); }
+        private void RefreshApplicationSuspension()
+        {
+            if(Session==null)return;
+            bool suspended=applicationPaused||applicationUnfocused;
+            if(suspended==lifecycleSuspended)return;
+            lifecycleSuspended=suspended;
+            if(suspended) {
+                pausedBeforeSuspension=Session.State.Paused;
+                Session.SetPaused(true);
+                NameTooltip?.Hide();
+                Garden?.Navigation?.InvalidatePointerPresses();
+            } else Session.SetPaused(pausedBeforeSuspension);
+            Refresh();
+        }
     }
 }

@@ -46,3 +46,16 @@ Include the two side cards, six visible edge labels, long membership tooltip, di
 Development Android build `build_4f4baeeffa6e` succeeded from runtime source commit `6f33a0c18d76e3ead0c0c2396fa5056de835b734` in 70.968 seconds, with zero errors and five warnings. APK: `artifacts/builds/VRExperienceAGB-m6-in-world-explanations.apk`, **98,883,871 bytes**; SHA-256 `a23422fe1ba0fc4e2ef7fe7db08643e4bcdbe67951b2b8666167bc6c842356b1`. The APK was not installed or run on Quest. Subsequent commits record documentation only.
 
 Warnings concern the intentionally absent Player Pipeline configuration, an existing TextMesh Pro shader debug-symbol pragma and three TextMesh Pro IL2CPP large-method diagnostics. Package versions and project settings were not migrated. Incidental font/material serialization by the Editor is excluded from the source change. Build details and the APK identity manifest are retained in ignored `artifacts/m6-2026-09-30/`.
+
+
+## First Quest walkthrough and interaction follow-up
+
+The original M6 APK was subsequently installed and launched on the connected Quest 3. Installation and a running process were verified; this was not headset acceptance. The user reported that branch selection stopped responding after selecting a second tree, while A still opened the menu and the headset had not been removed. The user also reported that the persistent `A / Tab` forest navigation panel stayed visible.
+
+The follow-up makes the forest navigation hint expire after eight seconds or after the observer moves more than 0.25 m; entering a tree also hides it. Refreshing tree data does not restart the timer. A separate confirmed lifecycle defect was corrected: application focus/pause loss temporarily pauses movement, and restoration now waits for both callbacks to recover before restoring the previous pause state. Explicit pause and menu pause remain preserved. **The lifecycle defect has not been established as the cause of the user's second-tree report.**
+
+Three new scene regressions cover second-tree selection through the menu, both branches and twelve observer headings using actual Interaction SDK ray surfaces; timed/movement hint dismissal; and focus/pause recovery with preservation of explicit pause. All **48 PlayMode tests pass**, including the previous explanation and navigation scenarios. Reports are in ignored `artifacts/m6-interaction-fix/`. Development builds now log discrete button hover/press/click state under `[TreeInput]`, without profile values, to distinguish missing pointer events from rejected or paused actions on hardware.
+
+The reported second-tree failure remains open pending reproduction on Quest with this diagnostic build. Editor success does not close it. Full readability, comfort and performance acceptance remain pending.
+
+Follow-up Android Development build `build_26df81bd0f91` succeeded in 19.194 seconds with zero errors and 4 inherited warnings. APK `artifacts/builds/VRExperienceAGB-m6-interaction-fix.apk`: 118,629,537 bytes; SHA-256 `412ba5e4be9a669493994e213ae6d47791d39370b2e78772cf83b1a39f363c78`. ADB update installation succeeded, launch returned `Status: ok`, and the app process was verified running on Quest 3. Second-tree hardware recheck remains pending.
