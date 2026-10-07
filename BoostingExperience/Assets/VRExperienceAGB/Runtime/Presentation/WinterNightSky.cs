@@ -10,7 +10,7 @@ namespace VRExperienceAGB.Presentation
     /// <summary>Catalog-based winter sky and bounded-rate decorative meteors.</summary>
     public sealed class WinterNightSky : MonoBehaviour
     {
-        private const float MaximumVisibleMagnitude = 5.0f;
+        private const float MaximumVisibleMagnitude = 4.0f;
         private ForestGardenView garden;
         private Transform root;
         private Material previousSky, background, points, moonMaterial;
@@ -40,7 +40,7 @@ namespace VRExperienceAGB.Presentation
             // Replace the oversized artistic disc with one camera-relative Moon, clear of the winter landmarks.
             var moon = owner.Experience.transform.Find("MoonlitEnvironment/Moon");
             if (moon != null && moon.gameObject.activeSelf) { hiddenMoons.Add(moon.gameObject); moon.gameObject.SetActive(false); }
-            BuildStars(); BuildMoon();
+            BuildStars(); BuildMoon(); BuildGuides();
             meteorMesh = new Mesh { name = "SingleMeteorRibbon" }; meteorMesh.MarkDynamic();
             meteor = CreateMesh("RareMeteor", meteorMesh); meteor.SetActive(false);
         }
@@ -70,6 +70,50 @@ namespace VRExperienceAGB.Presentation
             renderer.reflectionProbeUsage = UnityEngine.Rendering.ReflectionProbeUsage.Off;
             return go;
         }
+        private static readonly string[] GuidePaths = {
+            "Orion|Betelgeuse,Bellatrix,Mintaka,Alnilam,Alnitak,Saiph,Rigel,Mintaka;Betelgeuse,Alnitak",
+            "Canis Major|Mirzam,Sirius,Wezen,Adhara;Wezen,Aludra",
+            "Canis Minor|Procyon,Gomeisa",
+            "Taurus|Alcyone,Ain,Aldebaran,Elnath",
+            "Ursa Major|Dubhe,Merak,Phecda,Megrez,Dubhe;Megrez,Alioth,Mizar,Alkaid",
+            "Ursa Minor|Polaris,Yildun,Epsilon UMi,Zeta UMi,Eta UMi,Pherkad,Kochab,Zeta UMi",
+            "Cassiopeia|Caph,Schedar,Cih,Ruchbah,Segin",
+            "Auriga|Capella,Menkalinan,Elnath,Capella",
+            "Gemini|Castor,Pollux"
+        };
+        private static readonly HashSet<string> LandmarkNames = new HashSet<string>(GuidePaths.SelectMany(p => p.Split('|')[1].Split(';')).SelectMany(p => p.Split(',')));
+        private Mesh guideMesh;
+        private Transform guideLabels;
+        private void BuildGuides()
+        {
+            guides=new GameObject("ConstellationGuides");guides.transform.SetParent(root,false);
+            var vertices=new List<Vector3>();var colors=new List<Color>();var uv=new List<Vector2>();var triangles=new List<int>();
+            guideLabels=new GameObject("ConstellationNames").transform;guideLabels.SetParent(guides.transform,false);
+            foreach(var constellation in GuidePaths) {
+                var parts=constellation.Split('|');Vector3 center=Vector3.zero;int count=0;
+                foreach(var chain in parts[1].Split(';')) {
+                    var stars=chain.Split(',');
+                    for(int n=0;n<stars.Length;n++)if(names.TryGetValue(stars[n],out var d)&&d.y>0){center+=d;count++;}
+                    for(int n=1;n<stars.Length;n++) {
+                        if(!names.TryGetValue(stars[n-1],out var a)||!names.TryGetValue(stars[n],out var b)||a.y<=0||b.y<=0)continue;
+                        for(int j=0;j<8;j++) {
+                            var from=Vector3.Slerp(a,b,j/8f);var to=Vector3.Slerp(a,b,(j+1)/8f);var width=Vector3.Cross(from,to).normalized*.00045f;int k=vertices.Count;
+                            vertices.AddRange(new[]{from-width,to-width,to+width,from+width});uv.AddRange(new[]{Vector2.zero,Vector2.right,Vector2.one,Vector2.up});
+                            colors.AddRange(Enumerable.Repeat(new Color(.20f,.42f,.60f,.5f),4));triangles.AddRange(new[]{k,k+1,k+2,k,k+2,k+3});
+                        }
+                    }
+                }
+                if(count>0){
+                    var direction=(center/count).normalized;
+                    var canvas=garden.CanvasAt(parts[0],direction*80+Vector3.up*1.8f,new Vector2(650,70),.008f,guideLabels);
+                    canvas.transform.rotation=Quaternion.LookRotation(direction);
+                    garden.Text(canvas.transform,"Name",parts[0],Vector2.zero,new Vector2(650,70),28).color=new Color(.42f,.60f,.75f);
+                }
+            }
+            guideMesh=new Mesh{name="ConstellationLines"};guideMesh.SetVertices(vertices);guideMesh.SetColors(colors);guideMesh.SetUVs(0,uv);guideMesh.SetTriangles(triangles,0);guideMesh.bounds=new Bounds(Vector3.zero,Vector3.one*100000);
+            CreateMesh("GuideLines",guideMesh).transform.SetParent(guides.transform,false);guides.SetActive(false);
+        }
+        private void LateUpdate(){if(guideLabels!=null&&garden?.Locomotion?.Head!=null)guideLabels.position=garden.Locomotion.Head.position;}
         private void BuildStars()
         {
             var vertices = new List<Vector3>(); var colors = new List<Color>(); var uv = new List<Vector2>(); var triangles = new List<int>();
@@ -77,8 +121,12 @@ namespace VRExperienceAGB.Presentation
             foreach (var line in lines.Skip(1).Where(l => l.Length > 0)) {
                 var c = line.Split(','); double ra = Parse(c[2]), dec = Parse(c[3]); float magnitude = (float)Parse(c[4]), ci = (float)Parse(c[5]);
                 var d = WinterSkyCoordinates.Direction(ra, dec); var direction = new Vector3(-(float)d.east, (float)d.up, (float)d.south);
-                if (c[1].Length > 0) names[c[1]] = direction;
-                if (direction.y <= 0 || magnitude > MaximumVisibleMagnitude) continue;
+                string starName=c[1];
+                if(c[0]=="81830")starName="Epsilon UMi";
+                if(c[0]=="76819")starName="Zeta UMi";
+                if(c[0]=="79580")starName="Eta UMi";
+                if (starName.Length > 0) names[starName] = direction;
+                if (direction.y <= 0 || (magnitude > MaximumVisibleMagnitude && !LandmarkNames.Contains(starName) && !(ra > 3.65 && ra < 3.88 && dec > 23 && dec < 25))) continue;
                 float radius = Mathf.Lerp(.075f, .21f, Mathf.InverseLerp(6, -1.5f, magnitude)) * Mathf.Deg2Rad;
                 var right = Vector3.Cross(direction, Vector3.up).normalized * radius; var up = Vector3.Cross(right.normalized, direction) * radius;
                 var color = Color.Lerp(new Color(.66f,.80f,1), new Color(1,.64f,.36f), Mathf.InverseLerp(-.3f,1.8f,ci));
@@ -94,6 +142,8 @@ namespace VRExperienceAGB.Presentation
             starMesh.bounds = new Bounds(Vector3.zero, Vector3.one * 100000); CreateMesh("CatalogStars", starMesh);
         }
         private static double Parse(string value) => double.Parse(value, CultureInfo.InvariantCulture);
+        public void ToggleGuides() { if (guides != null) guides.SetActive(!guides.activeSelf); }
+        private GameObject guides;
         private bool Allowed => !paused && !unfocused && garden.Experience.Ready && !garden.Experience.Session.State.Paused &&
             !garden.M5.HelpOpen && !garden.M5.Comparison.PanelOpen && !garden.M5.Extensions.PanelOpen;
         private void Update() => AdvanceSky(Time.unscaledDeltaTime);
@@ -127,6 +177,7 @@ namespace VRExperienceAGB.Presentation
             if (RenderSettings.skybox == background) RenderSettings.skybox = previousSky;
             foreach (var moon in hiddenMoons) if (moon != null) moon.SetActive(true);
             if(root != null) Destroy(root.gameObject);
+            if(guideMesh != null) Destroy(guideMesh);
             if(starMesh != null) Destroy(starMesh); if(meteorMesh != null) Destroy(meteorMesh);
             if(moonMesh != null) Destroy(moonMesh); if(moonMaterial != null) Destroy(moonMaterial);
             if(background != null) Destroy(background); if(points != null) Destroy(points);

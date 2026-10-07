@@ -12,9 +12,13 @@ namespace VRExperienceAGB.Presentation
     public sealed class OneTreeExperience : MonoBehaviour
     {
         public TextAsset modelFile;
+        public bool useLocalSample = true;
+        public bool useUnifiedInterface = true;
         public TextAsset profilesFile;
         public TextAsset comparisonModelFile;
         public TextAsset comparisonProfilesFile;
+        public ExperienceDirector Director { get; private set; }
+        public bool LocalSampleActive { get; private set; }
         public ProfileComparisonSession Comparison { get; private set; }
         public ProfileSet AvailableProfiles => profiles;
         private ModelDefinition returnModel;
@@ -82,6 +86,7 @@ namespace VRExperienceAGB.Presentation
             var imported = AgbStructurePreview.Read(json, displayName);
             if (!imported.IsSuccess) return imported;
             if (!Ready && !Initialize()) return Outcome<AgbPreviewResult>.Failure(new[] { new Diagnostic("SceneUnavailable", "The teaching scene is unavailable.") });
+            Director?.StopPlayback(false);LocalSampleActive=false;
             ClearComparison();
             model = imported.Value.Model; ExportPreview = imported.Value; exportName = displayName;
             profiles = new ProfileSet(1, model.Id, Array.Empty<PreparedProfile>());
@@ -93,26 +98,36 @@ namespace VRExperienceAGB.Presentation
         private void Start() { Initialize(); }
         public bool Initialize()
         {
+            if(!useUnifiedInterface && Director!=null){Director.CloseMenu();Director.StopPlayback(false);Director.enabled=false;Destroy(Director);Director=null;}
             ClearComparison();
             Session = null; ExportPreview = null;
-            if (modelFile == null) return Fail("The model file is missing.");
-            var input = NormalizedModelJson.ReadModel(modelFile.text);
+            var localModel = Resources.Load<TextAsset>("LocalModel/model");
+            var localProfiles = Resources.Load<TextAsset>("LocalModel/profiles");
+            LocalSampleActive = useLocalSample && localModel != null && localProfiles != null;
+            var selectedModel = LocalSampleActive ? localModel : modelFile;
+            var selectedProfiles = LocalSampleActive ? localProfiles : profilesFile;
+            if (selectedModel == null) return Fail("The model file is missing.");
+            var input = NormalizedModelJson.ReadModel(selectedModel.text);
             if (input.IsSuccess)
             {
                 model = input.Value;
-                if (profilesFile == null) return Fail("Bundled synthetic profiles are missing.");
-                var prepared = NormalizedModelJson.ReadProfiles(profilesFile.text, model);
+                if (selectedProfiles == null) return Fail("Bundled synthetic profiles are missing.");
+                var prepared = NormalizedModelJson.ReadProfiles(selectedProfiles.text, model);
                 if (!prepared.IsSuccess) return Fail(string.Join("; ", prepared.Diagnostics.Select(d => d.Code)));
                 profiles = prepared.Value;
             }
             else
             {
-                var imported = AgbStructurePreview.Read(modelFile.text, modelFile.name);
+                var imported = AgbStructurePreview.Read(selectedModel.text, selectedModel.name);
                 if (!imported.IsSuccess) return Fail(string.Join("; ", imported.Diagnostics.Select(d => d.Code + ": " + d.Message)));
                 ExportPreview = imported.Value; exportName = modelFile.name; model = imported.Value.Model;
                 profiles = new ProfileSet(1, model.Id, Array.Empty<PreparedProfile>());
                 showProfileDetails = false;
                 message = "Export structure loaded. Explore branches; profile scoring is unverified.";
+            }
+            if (LocalSampleActive) {
+                var export = Resources.Load<TextAsset>("LocalModel/export");
+                if (export != null) ExportPreview = AgbStructurePreview.Read(export.text, "Local sample · source scoring unverified").Value;
             }
             if (nodeViews == null || nodeViews.Any(v => v == null || v.platform == null || v.title == null || v.marker == null || v.dropAnchor == null) ||
                 nodeViews.Length != 7)
@@ -127,13 +142,19 @@ namespace VRExperienceAGB.Presentation
             var branchLabels = presentationRoot.GetComponentsInChildren<TMP_Text>(true)
                 .Where(label => label.name == "Meaning" && label.transform.parent.name == "BranchMeaning").ToArray();
             var splits = model.Trees[0].Nodes.OfType<SplitNode>().ToArray();
-            if (!model.StructureOnlyPreview && branchLabels.Length != splits.Length * 2) return Fail("The scene's branch labels do not match the model.");
-            for (var i = 0; !model.StructureOnlyPreview && i < splits.Length; i++)
+            if (!LocalSampleActive && !model.StructureOnlyPreview && branchLabels.Length != splits.Length * 2) return Fail("The scene's branch labels do not match the model.");
+            for (var i = 0; !LocalSampleActive && !model.StructureOnlyPreview && i < splits.Length; i++)
             {
                 branchLabels[i * 2].text = "TRUE\n" + Condition(splits[i], true);
                 branchLabels[i * 2 + 1].text = "FALSE\n" + Condition(splits[i], false);
             }
-            PrepareNameHover(); Garden = GetComponent<ForestGardenView>(); Garden?.Configure(this); return StartEnsemble(null, true);
+            PrepareNameHover(); Garden = GetComponent<ForestGardenView>(); Garden?.Configure(this);
+            bool ready = StartEnsemble(null, true);
+            if (ready && Garden != null && useUnifiedInterface) {
+                Director = GetComponent<ExperienceDirector>() ?? gameObject.AddComponent<ExperienceDirector>();
+                Director.Configure(this);
+            }
+            return ready;
         }
 
         public Outcome<ProfileComparisonSession> BeginComparison(bool synthetic)
@@ -212,10 +233,16 @@ namespace VRExperienceAGB.Presentation
                 AdoptCurrent(true);
             };
         }
+        public void StartScenarioProfiles(int a, int b = -1)
+        {
+            ClearComparison();
+            SetReviewProfiles(a < 0 ? null : profiles.Profiles[a], b < 0 ? null : profiles.Profiles[b], false);
+        }
         public void SetReviewProfiles(PreparedProfile a, PreparedProfile b, bool showingB)
         {
             Session.ReturnToOverview(); Comparison = null;
             if (b != null) {
+                returnModel=model;returnProfiles=profiles;returnEnsemble=Ensemble;returnExport=ExportPreview;returnProfileIndex=profileIndex;
                 Comparison = ProfileComparisonSession.Create(model, a).Value;
                 Comparison.ReplaceB(b); Comparison.Show(showingB, 0); Ensemble = Comparison.Active;
             } else Ensemble = EnsembleSession.Create(model, a).Value;
@@ -289,6 +316,12 @@ namespace VRExperienceAGB.Presentation
             if (overview) Session.ReturnToOverview();
             movingEvent = -1; dwell = 0; displayedRevision = -1; Refresh();
         }
+        public void SelectPlaybackTree(int index)
+        {
+            if(Comparison!=null){Comparison.Show(false,index);Ensemble=Comparison.Active;}
+            else Ensemble.Select(index);
+            Ensemble.Current.EnterTree();AdoptCurrent(false);
+        }
         public void SelectGardenTree(int index)
         {
             if (Garden == null || !Garden.Visible || index < 0 || index >= model.Trees.Count) return;
@@ -324,6 +357,7 @@ namespace VRExperienceAGB.Presentation
 
         public void Execute(TreeAction action, long revision, string nodeId)
         {
+            if (Director?.PlayingTour==true && action!=TreeAction.Menu)return;
             if (Session == null || revision != Session.State.Revision || nodeId != Session.State.NodeId) return;
             if ((Garden?.M5?.Comparison?.PanelOpen == true || Garden?.M5?.Extensions?.PanelOpen == true)) return;
             if (Comparison != null && (action == TreeAction.TrueBranch || action == TreeAction.FalseBranch ||
@@ -429,7 +463,7 @@ namespace VRExperienceAGB.Presentation
                 case TreeAction.Profile: showProfileDetails = true; StartEnsemble(profiles.Profiles[profileIndex], false, Ensemble.Index); message = "Follow this synthetic profile with Step or Play."; Refresh(); return;
                 case TreeAction.NextProfile: showProfileDetails = true; profileIndex = (profileIndex + 1) % profiles.Profiles.Count; message = "Profile selected. Review its values, then choose Follow profile to start."; Refresh(); return;
                 case TreeAction.Seated:
-                    seated = !seated; presentationRoot.localPosition = new Vector3(0, seated ? -0.4f : 0, 0);
+                    seated = !seated; presentationRoot.localPosition = new Vector3(presentationRoot.localPosition.x, seated ? -0.4f : 0, presentationRoot.localPosition.z);
                     message = seated ? "Seated layout: presentation lowered; tracking space unchanged." : "Standing layout restored.";
                     Refresh(); return;
             }
@@ -442,6 +476,7 @@ namespace VRExperienceAGB.Presentation
         private void Update() { Advance(Time.unscaledDeltaTime); }
         public void Advance(float seconds)
         {
+            if (Director != null && (Director.PlayingTour || Director.MenuVisible)) return;
             if ((Garden?.M5?.Comparison?.PanelOpen == true || Garden?.M5?.Extensions?.PanelOpen == true)) return;
             if (Garden?.simplifiedNavigation == true && focusedView?.FocusRoot != null) return;
             if (Session == null || !float.IsFinite(seconds) || seconds < 0) return;
@@ -475,7 +510,9 @@ namespace VRExperienceAGB.Presentation
         public void Refresh()
         {
             if (Session == null) return;
+            Director?.InvalidatePlaybackPresentation();
             var s = Session.State; displayedRevision = s.Revision;
+            status.gameObject.SetActive(Director?.PlayingTour!=true);
             status.text = (s.Overview ? "FOREST ENTRY  |  " : "TREE " + (Ensemble.Index + 1) + " / " + model.Trees.Count + "  |  ") + (s.Mode == ExperienceMode.Manual ? "EXPLORE BRANCHES" : "FOLLOW A PROFILE") +
                 (s.Paused ? "  |  PAUSED" : s.PendingDecision != null ? "  |  MOVING" : s.Playing ? "  |  PLAYING" : "");
             var chosen = profiles.Profiles.Count > 0 ? profiles.Profiles[profileIndex] : null;

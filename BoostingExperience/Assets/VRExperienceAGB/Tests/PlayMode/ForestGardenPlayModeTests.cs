@@ -15,8 +15,9 @@ namespace VRExperienceAGB.Tests
         [UnitySetUp]
         public IEnumerator Open()
         {
-            yield return SceneManager.LoadSceneAsync("OneTreeLearning");yield return null;
-            view=Object.FindAnyObjectByType<OneTreeExperience>();view.enabled=false;
+            yield return LegacyTeachingScene.Load();yield return null;
+            view=Object.FindAnyObjectByType<OneTreeExperience>();
+            view.enabled=false;
             view.GetComponent<DesktopTreePreview>().enabled=false;
             // Regression coverage uses the verified synthetic profile fixture, independently of the startup demo.
             view.Garden.simplifiedNavigation=false;

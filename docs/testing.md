@@ -122,3 +122,40 @@ For that combined walkthrough, check both controllers and both postures: left-st
 ## M6 explanation additions
 
 The September 30 implementation adds M6-09–M6-20. Include these in the deferred combined Quest walkthrough: node questions and both alternatives; full membership scrolling; portrait and repeated numeric bounds; explicit missing routing; hover gain/counts/source; crown passports from multiple approaches; composition legend; held-pointer predictor matches and return to the forest; threshold/current-cut distinction; supported-profile leaf subtotal versus full result; entrance monitoring provenance. Check both seated and standing layouts and long labels. The [implementation record](m6-in-world-explanations-2026-09-30.md) keeps automated evidence separate from hardware acceptance.
+
+## Repeatable scenario recording — October 7, 2026
+
+Prepare the locally available sample, open the project in Unity 6000.6.3f1, then run:
+
+```sh
+python3 scripts/prepare-local-sample.py
+bash scripts/record-scenario.sh
+```
+
+The opt-in `ScenarioVideoTests` runs actual scene commands and records 1280×720 at 15 FPS with the Unity audio mix. It covers the main menu, placement, manual decisions, a complete prepared-profile traversal, final result prompt, forest/table results, simultaneous A/B, constellation guides, wolf appearance/howl/departure and mute. Long ensemble sections are explicitly captioned as accelerated; every tree is evaluated and visited. `ScenarioRevisionTests` independently checks all reference leaves, full traversal, result persistence, tracked local pose and wildlife timing.
+
+Output: `artifacts/scenario-revision/video/scenario.mp4`, `test-result.json`, `completed.txt`, frames and audio. The script replaces the finished MP4 only after recording and encoding succeed. No headset is required. Ordinary test runs skip the video unless the request marker exists.
+
+The recorder moves only the Editor preview camera for sky/wildlife shots. This is not a headset recording, physical-controller test, comfort assessment or performance measurement. Device acceptance still requires menu pointing, stereo readability, recenter/placement, both postures, full tour interruption/resume, spatial howl and the complete 100-tree scene on Quest 3.
+
+Validation on October 7: **179/179 EditMode and 75/75 ordinary PlayMode tests passed**; the opt-in recording test was skipped in that ordinary suite. Reports: `artifacts/scenario-revision/editmode.json` and `playmode-final.json`. The historical component suites explicitly select their original fixture/interface before scene startup; five new default-scenario tests exercise the 100-tree sample, actual menu raycasts/guarded clicks, scene placement, completed A/B results and wolf timing.
+
+The three local synthetic reference results are:
+
+| Profile | Raw Score | Sigmoid probability | Trees checked |
+| --- | ---: | ---: | ---: |
+| Synthetic baseline | -4.936703202173835 | 0.007127064888432 | 100 |
+| Synthetic alternative | -3.343727525310490 | 0.034101165982097 | 100 |
+| Synthetic boundary case | -3.393406053010961 | 0.032502178573973 | 100 |
+
+All 300 reached leaf identities match the independent nested-source traversal. The source SHA-256 is `6cd87c1839a0ab96fd2a973f5fa3256a0a6b391ebd75bc3c76edcb408485b363`. These are reconstruction checks under the documented scoring assumptions, not source-platform certification.
+
+The opt-in video test subsequently passed separately: **1/1**, 1,367 frames at 15 FPS (91.13 seconds), H.264 1280×720 with 48 kHz stereo AAC. Reviewed frames cover menu, profile explanation, A/B paths, complete forest, table probabilities and wolf visibility. The recorder explicitly supplies desktop lifecycle state and releases audio/capture resources in test teardown, including after assertion failures.
+
+Android Development build: **Succeeded**, zero errors and five warnings, `artifacts/builds/VRExperienceAGB-scenarios.apk` (102,837,216 bytes), SHA-256 `849ffe39a9fc1d7440dd50f303bb8f105216ae493adee2eee48d5ba740d30144`. The build report is `artifacts/scenario-revision/build.json`. This APK has not been installed or accepted on Quest 3 in this revision.
+
+## Quest feedback follow-up — October 8, 2026
+
+See [current fixes, test evidence and device-sampling procedure](quest-feedback-2026-10-08.md). The updated suites pass **180 EditMode and 79 PlayMode** tests. The opt-in recording passes separately and produces a 99.67-second video demonstrating stone playback, pause/resume and Calculate whole model. The previous October 7 APK was installed and launched before the user reported the issues addressed here.
+
+The corrected APK was built, installed and launched on Quest 3. A focused 15-second sample with the user wearing the headset measured **68.65 FPS average**, median **13.889 ms** and p95 **15.511 ms**. This is a short single-tree sample with manual interactions, not a sustained frame-rate guarantee. Full details, APK identity and limitations are in the linked follow-up record.

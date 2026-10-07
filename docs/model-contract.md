@@ -150,3 +150,11 @@ For production verification, collect an approved export and representative sourc
 ## M6 explanatory metadata
 
 The normalized feature dictionary accepts an optional English `unit` string for presentation only. Nested AGB preview imports retain optional modelVersion, factoryUpdateTime, trainingStats and auc independently of evaluator data. Unknown or invalid monitoring fields remain unavailable. The [M6 explanation record](m6-in-world-explanations-2026-09-30.md) defines gain shares, namespace grouping, threshold bins and the neutral observation-count review convention. None of these descriptions verifies real-model scoring or changes evaluator inputs.
+
+## Local sample demonstration — October 7, 2026
+
+`scripts/prepare-local-sample.py` reconstructs the local 100-tree sample into ignored `Resources/LocalModel/`. Every exported tree and reached leaf participates. The generated fixture explicitly assumes true → left, strict `<`, exact membership, baseScore zero and unit weights; its output is sigmoid of the sum of reached leaf scores. Three fully supplied synthetic profiles exercise median thresholds, upper values and lower values. Missing-only predictors receive explicit present synthetic values. Observed category values define these fixture inputs, not a production feature dictionary or an unseen-category policy.
+
+A separate direct traversal of the nested source writes expected leaves, contributions and final results. Unity integration tests compare all 100 leaves for each profile with that reference. This checks implementation agreement under the stated reconstruction; it does not establish agreement with the source platform. Real profiles, reference scores, preparation rules and missing/unseen routing remain pending. The generic nested importer retains its structure-only scoring guard.
+
+The local source and generated resources remain untracked; new sensitive inputs belong in `data/private/`. The sample is included only in locally prepared builds. Manual branch choices never become a profile probability.

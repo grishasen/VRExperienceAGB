@@ -107,8 +107,8 @@ namespace VRExperienceAGB.Presentation
         }
         public void Refresh()
         {
-            home.gameObject.SetActive(Page==NavigationPage.Home && garden.M5?.Comparison?.PanelOpen != true && garden.M5?.Extensions?.PanelOpen != true);
-            list.gameObject.SetActive(Page==NavigationPage.TreeList && garden.M5?.Comparison?.PanelOpen != true && garden.M5?.Extensions?.PanelOpen != true);
+            home.gameObject.SetActive(View.Director==null && Page==NavigationPage.Home && garden.M5?.Comparison?.PanelOpen != true && garden.M5?.Extensions?.PanelOpen != true);
+            list.gameObject.SetActive(View.Director==null && Page==NavigationPage.TreeList && garden.M5?.Comparison?.PanelOpen != true && garden.M5?.Extensions?.PanelOpen != true);
             RefreshForestHint();
             for(int i=0;i<rows.Count;i++)
             {
@@ -127,10 +127,11 @@ namespace VRExperienceAGB.Presentation
         {
             if(Page!=NavigationPage.Forest || Vector3.Distance(forestHintOrigin,garden.Locomotion.Origin.position)>.25f)
                 forestHintUntil=0;
-            forest.gameObject.SetActive(Page==NavigationPage.Forest && Time.unscaledTime<forestHintUntil && garden.M5?.HelpOpen!=true && garden.M5?.Comparison?.PanelOpen != true && garden.M5?.Extensions?.PanelOpen != true);
+            forest.gameObject.SetActive(View.Director==null && Page==NavigationPage.Forest && Time.unscaledTime<forestHintUntil && garden.M5?.HelpOpen!=true && garden.M5?.Comparison?.PanelOpen != true && garden.M5?.Extensions?.PanelOpen != true);
         }
         public void ToggleTreeMenu()
         {
+            if(View.Director != null) { View.Director.ToggleMenu(); return; }
             if(Page!=NavigationPage.Tree)return;
             if(!TreeMenuOpen) { pausedBeforeTreeMenu=View.Session.State.Paused; View.Session.SetPaused(true); }
             else View.Session.SetPaused(pausedBeforeTreeMenu);
@@ -208,6 +209,10 @@ namespace VRExperienceAGB.Presentation
                 View.score.text="Tree "+(View.Ensemble.Index+1)+" / "+garden.PlotCount+" · "+(View.Comparison != null ? (View.Comparison.ShowingB ? "B · " : "A · ") : "")+View.Ensemble.Profile.DisplayName+
                     "\nPrepared synthetic profile · A: Tree menu";
             View.NameTooltip?.UseCompactLayout();
+        }
+        public void HideLegacyMenus()
+        {
+            home.gameObject.SetActive(false);list.gameObject.SetActive(false);forest.gameObject.SetActive(false);
         }
         public void Place()
         {

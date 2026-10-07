@@ -107,6 +107,7 @@ namespace VRExperienceAGB.Presentation
         }
         public void RefreshDrops()
         {
+            if(View.Director?.PlayingTour==true){foreach(var marker in drops)marker.gameObject.SetActive(false);return;}
             if (Pair == null) return;
             bool inTree = owner.Garden.Navigation?.Page == NavigationPage.Tree && !PanelOpen;
             for (int i = 0; i < drops.Length; i++)

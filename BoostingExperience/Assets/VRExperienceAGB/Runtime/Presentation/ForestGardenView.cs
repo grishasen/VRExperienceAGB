@@ -33,7 +33,7 @@ namespace VRExperienceAGB.Presentation
             public Transform root;
             public Canvas plaque;
             public TMP_Text label, hoverLabel, linkLabel;
-            public Renderer ring;
+            public Renderer ring, ringB;
             public Canvas crownTarget;
             public Vector3 ringScale;
         }
@@ -47,7 +47,7 @@ namespace VRExperienceAGB.Presentation
         private Canvas guide, guideHandle;
         public bool GuideOpen => guide != null && guide.gameObject.activeSelf;
         private bool guideButtonReleased = true;
-        private Material gardenFoliage;
+        private Material gardenFoliage, backdropFoliage;
         private TMP_Text header;
         private GameObject profileButton;
         private Material quietRing, positiveRing, negativeRing;
@@ -65,15 +65,19 @@ namespace VRExperienceAGB.Presentation
             Locomotion=gameObject.AddComponent<GardenLocomotion>(); Locomotion.Configure(experience);
             walkthroughObjects.Add(experience.presentationRoot.gameObject,experience.presentationRoot.gameObject.activeSelf);
             var environment=experience.transform.Find("MoonlitEnvironment");
-            if(environment!=null)walkthroughObjects.Add(environment.gameObject,environment.gameObject.activeSelf);
+            if(environment!=null) {
+                walkthroughObjects.Add(environment.gameObject,environment.gameObject.activeSelf);
+                foreach(Transform decoration in environment)
+                    if(decoration.name=="PineTree")StyleBackdrop(decoration.gameObject);
+            }
             gardenFoliage=new Material(pineMaterial) { name="GardenEvergreen", enableInstancing=true };
             gardenFoliage.color=new Color(.42f,.8f,.5f);
             gardenFoliage.EnableKeyword("_EMISSION");gardenFoliage.SetColor("_EmissionColor",new Color(.01f,.045f,.016f));
             quietRing=new Material(completedMaterial) { name="UnvisitedPlanterRing" };
             quietRing.color=new Color(.10f,.25f,.27f); quietRing.enableInstancing=true;
             quietRing.DisableKeyword("_EMISSION");quietRing.SetColor("_EmissionColor",Color.black);
-            positiveRing=ContributionMaterial("PositiveContribution",new Color(.05f,.85f,.78f));
-            negativeRing=ContributionMaterial("NegativeContribution",new Color(1f,.32f,.055f));
+            positiveRing=ContributionMaterial("PositiveContribution",new Color(.06f,.32f,1f));
+            negativeRing=ContributionMaterial("NegativeContribution",new Color(1f,.08f,.12f));
             M5 = gameObject.AddComponent<M5ForestPresentation>(); M5.Configure(this);
             M6 = gameObject.AddComponent<M6ExplanationPresentation>(); M6.Configure(this);
         }
@@ -129,6 +133,7 @@ namespace VRExperienceAGB.Presentation
                     var p=decoration.localPosition;
                     p.x = (p.x<0?-1:1)*(23+Mathf.Abs(p.x)*.4f);p.z=p.z*1.7f;
                     copy.transform.localPosition=p;
+                    StyleBackdrop(copy);
                 }
             }
             for(int row=0;row<rows;row++)
@@ -157,6 +162,19 @@ namespace VRExperienceAGB.Presentation
             if(simplifiedNavigation) Navigation = new SimpleExperienceNavigation(this, root.transform);
             else { Navigation = null; BuildGuide(); }
         }
+        private void StyleBackdrop(GameObject tree)
+        {
+            foreach(var renderer in tree.GetComponentsInChildren<Renderer>(true)) {
+                if(renderer.name!="RadialBranches")continue;
+                if(backdropFoliage==null) {
+                    backdropFoliage=new Material(renderer.sharedMaterial){name="BlueFrostSceneryFoliage",enableInstancing=true};
+                    backdropFoliage.SetColor("_BaseColor",new Color(.22f,.48f,.9f));
+                    backdropFoliage.EnableKeyword("_EMISSION");
+                    backdropFoliage.SetColor("_EmissionColor",new Color(.025f,.09f,.22f));
+                }
+                renderer.sharedMaterial=backdropFoliage;
+            }
+        }
         private void BuildPlot(int index)
         {
             var tree=metrics[index];var container=new GameObject("ModelTree-"+(index+1)).transform;
@@ -166,6 +184,8 @@ namespace VRExperienceAGB.Presentation
             MeshObject("Trunk",container,new Vector3(0,.4f,0),new Vector3(.12f+tree.CrownRadius*.1f,tree.PineHeight,.12f+tree.CrownRadius*.1f),trunkMesh,barkMaterial,true);
             var pine=MeshObject("Pine",container,new Vector3(0,.4f,0),new Vector3(tree.CrownRadius*2,tree.PineHeight,tree.CrownRadius*2),pineMesh,gardenFoliage,true);
             var ring=MeshObject("ProgressRing",container,new Vector3(0,.40f,0),new Vector3(1.04f/.555f,1,1.04f/.555f),ringMesh,quietRing,false).GetComponent<Renderer>();
+            var ringB=MeshObject("ProfileBRing",container,new Vector3(0,.44f,0),new Vector3(.83f/.555f,1,.83f/.555f),ringMesh,quietRing,false).GetComponent<Renderer>();
+            ringB.gameObject.SetActive(false);
             var plaque=CanvasAt("TreePlaque-"+(index+1),PlotPosition(index)+new Vector3(0,.20f,-1.15f),new Vector2(640,1500),.0024f,root.transform);
             // The crown owns its target, independent of the fixed planter label. It faces the observer from every approach.
             var crown=CanvasAt("PineCrownTarget-"+(index+1),pine.GetComponent<Renderer>().bounds.center-container.position+Vector3.up*tree.PineHeight*.1f,new Vector2(tree.CrownRadius*2/.0024f,tree.PineHeight*.72f/.0024f),.0024f,container);
@@ -185,7 +205,7 @@ namespace VRExperienceAGB.Presentation
             var linkCanvas=CanvasAt("PredictorMatch",new Vector3(0,tree.PineHeight+.85f,0),new Vector2(500,60),.0024f,container);
             var linkLabel=Text(linkCanvas.transform,"Match","",Vector2.zero,new Vector2(500,60),25);
             M6.AddComposition(container,index,new Vector3(0,.48f,-1.12f),.002f);
-            plots.Add(new Plot{root=container,plaque=plaque,crownTarget=crown,label=button.GetComponentInChildren<TMP_Text>(),hoverLabel=hoverLabel,linkLabel=linkLabel,ring=ring,ringScale=ring.transform.localScale});
+            plots.Add(new Plot{root=container,plaque=plaque,crownTarget=crown,label=button.GetComponentInChildren<TMP_Text>(),hoverLabel=hoverLabel,linkLabel=linkLabel,ring=ring,ringB=ringB,ringScale=ring.transform.localScale});
         }
         private void BuildGuide()
         {
@@ -234,7 +254,7 @@ namespace VRExperienceAGB.Presentation
         public void Activate(GardenCommand command,int index=0)
         {
             if(!Visible)return;
-            if(M5.HelpOpen || M5.Comparison.PanelOpen || M5.Extensions.PanelOpen)return;
+            if(Experience.Director?.MenuVisible == true || M5.HelpOpen || M5.Comparison.PanelOpen || M5.Extensions.PanelOpen)return;
             if(command==GardenCommand.SelectTree && index>=0 && index<PlotCount) M5.Atmosphere.SelectAt(plots[index].root.position+Vector3.up);
             if(simplifiedNavigation && Navigation.Activate(command,index)) return;
             M5.Extensions.RefreshMatches();
@@ -264,6 +284,7 @@ namespace VRExperienceAGB.Presentation
         }
         public void ToggleGuide()
         {
+            if(Experience.Director != null) { Experience.Director.ToggleMenu(); return; }
             if (M5?.Extensions?.PanelOpen == true) { M5.Extensions.Close(); return; }
             if (M5?.Comparison?.PanelOpen == true) { M5.Comparison.Close(); return; }
             if (M5 != null && M5.HelpOpen) { M5.CloseHelp(); return; }
@@ -313,8 +334,12 @@ namespace VRExperienceAGB.Presentation
                 if (M5.Extensions.TrailActive && Experience.Ensemble.Evaluation != null) {
                     reached = i < M5.Extensions.Iteration; contribution = Experience.Ensemble.Evaluation.Trees[i].Contribution;
                 }
+                if(Experience.Director != null && Experience.Director.TryContribution(i,false,out var finalContribution)) { reached=true; contribution=finalContribution; }
                 var material=!reached||contribution==0?quietRing:contribution>0?positiveRing:negativeRing;
                 plots[i].ring.sharedMaterial=material;
+                bool hasB=Experience.Director!=null && Experience.Director.TryContribution(i,true,out _);
+                plots[i].ringB.gameObject.SetActive(hasB);
+                if(hasB){Experience.Director.TryContribution(i,true,out var bv);plots[i].ringB.sharedMaterial=ContributionRing(true,bv);}
                 float magnitude=reached&&maximumContribution>0?(float)Math.Min(1,Math.Abs(contribution)/maximumContribution):0;
                 var scale=plots[i].ringScale;scale.y*=1+4*magnitude;plots[i].ring.transform.localScale=scale;
                 string sign=!reached?"":contribution>0?" +":contribution<0?" −":" 0";
@@ -327,6 +352,7 @@ namespace VRExperienceAGB.Presentation
                 plots[i].hoverLabel.transform.parent.gameObject.SetActive(i==hovered);
                 string value=contribution.ToString("+0.###;-0.###;0",System.Globalization.CultureInfo.InvariantCulture);
                 string route=reached?(Experience.Ensemble.Mode==ExperienceMode.Manual?"Route contribution: ":"Profile contribution: ")+value:"Contribution not reached";
+                if(hasB){Experience.Director.TryContribution(i,true,out var bv);route="A: "+value+" · B: "+bv.ToString("+0.###;-0.###;0",System.Globalization.CultureInfo.InvariantCulture);}
                 plots[i].hoverLabel.text=M6.Analysis.Passport(i)+"\n"+route+"\n"+(linkedFeature==null?"Point at node names to link predictors":"◆ "+M6.Analysis.Label(linkedFeature)+" · "+(linked?"in search scope":"outside search scope"))+"\nTrigger / Click to explore";
             }
             if(simplifiedNavigation) { Navigation.Refresh(); RefreshNearbyPlaques(); return; }
@@ -435,6 +461,6 @@ namespace VRExperienceAGB.Presentation
             if(fit)go.transform.localPosition-=Vector3.Scale(bounds.center,go.transform.localScale)-Vector3.up*size.y*.5f;
             go.GetComponent<MeshFilter>().sharedMesh=mesh;go.GetComponent<MeshRenderer>().sharedMaterial=material;return go;
         }
-        private void OnDestroy() { if(quietRing!=null)Destroy(quietRing);if(gardenFoliage!=null)Destroy(gardenFoliage);if(positiveRing!=null)Destroy(positiveRing);if(negativeRing!=null)Destroy(negativeRing); }
+        private void OnDestroy() { if(backdropFoliage!=null)Destroy(backdropFoliage);if(quietRing!=null)Destroy(quietRing);if(gardenFoliage!=null)Destroy(gardenFoliage);if(positiveRing!=null)Destroy(positiveRing);if(negativeRing!=null)Destroy(negativeRing); }
     }
 }

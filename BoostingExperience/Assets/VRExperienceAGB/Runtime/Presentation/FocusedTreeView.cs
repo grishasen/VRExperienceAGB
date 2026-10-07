@@ -115,6 +115,48 @@ namespace VRExperienceAGB.Presentation
             }
             for (; edge < routes.Length; edge++) routes[edge].gameObject.SetActive(false);
         }
+        public void RefreshPlayback(string a, string b)
+        {
+            var lookup=tree.Nodes.ToDictionary(n=>n.Id);
+            var addresses=new string[7];var locations=new Vector3[7];
+            bool shared=b==null || a==b;
+            if(shared){
+                addresses[0]=a;
+                for(int i=0;i<3;i++)if(addresses[i]!=null && lookup[addresses[i]] is SplitNode split){addresses[i*2+1]=split.TrueChild;addresses[i*2+2]=split.FalseChild;}
+                for(int i=0;i<7;i++){locations[i]=positions[i];locations[i].y=i==0?1.3f:i<3?1.5f:1.85f;}
+            } else {
+                addresses[0]=a;addresses[3]=b;
+                for(int side=0;side<2;side++){
+                    int start=side*3;float x=side==0?-1.4f:1.4f;
+                    locations[start]=new Vector3(x,1.3f,4.5f);
+                    locations[start+1]=new Vector3(x-.75f,1.65f,6.1f);locations[start+2]=new Vector3(x+.75f,1.65f,6.1f);
+                    if(lookup[addresses[start]] is SplitNode split){addresses[start+1]=split.TrueChild;addresses[start+2]=split.FalseChild;}
+                }
+            }
+            var visible=new Dictionary<string,Vector3>();
+            for(int i=0;i<7;i++){
+                var slot=slots[i];bool active=addresses[i]!=null;
+                slot.gameObject.SetActive(active);slot.title.transform.parent.gameObject.SetActive(active);
+                if(!active)continue;
+                slot.nodeId=addresses[i];slot.transform.localPosition=locations[i];slot.dropAnchor.localPosition=locations[i]+Vector3.up*.29f;
+                slot.title.transform.parent.localPosition=locations[i]+new Vector3(0,.48f,-.16f);
+                slot.title.transform.parent.localScale=Vector3.one*.0035f;
+                slot.title.enabled=true;slot.title.enableAutoSizing=true;slot.title.fontSizeMin=16;slot.title.fontSizeMax=22;
+                slot.title.rectTransform.sizeDelta=new Vector2(300,110);
+                var node=lookup[addresses[i]];
+                slot.title.text=node is SplitNode split?view.Condition(split,true):"LEAF "+(tree.Weight*((LeafNode)node).Score).ToString("+0.###;-0.###;0",System.Globalization.CultureInfo.InvariantCulture);
+                slot.marker.enabled=false;
+                slot.platform.sharedMaterial=addresses[i]==a || addresses[i]==b?view.activeMaterial:view.idleMaterial;
+                visible[addresses[i]]=locations[i];
+            }
+            int edge=0;
+            foreach(var item in visible)if(lookup[item.Key] is SplitNode split)
+                foreach(var child in new[]{split.TrueChild,split.FalseChild})if(visible.TryGetValue(child,out var end) && edge<routes.Length){
+                    var line=routes[edge++];line.gameObject.SetActive(true);line.positionCount=24;
+                    for(int j=0;j<24;j++){float t=j/23f;var point=Vector3.Lerp(item.Value,end,t);point.y-=Mathf.Sin(t*Mathf.PI)*.1f;line.SetPosition(j,point);}
+                }
+            for(;edge<routes.Length;edge++)routes[edge].gameObject.SetActive(false);
+        }
         public void Forest(EnsembleSession ensemble)
         {
             int start = (ensemble.Index / slots.Length) * slots.Length;

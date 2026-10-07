@@ -19,8 +19,9 @@ namespace VRExperienceAGB.Tests
         [UnitySetUp]
         public IEnumerator Open()
         {
-            yield return SceneManager.LoadSceneAsync("OneTreeLearning"); yield return null;
-            view = Object.FindAnyObjectByType<OneTreeExperience>(); view.enabled = false;
+            yield return LegacyTeachingScene.Load(); yield return null;
+            view = Object.FindAnyObjectByType<OneTreeExperience>();
+             view.enabled = false;
             view.GetComponent<DesktopTreePreview>().enabled = false;
             wildlife = view.Garden.M5.Atmosphere.Wildlife; wildlife.enabled = false;
             wildlife.SendMessage("OnApplicationFocus", true); wildlife.SendMessage("OnApplicationPause", false);

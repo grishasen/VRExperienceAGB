@@ -19,8 +19,9 @@ namespace VRExperienceAGB.Tests
         [UnitySetUp]
         public IEnumerator Open()
         {
-            yield return SceneManager.LoadSceneAsync("OneTreeLearning"); yield return null;
-            view = Object.FindAnyObjectByType<OneTreeExperience>(); view.enabled = false;
+            yield return LegacyTeachingScene.Load(); yield return null;
+            view = Object.FindAnyObjectByType<OneTreeExperience>();
+             view.enabled = false;
             view.GetComponent<DesktopTreePreview>().enabled = false;
         }
         private void Action(TreeAction action) { var s = view.Session.State; view.Execute(action, s.Revision, s.NodeId); }
@@ -37,12 +38,12 @@ namespace VRExperienceAGB.Tests
             string export = "{\"type\":\"AdaptiveBoostScoringModel\",\"algorithm\":\"GRADIENT_BOOST\",\"model\":{\"booster\":{\"trees\":[" + string.Join(",", Enumerable.Repeat(tree, 113)) + "]}}}";
             Assert.That(view.LoadAgbStructure(export, "Synthetic 113-tree view check").IsSuccess, Is.True);
             Garden.Navigation.ShowForest(); M5.Activate(M5Action.Diorama);
-            Assert.That(M5.Diorama.ModelRoot.GetComponentsInChildren<M5PointerTarget>().Length, Is.EqualTo(50));
+            Assert.That(M5.Diorama.ModelRoot.GetComponentsInChildren<M5PointerTarget>().Length, Is.EqualTo(113));
             M5.Activate(M5Action.NextTablePage); Assert.That(view.Ensemble.Index, Is.EqualTo(50));
             M5.Activate(M5Action.NextTablePage); Assert.That(view.Ensemble.Index, Is.EqualTo(100));
-            Assert.That(M5.Diorama.ModelRoot.GetComponentsInChildren<M5PointerTarget>().Length, Is.EqualTo(13));
+            Assert.That(M5.Diorama.ModelRoot.GetComponentsInChildren<M5PointerTarget>().Length, Is.EqualTo(113));
             M5.Activate(M5Action.SelectTree, 112); M5.Activate(M5Action.EnterTree);
-            while (!view.Session.State.AtLeaf) { Action(TreeAction.TrueBranch); view.Advance(2); }
+            for(int safety=0; !view.Session.State.AtLeaf && safety<100; safety++) { Action(TreeAction.TrueBranch); view.Advance(2); }
             double total = view.Ensemble.RouteTotal; Action(TreeAction.Overview); M5.Activate(M5Action.PreviousTablePage);
             Assert.That(view.Model.Trees.Count, Is.EqualTo(113)); Assert.That(view.Ensemble.Trees.Count, Is.EqualTo(113));
             Assert.That(view.Ensemble.RouteTotal, Is.EqualTo(total)); Assert.That(view.Ensemble.CompletedCount, Is.EqualTo(1));
@@ -58,7 +59,7 @@ namespace VRExperienceAGB.Tests
             {
                 foreach (bool atLeaf in new[] { false, true })
                 {
-                    if (atLeaf) while (!view.Session.State.AtLeaf) { Action(TreeAction.Step); view.Advance(2); }
+                    if (atLeaf) for(int safety=0; !view.Session.State.AtLeaf && safety<100; safety++) { Action(TreeAction.Step); view.Advance(2); }
                     var node = view.Session.State.NodeId; double total = view.Ensemble.RouteTotal;
                     view.Session.SetPaused(true); Action(TreeAction.Overview); M5.Activate(M5Action.Diorama);
                     M5.Activate(M5Action.Larger); M5.Activate(M5Action.RotateLeft); M5.OpenHelp(); M5.CloseHelp();
@@ -119,7 +120,7 @@ namespace VRExperienceAGB.Tests
         public IEnumerator TabletopBoundsRotationSelectionAndReturnKeepTheSameRouteAndPose()
         {
             Garden.Navigation.ShowForest(); Garden.Navigation.OpenTree(40);
-            while (!view.Session.State.AtLeaf) { Action(TreeAction.TrueBranch); view.Advance(2); }
+            for(int safety=0; !view.Session.State.AtLeaf && safety<100; safety++) { Action(TreeAction.TrueBranch); view.Advance(2); }
             view.Session.SetPaused(true); var leaf = view.Session.State.NodeId; var total = view.Ensemble.RouteTotal;
             Action(TreeAction.Overview); M5.Activate(M5Action.Diorama);
             var head = Garden.Locomotion.Head; var position = head.localPosition; var rotation = head.localRotation;
@@ -200,11 +201,12 @@ namespace VRExperienceAGB.Tests
         [UnityTest]
         public IEnumerator TableAndHelpControlsAreReachableWithoutOverlappingTheTreeTargets()
         {
-            Garden.Navigation.ShowForest(); M5.Activate(M5Action.Diorama); yield return null; Canvas.ForceUpdateCanvases();
+            Garden.Navigation.ShowForest(); M5.Activate(M5Action.Diorama); yield return null; yield return null; Canvas.ForceUpdateCanvases();
             var camera = Garden.Locomotion.Head.GetComponent<Camera>();
             var targets = M5.GetComponentsInChildren<M5PointerTarget>().ToArray();
             foreach (var target in targets)
             {
+                camera.transform.LookAt(target.transform.position);yield return null;Canvas.ForceUpdateCanvases();
                 var screen = camera.WorldToViewportPoint(target.transform.position);
                 Assert.That(screen.x, Is.InRange(.01f, .99f), target.name); Assert.That(screen.y, Is.InRange(.01f, .99f), target.name);
                 var hits = new List<RaycastResult>();

@@ -16,6 +16,7 @@ namespace VRExperienceAGB.Presentation
         private Vector3 treeObserverOffset;
         private Transform presentation;
         private Quaternion presentationRotation;
+        private Vector3 presentationPosition;
         private UnityEngine.UI.Image fade;
         private Coroutine fading;
         private bool stickReleased = true;
@@ -34,7 +35,7 @@ namespace VRExperienceAGB.Presentation
             entrancePosition = Origin.position; gardenPosition = Origin.position;
             treeObserverOffset = preview.previewCamera.transform.position - entrancePosition;
             treeObserverOffset.y = 0;
-            presentation = view.presentationRoot; presentationRotation = presentation.rotation;
+            presentation = view.presentationRoot; presentationRotation = presentation.rotation; presentationPosition=presentation.position;
             var canvasObject = new GameObject("ComfortFade", typeof(RectTransform), typeof(Canvas));
             canvasObject.transform.SetParent(Head, false); canvasObject.transform.localPosition = new Vector3(0, 0, .25f);
             var canvas = canvasObject.GetComponent<Canvas>(); canvas.renderMode = RenderMode.WorldSpace; canvas.sortingOrder = 32760;
@@ -52,19 +53,45 @@ namespace VRExperienceAGB.Presentation
             {
                 Origin.position = gardenPosition;
                 presentation.rotation = presentationRotation;
+                presentation.position=new Vector3(presentationPosition.x,presentation.position.y,presentationPosition.z);
             }
             else
             {
                 gardenPosition = Origin.position;
                 Origin.position = entrancePosition;
                 // Resolve the current room position only at deliberate tree entry. Preserve tracked height and rotation.
-                var entryOffset = entrancePosition + Origin.rotation * treeObserverOffset - Head.position;
+                var entryOffset = Origin.rotation * treeObserverOffset - Head.position;
                 entryOffset.y = 0;
                 Origin.position += entryOffset;
-                // Orient the teaching content to the observer's chosen reference direction, not their head.
-                presentation.rotation = Origin.rotation * presentationRotation;
+                // Anchor the stone scene to the horizontal gaze at deliberate entry, never to subsequent head motion.
+                if(experience.Director!=null) {
+                    var forward=Vector3.ProjectOnPlane(Head.forward,Vector3.up).normalized;
+                    if(forward.sqrMagnitude<.01f)forward=Origin.forward;
+                    presentation.rotation=Quaternion.LookRotation(forward)*presentationRotation;
+                    presentation.position=new Vector3(Head.position.x,presentation.position.y,Head.position.z);
+                } else presentation.rotation = Origin.rotation * presentationRotation;
             }
             FadeFromBlack();
+        }
+        public void Recenter()
+        {
+            var yaw = Head.eulerAngles.y;
+            Origin.RotateAround(Head.position, Vector3.up, -yaw);
+            var shift = new Vector3(-Head.position.x, 0, -Head.position.z);
+            Origin.position += shift;
+            entrancePosition = gardenPosition = Origin.position;
+            treeObserverOffset=Quaternion.Inverse(Origin.rotation)*new Vector3(Head.position.x,0,Head.position.z);
+            presentation.rotation = presentationRotation;
+            presentation.position = new Vector3(presentationPosition.x,presentation.position.y,presentationPosition.z);
+            FadeFromBlack();
+        }
+        public void AdjustPlacement(float horizontal, float distance, float yaw)
+        {
+            // Explicit placement input transforms the tracking origin, never the tracked local pose.
+            if (yaw != 0) Origin.RotateAround(Head.position, Vector3.up, -yaw);
+            Origin.position -= Vector3.right * horizontal + Vector3.forward * distance;
+            entrancePosition = gardenPosition = Origin.position;
+            // Keep content anchored while explicit origin adjustments move the scene relative to the observer.
         }
         public void Teleport(Vector3 standingPoint)
         {
@@ -85,7 +112,7 @@ namespace VRExperienceAGB.Presentation
         }
         private void Update()
         {
-            if (!InGarden) return;
+            if (!InGarden || experience.Director?.MenuVisible == true) return;
             var left = InputDevices.GetDeviceAtXRNode(XRNode.LeftHand);
             if (left.TryGetFeatureValue(CommonUsages.primary2DAxis, out var walkAxis)) Move(walkAxis, Mathf.Min(Time.unscaledDeltaTime, .05f));
             var right = InputDevices.GetDeviceAtXRNode(XRNode.RightHand);
@@ -96,7 +123,7 @@ namespace VRExperienceAGB.Presentation
         public void Move(Vector2 axis, float seconds)
         {
             var garden = experience.Garden;
-            if (!InGarden || garden == null || garden.M5.HelpOpen || garden.M5.Comparison.PanelOpen || garden.M5.Extensions.PanelOpen ||
+            if (!InGarden || experience.Director?.MenuVisible == true || garden == null || garden.M5.HelpOpen || garden.M5.Comparison.PanelOpen || garden.M5.Extensions.PanelOpen ||
                 (garden.simplifiedNavigation && garden.Navigation?.Page != NavigationPage.Forest) || seconds <= 0 ||
                 !float.IsFinite(seconds) || !float.IsFinite(axis.x) || !float.IsFinite(axis.y) || !float.IsFinite(WalkSpeed)) return;
             float magnitude = Mathf.Clamp01(axis.magnitude);

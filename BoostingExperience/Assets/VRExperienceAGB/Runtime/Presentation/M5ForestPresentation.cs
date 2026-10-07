@@ -129,7 +129,7 @@ namespace VRExperienceAGB.Presentation
                 case M5Action.CloseHelp: CloseHelp(); break;
                 case M5Action.Diorama: Diorama.Place(); Garden.Navigation.ShowDiorama(); break;
                 case M5Action.Forest: Garden.Navigation.ShowForest(); break;
-                case M5Action.SelectTree: if (table) View.SelectGardenTree(index); break;
+                case M5Action.SelectTree: if (table) { if(View.Director!=null)Garden.Navigation.OpenTree(index);else View.SelectGardenTree(index); } break;
                 case M5Action.PreviousTree: if (table) View.SelectGardenTree(Mathf.Max(0, View.Ensemble.Index - 1)); break;
                 case M5Action.NextTree: if (table) View.SelectGardenTree(Mathf.Min(Garden.PlotCount - 1, View.Ensemble.Index + 1)); break;
                 case M5Action.PreviousTablePage: if (table) View.SelectGardenTree(Mathf.Max(0, (View.Ensemble.Index / ForestDioramaView.TreesPerPage - 1) * ForestDioramaView.TreesPerPage)); break;
@@ -175,8 +175,8 @@ namespace VRExperienceAGB.Presentation
             var page = simple ? Garden.Navigation.Page : NavigationPage.Forest;
             if (simple && lastPage != page) { PlaceOverviewTools(); lastPage = page; }
             Diorama.SetVisible(simple && page == NavigationPage.Diorama && !HelpOpen);
-            overviewTools.gameObject.SetActive(simple && (page == NavigationPage.Home || page == NavigationPage.Forest || page == NavigationPage.TreeList) && !HelpOpen);
-            treeTools.gameObject.SetActive(simple && page == NavigationPage.Tree && Garden.Navigation.TreeMenuOpen && !HelpOpen);
+            overviewTools.gameObject.SetActive(View.Director==null && simple && (page == NavigationPage.Home || page == NavigationPage.Forest || page == NavigationPage.TreeList) && !HelpOpen);
+            treeTools.gameObject.SetActive(View.Director==null && simple && page == NavigationPage.Tree && Garden.Navigation.TreeMenuOpen && !HelpOpen);
             help.gameObject.SetActive(HelpOpen);
             helpText.text = Guidance[HelpPage];
             help.GetComponentsInChildren<M5PointerTarget>().First(t => t.action == M5Action.HelpNext).GetComponent<UnityEngine.UI.Button>().interactable = HelpPage < Guidance.Length - 1;
@@ -200,7 +200,7 @@ namespace VRExperienceAGB.Presentation
             {
                 var slot = View.nodeViews[i]; var target = summaries[i];
                 int count = slot.gameObject.activeSelf ? View.FocusedView.Hidden(slot.nodeId) : 0;
-                bool visible = simple && page == NavigationPage.Tree && !HelpOpen && !Garden.Navigation.TreeMenuOpen && count > 0 && i > 0;
+                bool visible = View.Director?.PlayingTour!=true && simple && page == NavigationPage.Tree && !HelpOpen && !Garden.Navigation.TreeMenuOpen && count > 0 && i > 0;
                 target.gameObject.SetActive(visible); target.nodeId = slot.nodeId;
                 target.GetComponentInChildren<TMP_Text>(true).text = "Open subtree · " + count + " hidden";
                 target.GetComponent<UnityEngine.UI.Button>().interactable = View.Session.State.PendingDecision == null;
@@ -227,6 +227,11 @@ namespace VRExperienceAGB.Presentation
             Extensions.Refresh();
             Atmosphere.SetActive(simple ? page == NavigationPage.Forest || page == NavigationPage.Diorama : Garden.Visible);
             Garden.M6?.Refresh();
+        }
+        public void HideLegacyTools()
+        {
+            overviewTools.gameObject.SetActive(false);treeTools.gameObject.SetActive(false);
+            if(View.Director?.MenuVisible == true)focusStatus.gameObject.SetActive(false);
         }
         private void PlaceOverviewTools()
         {

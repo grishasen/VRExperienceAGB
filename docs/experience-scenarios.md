@@ -1,6 +1,6 @@
 # Experience scenarios
 
-Status: product specification; M5 implementation adds left-stick garden walking, crown pointing/trigger entry, optional tabletop overview and selectable subtree focus. Existing path-marker teleports remain available. Combined Quest acceptance is deferred by the user. See [M5 status](m5-progress-2026-09-30.md). Updated: 2026-09-30.
+Status: October 8 feedback revision implemented; final automated/build evidence is recorded in testing.md. Quest acceptance remains pending. Older milestone records describe their historical revisions.
 
 ## Product intent
 
@@ -51,9 +51,9 @@ The first scene should contain a small polished clearing rather than a large unf
 2. At each split, show the condition, the profile's value, and the evaluation result. Example: “Previous responses: 2. Condition: less than 5. Result: true.”
 3. The matching branch lights up and the drop advances. The same profile is evaluated independently in every tree.
 4. Each reached leaf contributes to the accumulated raw score. The presentation distinguishes the baseline from tree contributions.
-5. The final gate applies the model's verified output transformation and displays the probability for the named outcome.
+5. After the last tree, display sigmoid(Score), then ask “View the whole model with results?” Offer the complete forest and Table View. Both preserve every tree's contribution: blue positive, red negative. Above the table display the final probability; selecting a tree preserves the completed result. The local reconstructed sample explicitly labels source scoring as unverified.
 
-**Playback:** step, play, pause, resume, replay, and return to the previous decision. A short tour animates selected trees in detail and summarizes the rest. It still evaluates the full ensemble and visibly identifies grouped trees. A detailed tour visits every selected decision.
+**Playback:** step, play, pause, resume, replay, and return to the previous decision. The main playback visits every tree and decision in canonical order. It presents each leaf contribution and running Score before the next tree. Trees change in front of the observer without a scripted camera journey. Opening the menu pauses progression. **Calculate whole model** skips the remaining animation and immediately shows the complete Score and sigmoid probability; A/B shows both complete results and their difference. Playback uses the same stone scene as manual inspection. The optional recorded review remains a separate saved-stop tool.
 
 **Take over:** “Try a change” duplicates the original profile. Editing a feature recalculates all affected routes and the complete result. The original profile remains available for comparison. Choosing an arbitrary branch instead enters manual exploration with a clear mode label.
 
@@ -77,9 +77,11 @@ The actual values determine the landscape. Later trees need not be smaller than 
 
 **Purpose:** move between ensemble overview and readable detail.
 
-Startup shows an empty forest clearing with two cases. M3 opens a paginated list of every tree in the selected model, followed by the existing individual-tree walkthrough. M4 opens the complete pine garden. Pointing at a pine reveals structural information; clicking enters that tree directly. Returning restores the garden location and saved route, or the originating M3 list page.
+Startup centers the scene and opens one menu ahead of the observer: One tree, Explore the whole forest, Play a prepared profile, Compare A / B, and Table View. A / desktop Tab or X closes the menu. Reopening places it ahead; Position scene provides recenter, distance, horizontal offset, yaw and menu height controls. Navigation changes the observer origin, never the tracked head/controller local poses.
 
-The current default is the user-selected 50-tree nested demonstration export. In M4, explicit standing-point markers along the central and cross-paths provide deliberate teleports to groups and planters. The right thumbstick provides snap turns. A small Menu button and A / desktop Tab recall the two-case menu. The former field-guide dashboard and auxiliary profile, tour and ledger buttons are hidden in this structure-preview flow. Navigation moves an observer origin, never tracked head/controller local transforms. Prepared-profile mechanics and their verified synthetic fixtures remain independent of this default preview. See the [simplified navigation record](m4-simple-navigation-2026-09-30.md).
+The local default is the complete 100-tree `export_Mobile_Click_Through_Rate_AGB_sample` reconstruction with three fully supplied synthetic profiles. Run `python3 scripts/prepare-local-sample.py` to prepare ignored local Resources before opening/building. The original local source and generated model resources are excluded from Git. A checkout without them retains the previous 50-tree structure-only preview. No real customer profiles are bundled. General model import remains a later main-menu scenario.
+
+Crown selection enters a tree from either the forest or Table View. All 100 trees appear in both overviews. Existing walking, deliberate path-marker teleports, snap turns, subtree inspection, predictor search, boosting trail and recorded review remain available.
 
 For dense trees, show a bounded neighborhood around the selected node. Collapsed branches retain their identity and a count of hidden nodes. Selecting a branch can place an enlarged subtree on an inspection table, with a marker connecting it to its original location.
 
@@ -121,7 +123,7 @@ Start with a single-user recorded route. Live multi-user review, avatars, shared
 
 ## S08 — Two profiles, two paths
 
-**Implementation update — October 3:** synthetic comparison is implemented with independent A/B routes, two labeled drops, path badges, first-divergence inspection and complete-result deltas. Step/Play advances the selected profile; simultaneous dual autoplay is not implemented. See the [record](profile-comparison-2026-10-03.md). Quest acceptance remains deferred.
+**Implementation update — October 7:** the main A/B scenario advances gold A and purple B points simultaneously. A shorter route waits at its leaf until both finish; both contributions and subtotals appear before the next tree. After every tree, show both sigmoid probabilities and their difference in percentage points. Forest and Table View use outer A / inner B contribution rings. The [earlier record](profile-comparison-2026-10-03.md) describes the original single-active-profile tools. Quest acceptance remains pending.
 
 **Purpose:** explain how a model prediction changes under a hypothetical feature edit.
 
@@ -132,6 +134,8 @@ This is a model sensitivity demonstration, not a claim about the causal effect o
 **Acceptance:** each profile is evaluated independently, the original is unchanged, and every displayed delta reconciles with the two complete predictions.
 
 ## Movement and presentation
+
+The unified menu is placed once at startup and remains anchored until an explicit placement action. Right-controller B (desktop R) centers the current forest, stones or table and the menu in front of the observer once per press. Entering a tree places its stones ahead of the observer using the horizontal gaze at entry; subsequent head turns do not rotate the scene.
 
 Default to a stationary observer, controller-directed transitions, and a clear return point. Offer a seated configuration. Continuous riding is an optional later comfort mode, started and stopped by the user. Head orientation always follows tracking; no scripted head bob, forced yaw, camera shake, or surprise acceleration.
 

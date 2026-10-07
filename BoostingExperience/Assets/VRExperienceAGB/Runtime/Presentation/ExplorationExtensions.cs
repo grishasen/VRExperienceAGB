@@ -63,7 +63,7 @@ namespace VRExperienceAGB.Presentation
             Add("All iterations", -370, -220, M5Action.TrailLast);
             Add("Reveal trees: off", 0, -220, M5Action.TrailReveal);
             Add("Inspect tree", 370, -220, M5Action.TrailInspect);
-            Add("Close", -370, -300, M5Action.ExtensionClose);
+            Add("X · Close", -370, -300, M5Action.ExtensionClose);
             Add("Clear overlays", 0, -300, M5Action.ExtensionClear);
             Add("More detail", 370, -300, M5Action.ExtensionMore);
             foreach (var row in new[] {
@@ -172,6 +172,7 @@ namespace VRExperienceAGB.Presentation
             if (SearchActive || evaluationId != View.Ensemble.EvaluationId) UpdateMatches();
             panel.gameObject.SetActive(PanelOpen);
             if (!PanelOpen) return;
+            if(View.Director!=null)Place();
             foreach (var item in buttons)
             {
                 bool searchButton = item.Key >= M5Action.SearchPreviousFeature && item.Key <= M5Action.SearchInspect;

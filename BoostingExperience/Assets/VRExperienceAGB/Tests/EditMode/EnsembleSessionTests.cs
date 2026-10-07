@@ -7,6 +7,15 @@ namespace VRExperienceAGB.Tests
 {
     public class EnsembleSessionTests
     {
+        [Test] public void ConsistencyIsCachedUntilAnyTreeRevisionChanges()
+        {
+            var ensemble=Fixtures.Require(EnsembleSession.Create(Fixtures.Model()));
+            var first=ensemble.Consistency;Assert.That(ensemble.Consistency,Is.SameAs(first));
+            var tree=ensemble.Trees[1];tree.EnterTree();
+            var state=tree.State;tree.ChooseBranch(state.Revision,state.NodeId,true);tree.CompleteMove(tree.State.PendingDecision.EventId);
+            var changed=ensemble.Consistency;Assert.That(changed,Is.Not.SameAs(first));
+            Assert.That(ensemble.Consistency,Is.SameAs(changed));tree.Back();Assert.That(ensemble.Consistency,Is.Not.SameAs(changed));
+        }
         private static void Finish(TreeSession session)
         {
             while (!session.State.AtLeaf)

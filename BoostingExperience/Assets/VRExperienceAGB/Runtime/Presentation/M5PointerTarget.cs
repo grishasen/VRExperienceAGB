@@ -20,7 +20,7 @@ namespace VRExperienceAGB.Presentation
     }
 
     /// <summary>Rejects releases from a retired model, session, view, or node.</summary>
-    public sealed class M5PointerTarget : MonoBehaviour, IPointerDownHandler, IPointerClickHandler, IPointerExitHandler
+    public sealed class M5PointerTarget : MonoBehaviour, IPointerDownHandler, IPointerClickHandler, IPointerExitHandler, IPointerEnterHandler
     {
         public M5ForestPresentation presentation;
         public M5Action action;
@@ -49,7 +49,8 @@ namespace VRExperienceAGB.Presentation
                 navigationRevision != (presentation.Garden.Navigation?.Revision ?? 0)) return;
             presentation.Activate(action, index, nodeId); ControllerSelectionFeedback.Pulse(data.pointerId);
         }
-        public void OnPointerExit(PointerEventData data) { pressed = null; }
-        private void OnDisable() { pressed = null; }
+        public void OnPointerEnter(PointerEventData data) { if(action==M5Action.SelectTree)presentation.Diorama.Hover(index); }
+        public void OnPointerExit(PointerEventData data) { pressed = null;if(action==M5Action.SelectTree)presentation.Diorama.ClearHover(index); }
+        private void OnDisable() { pressed = null;if(action==M5Action.SelectTree && presentation!=null && presentation.Diorama!=null)presentation.Diorama.ClearHover(index); }
     }
 }

@@ -104,16 +104,24 @@ namespace VRExperienceAGB.Presentation
             EnsureModel(); LinkedFeature=Analysis.Occurrences(feature)>0?feature:null;
             garden.RefreshExplanationLinks(); Refresh();
         }
+        public int ContentRefreshCount { get; private set; }
+        public void RefreshVisibility()
+        {
+            if(root!=null)root.gameObject.SetActive(View.Director?.PlayingTour!=true && View.Director?.MenuVisible!=true);
+        }
         public void Refresh()
         {
             if(garden==null||!View.Ready)return;
+            RefreshVisibility();
+            if(View.Director?.PlayingTour==true)return;
+            ContentRefreshCount++;
             EnsureModel();
             if(describedSession!=View.Session || describedRevision!=View.Session.State.Revision || describedFocus!=View.FocusedView.FocusRoot) {
                 describedSession=View.Session;describedRevision=View.Session.State.Revision;describedFocus=View.FocusedView.FocusRoot;
                 inspected=null;hoverOwner=null;pendingFeature=null;View.NameTooltip?.Hide();
             }
             bool tree=garden.Navigation?.Page==NavigationPage.Tree && !garden.Navigation.TreeMenuOpen && !garden.M5.HelpOpen && !garden.M5.Comparison.PanelOpen && !garden.M5.Extensions.PanelOpen;
-            bool forest=garden.Navigation?.Page==NavigationPage.Forest && !garden.M5.HelpOpen && !garden.M5.Comparison.PanelOpen && !garden.M5.Extensions.PanelOpen;
+            bool forest=View.Director?.ResultsVisible!=true && garden.Navigation?.Page==NavigationPage.Forest && !garden.M5.HelpOpen && !garden.M5.Comparison.PanelOpen && !garden.M5.Extensions.PanelOpen;
             segment.gameObject.SetActive(tree); evidence.gameObject.SetActive(tree); story.gameObject.SetActive(forest);
             StoryText.text=Analysis.ModelStory()+(LinkedFeature==null?"":"\nLINKED: "+Analysis.Label(LinkedFeature)+" · "+Analysis.Occurrences(LinkedFeature)+" splits / "+Analysis.MatchingTrees(LinkedFeature).Length+" trees");
             if(!tree) foreach(var edge in edges)edge.transform.parent.gameObject.SetActive(false);
@@ -122,9 +130,8 @@ namespace VRExperienceAGB.Presentation
             if(inspected!=null&&!modelTree.Nodes.ContainsKey(inspected))inspected=null;
             string id=inspected??View.FocusedView.FocusRoot??View.Session.State.NodeId;
             var node=modelTree.Nodes[id];
-            float shift=View.IsSeated?-.4f:0;
-            segment.transform.localPosition=new Vector3(-1.5f,Mathf.Max(.5f,.72f+shift),3);
-            evidence.transform.localPosition=new Vector3(1.5f,Mathf.Max(.5f,.72f+shift),3);
+            segment.transform.position=View.presentationRoot.TransformPoint(new Vector3(-1.5f,.72f,3));
+            evidence.transform.position=View.presentationRoot.TransformPoint(new Vector3(1.5f,.72f,3));
             string portrait=Analysis.Segment(index,id);
             var conflicts=View.Ensemble.Consistency.Conflicts;
             var relevant=conflicts.Where(c=>modelTree.Nodes[id] is SplitNode s ? c.FeatureId==s.FeatureId : true).Select(c=>Analysis.Label(c.FeatureId)).Distinct();

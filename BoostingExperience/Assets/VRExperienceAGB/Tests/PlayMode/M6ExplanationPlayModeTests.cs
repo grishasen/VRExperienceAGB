@@ -16,8 +16,9 @@ namespace VRExperienceAGB.Tests
         private M6ExplanationPresentation M6=>view.Garden.M6;
         [UnitySetUp] public IEnumerator Open()
         {
-            yield return SceneManager.LoadSceneAsync("OneTreeLearning");yield return null;
-            view=Object.FindAnyObjectByType<OneTreeExperience>();view.enabled=false;view.GetComponent<DesktopTreePreview>().enabled=false;
+            yield return LegacyTeachingScene.Load();yield return null;
+            view=Object.FindAnyObjectByType<OneTreeExperience>();
+            view.enabled=false;view.GetComponent<DesktopTreePreview>().enabled=false;
             view.Garden.Navigation.ShowForest();view.Garden.Navigation.OpenTree(0);view.NameTooltip.Hide();
         }
         [UnityTest] public IEnumerator HoverLinksExactPredictorsWithoutMutatingTheSession()
@@ -54,7 +55,7 @@ namespace VRExperienceAGB.Tests
             view.modelFile=new TextAsset(System.IO.File.ReadAllText(System.IO.Path.Combine(UnityEngine.Application.dataPath,"VRExperienceAGB/Data/demo-model.json")));
             view.Initialize();view.Garden.Navigation.ShowForest();view.Garden.Navigation.OpenTree(0);
             var state=view.Session.State;view.Execute(TreeAction.Profile,state.Revision,state.NodeId);
-            while(!view.Session.State.AtLeaf){state=view.Session.State;view.Execute(TreeAction.Step,state.Revision,state.NodeId);view.Advance(2);}
+            for(int safety=0; !view.Session.State.AtLeaf && safety<100; safety++){state=view.Session.State;view.Execute(TreeAction.Step,state.Revision,state.NodeId);view.Advance(2);}
             var evaluation=view.Ensemble.Evaluation;double total=view.Ensemble.RouteTotal;
             Assert.That(M6.EvidenceText.text,Does.Contain("Full profile result"));Assert.That(M6.EvidenceText.text,Does.Contain("Previous subtotal"));
             M6.Point(this,view.Session.State.NodeId);M6.Leave(this);

@@ -1,6 +1,17 @@
 {
   "name": "VRExperienceAGB.Presentation.Tests",
-  "references": ["VRExperienceAGB.Domain", "VRExperienceAGB.Application", "VRExperienceAGB.Import", "VRExperienceAGB.Presentation", "Unity.TextMeshPro", "Unity.ugui", "Oculus.Interaction"],
-  "optionalUnityReferences": ["TestAssemblies"],
+  "references": [
+    "VRExperienceAGB.Domain",
+    "VRExperienceAGB.Application",
+    "VRExperienceAGB.Import",
+    "VRExperienceAGB.Presentation",
+    "Unity.TextMeshPro",
+    "Unity.ugui",
+    "Oculus.Interaction",
+    "Unity.Collections"
+  ],
+  "optionalUnityReferences": [
+    "TestAssemblies"
+  ],
   "autoReferenced": false
 }

@@ -26,3 +26,7 @@ The M5 source changes introduce no downloaded media or external asset requiring 
 ## Recorded wolf howl — October 7, 2026
 
 `Resources/WolfHowl.wav`: U.S. Fish and Wildlife Service recording via [Wikimedia Commons](https://commons.wikimedia.org/wiki/File:Wolf_howls.ogg), marked public domain (PD-USGov-FWS). Excerpt, mono conversion, gain and fades are documented in the bundled `WolfHowl-Notice.txt`. Replaces the initial synthesized wildlife sound.
+
+## October 7 procedural wildlife revision
+
+Wolf fur texture, geometric tufts and body/head/tail animation are generated locally in `HorizonWolves.cs`; no additional external art was downloaded. Wolves appear only with a howl event and leave afterward. The already approved U.S. Fish & Wildlife Service recording remains unchanged. Winter-star filtering and optional constellation guides use the existing attributed HYG catalog.

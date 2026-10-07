@@ -45,10 +45,29 @@ namespace VRExperienceAGB.Application
             grouped.Contains(i) ? Evaluation.Trees[i].Contribution : s.State.Contribution,
             grouped.Contains(i) ? ContributionProgress.Grouped : s.State.AtLeaf ? ContributionProgress.ReachedLeaf : ContributionProgress.Pending)).ToArray());
         public IReadOnlyList<ContributionRow> GroupedRows => Array.AsReadOnly(Ledger.Where(r => r.Progress == ContributionProgress.Grouped).ToArray());
-        public ConsistencyReport Consistency => ManualRouteConsistency.Check(Model, sessions.SelectMany(s => s.State.Decisions.Select(d => {
-            var node = (SplitNode)s.Tree.Nodes.Single(n => n.Id == d.NodeId);
-            return new ManualConstraint(d.TreeId, d.NodeId, node.FeatureId, node.Condition, d.Matched);
-        })));
+        private TreeSession[] consistencySessions;
+        private long[] consistencyRevisions;
+        private ConsistencyReport consistency;
+        public ConsistencyReport Consistency
+        {
+            get
+            {
+                bool changed = consistency == null || !ReferenceEquals(consistencySessions, sessions);
+                if (!changed)
+                    for (int i = 0; i < sessions.Length; i++)
+                        if (consistencyRevisions[i] != sessions[i].State.Revision) { changed = true; break; }
+                if (!changed) return consistency;
+                consistencySessions = sessions;
+                if (consistencyRevisions == null || consistencyRevisions.Length != sessions.Length)
+                    consistencyRevisions = new long[sessions.Length];
+                for (int i = 0; i < sessions.Length; i++) consistencyRevisions[i] = sessions[i].State.Revision;
+                consistency = ManualRouteConsistency.Check(Model, sessions.SelectMany(s => s.State.Decisions.Select(d => {
+                    var node = (SplitNode)s.Tree.Nodes.Single(n => n.Id == d.NodeId);
+                    return new ManualConstraint(d.TreeId, d.NodeId, node.FeatureId, node.Condition, d.Matched);
+                })));
+                return consistency;
+            }
+        }
 
         private EnsembleSession(ModelDefinition model, PreparedProfile profile, TreeSession[] trees, EvaluationResult evaluation)
         { Model = model; OriginalProfile = Profile = profile; sessions = trees; Evaluation = evaluation; Mode = profile == null ? ExperienceMode.Manual : ExperienceMode.PreparedProfile; }

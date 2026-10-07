@@ -59,3 +59,7 @@ __pycache__/
 BoostingExperience/Assets/_Recovery/
 BoostingExperience/Assets/_Recovery.meta
 /data/examples/export_Mobile_Click_Through_Rate_AGB_sample.json
+
+# Local-only reconstruction of the user-selected sample and derived fixtures.
+BoostingExperience/Assets/VRExperienceAGB/Resources/LocalModel/
+BoostingExperience/Assets/VRExperienceAGB/Resources/LocalModel.meta

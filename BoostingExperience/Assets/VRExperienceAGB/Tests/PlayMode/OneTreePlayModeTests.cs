@@ -16,9 +16,10 @@ namespace VRExperienceAGB.Tests
         [UnitySetUp]
         public IEnumerator OpenTeachingScene()
         {
-            yield return SceneManager.LoadSceneAsync("OneTreeLearning", LoadSceneMode.Single);
+            yield return LegacyTeachingScene.Load();
             yield return null;
             view = Object.FindAnyObjectByType<OneTreeExperience>();
+
             // Regression coverage uses the verified synthetic profile fixture, independently of the startup demo.
             view.Garden.simplifiedNavigation=false;
             view.modelFile=new TextAsset(System.IO.File.ReadAllText(System.IO.Path.Combine(UnityEngine.Application.dataPath,"VRExperienceAGB/Data/demo-model.json")));
@@ -291,7 +292,7 @@ namespace VRExperienceAGB.Tests
             for (int tree = 0; tree < 3; tree++)
             {
                 if (tree > 0) Click(TreeAction.NextTree);
-                while (!view.Session.State.AtLeaf) { Click(TreeAction.Step); Arrive(); }
+                for(int safety=0; !view.Session.State.AtLeaf && safety<100; safety++) { Click(TreeAction.Step); Arrive(); }
             }
             Assert.That(view.Ensemble.Complete, Is.True);
             Assert.That(view.score.text, Does.Contain("Full synthetic prediction"));
@@ -352,7 +353,7 @@ namespace VRExperienceAGB.Tests
         public IEnumerator ShortTourLedgerAndDetailedTourReachTheSameFinalResult()
         {
             Click(TreeAction.Profile); Click(TreeAction.TourDetail);
-            while (!view.Session.State.AtLeaf) { Click(TreeAction.Step); Arrive(); }
+            for(int safety=0; !view.Session.State.AtLeaf && safety<100; safety++) { Click(TreeAction.Step); Arrive(); }
             Click(TreeAction.GroupRemaining);
             Assert.That(view.Ensemble.Complete, Is.True);
             Assert.That(view.Ensemble.RouteTotal, Is.EqualTo(-4.1).Within(1e-12));
@@ -361,7 +362,7 @@ namespace VRExperienceAGB.Tests
             Assert.That(view.ledgerText.text, Does.Contain("sigmoid(raw score)").And.Contain("Click probability"));
             Click(TreeAction.CloseResult); Click(TreeAction.TourDetail);
             Assert.That(view.Ensemble.CompletedCount, Is.EqualTo(1));
-            for (int i = 1; i < 3; i++) { Click(TreeAction.NextTree); while (!view.Session.State.AtLeaf) { Click(TreeAction.Step); Arrive(); } }
+            for (int i = 1; i < 3; i++) { Click(TreeAction.NextTree); for(int safety=0; !view.Session.State.AtLeaf && safety<100; safety++) { Click(TreeAction.Step); Arrive(); } }
             Assert.That(view.Ensemble.RouteTotal, Is.EqualTo(-4.1).Within(1e-12));
             Click(TreeAction.Result);
             Assert.That(view.ledgerText.text, Does.Contain("FINAL RESULT").And.Contain("Complete raw score -4.1"));
@@ -405,8 +406,8 @@ namespace VRExperienceAGB.Tests
             {
                 Click(TreeAction.Profile);
                 if (stage == 1) { Click(TreeAction.Step); view.Advance(.2f); }
-                if (stage >= 2) while (!view.Session.State.AtLeaf) { Click(TreeAction.Step); Arrive(); }
-                if (stage == 3) for (int i = 1; i < 3; i++) { Click(TreeAction.NextTree); while (!view.Session.State.AtLeaf) { Click(TreeAction.Step); Arrive(); } }
+                if (stage >= 2) for(int safety=0; !view.Session.State.AtLeaf && safety<100; safety++) { Click(TreeAction.Step); Arrive(); }
+                if (stage == 3) for (int i = 1; i < 3; i++) { Click(TreeAction.NextTree); for(int safety=0; !view.Session.State.AtLeaf && safety<100; safety++) { Click(TreeAction.Step); Arrive(); } }
                 var old = view.Session; var pending = old.State.PendingDecision;
                 Click(TreeAction.NextProfile); Click(TreeAction.Profile);
                 Assert.That(view.Session, Is.Not.SameAs(old));
@@ -442,7 +443,7 @@ namespace VRExperienceAGB.Tests
             Assert.That(view.Ensemble.Consistency.Status, Is.EqualTo(VRExperienceAGB.Domain.RouteConsistency.Consistent));
             Assert.That(view.Ensemble.RouteTotal, Is.EqualTo(.5));
             Click(TreeAction.Profile); Click(TreeAction.TourDetail);
-            while (!view.Session.State.AtLeaf) { Click(TreeAction.Step); Arrive(); }
+            for(int safety=0; !view.Session.State.AtLeaf && safety<100; safety++) { Click(TreeAction.Step); Arrive(); }
             Click(TreeAction.GroupRemaining);
             Assert.That(view.ledgerText.text, Does.Contain("Grouped: 23 trees").And.Contain("Complete raw score -32.3"));
             for (int i = 0; i < 5; i++) Click(TreeAction.NextLedgerPage);

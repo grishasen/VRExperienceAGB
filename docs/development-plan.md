@@ -1,5 +1,7 @@
 # Development plan
 
+**October 7 revision:** the requested scenario/menu/placement, full-forest profile and A/B playback, result overview, wildlife and star-field corrections are implemented. On-demand desktop recording is available through `scripts/record-scenario.sh`. See [current scenario behavior](experience-scenarios.md) and [testing evidence](testing.md). Real-profile/source scoring reconciliation and Quest acceptance remain open. This revision does not claim measured device performance improvements.
+
 **Current update — 2026-09-30:** M5 forest presentation is implemented on `codex/m5-forest-experience`: left-stick walking, direct crown selection, bounded tabletop scale/rotation, shared-state return, selectable hidden-subtree summaries, guidance/recovery and original spatial audio. See the [M5 record](m5-progress-2026-09-30.md). The user reports that the preceding navigation works and requested deferring the combined headset check. Formal Quest acceptance, actual performance measurements and production AGB scoring verification remain open. Earlier dated records below are historical.
 
 Status: source/configuration foundation recorded; M1 headset acceptance deferred; M2-01–M2-05 implemented and verified by 84 Unity EditMode tests; scene implementation and real-model verification remain open. Updated: 2026-09-28. See the [setup review](setup-review-2026-09-27.md) for the existing `BoostingExperience/` project's configuration and outstanding work.

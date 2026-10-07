@@ -16,8 +16,9 @@ namespace VRExperienceAGB.Tests
         [UnitySetUp]
         public IEnumerator Open()
         {
-            yield return SceneManager.LoadSceneAsync("OneTreeLearning");yield return null;
-            view=Object.FindAnyObjectByType<OneTreeExperience>();view.enabled=false;
+            yield return LegacyTeachingScene.Load();yield return null;
+            view=Object.FindAnyObjectByType<OneTreeExperience>();
+            view.enabled=false;
             view.GetComponent<DesktopTreePreview>().enabled=false;
             Assert.That(view.Ready,Is.True);Assert.That(Garden.simplifiedNavigation,Is.True);
         }
@@ -161,7 +162,7 @@ namespace VRExperienceAGB.Tests
             var plaque=view.transform.Find("ModelPineGarden/TreePlaque-41").GetComponentsInChildren<TMPro.TMP_Text>();
             Assert.That(plaque.Any(t=>t.text.Contains("Click to explore")),Is.True);
             Click(pine);Assert.That(view.Ensemble.Index,Is.EqualTo(40));Assert.That(Garden.Navigation.Page,Is.EqualTo(NavigationPage.Tree));
-            while(!view.Session.State.AtLeaf){Action(TreeAction.TrueBranch);view.Advance(2);}
+            for(int safety=0; !view.Session.State.AtLeaf && safety<100; safety++){Action(TreeAction.TrueBranch);view.Advance(2);}
             var leaf=view.Session.State.NodeId;var total=view.Ensemble.RouteTotal;
             Action(TreeAction.Overview);
             Assert.That(Garden.Navigation.Page,Is.EqualTo(NavigationPage.Forest));
@@ -182,7 +183,7 @@ namespace VRExperienceAGB.Tests
                 Assert.That(ring.sharedMaterial.name,Is.EqualTo("UnvisitedPlanterRing"));
                 Assert.That(ring.sharedMaterial.IsKeywordEnabled("_EMISSION"),Is.False);
                 Garden.Navigation.OpenTree(i);
-                while(!view.Session.State.AtLeaf){Action(TreeAction.TrueBranch);view.Advance(2);}
+                for(int safety=0; !view.Session.State.AtLeaf && safety<100; safety++){Action(TreeAction.TrueBranch);view.Advance(2);}
                 double contribution=view.Session.State.Contribution;
                 Action(TreeAction.Overview);Garden.Hover(i);
                 Assert.That(ring.sharedMaterial.name,Is.EqualTo(contribution>0?"PositiveContribution":contribution<0?"NegativeContribution":"UnvisitedPlanterRing"));

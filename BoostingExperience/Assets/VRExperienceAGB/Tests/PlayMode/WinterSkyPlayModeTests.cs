@@ -15,15 +15,16 @@ namespace VRExperienceAGB.Tests
         private WinterNightSky sky;
         [UnitySetUp]
         public IEnumerator Open() {
-            yield return SceneManager.LoadSceneAsync("OneTreeLearning"); yield return null;
-            view=Object.FindAnyObjectByType<OneTreeExperience>(); view.enabled=false;
+            yield return LegacyTeachingScene.Load(); yield return null;
+            view=Object.FindAnyObjectByType<OneTreeExperience>();
+             view.enabled=false;
             view.GetComponent<DesktopTreePreview>().enabled=false;
             sky=view.Garden.M5.Atmosphere.Sky; sky.enabled=false;
             sky.SendMessage("OnApplicationFocus",true); sky.SendMessage("OnApplicationPause",false);
         }
         [UnityTest]
         public IEnumerator CatalogLandmarksAndCameraPoseSurviveNavigationAndImport() {
-            Assert.That(sky.VisibleStarCount,Is.InRange(500,1000));
+            Assert.That(sky.VisibleStarCount,Is.InRange(100,500));
             foreach(var name in new[]{"Sirius","Procyon","Betelgeuse","Rigel","Alcyone","Polaris","Alnitak","Alnilam","Mintaka"}) Assert.That(sky.NamedStars[name].y,Is.GreaterThan(0));
             Assert.That(sky.NamedStars["Sirius"].x, Is.LessThan(0), "East must appear left when facing south.");
             Assert.That(sky.NamedStars["Alcyone"].x, Is.GreaterThan(0));
