@@ -8,7 +8,15 @@ namespace VRExperienceAGB.Presentation
     {
         Help, HelpNext, HelpPrevious, CloseHelp, Diorama, Forest, Smaller, Larger,
         RotateLeft, RotateRight, ResetView, SelectTree, PreviousTree, NextTree, EnterTree,
-        FocusNode, FocusParent, FocusCurrent, Pause, Entrance, ToggleAudio, PreviousTablePage, NextTablePage
+        FocusNode, FocusParent, FocusCurrent, Pause, Entrance, ToggleAudio, PreviousTablePage, NextTablePage,
+        CompareProfiles, CompareClose, CompareExit, CompareA, CompareB, ComparePreviousTree, CompareNextTree,
+        CompareNextDifference, CompareNextA, CompareNextB, CompareCopyA, CompareEdit, CompareApply, CompareCancel,
+        ComparePreviousFeature, CompareNextFeature, CompareDecrease, CompareIncrease, CompareMissing, CompareNextDetail, CompareInspect,
+        Extensions, ExtensionSearch, ExtensionTrail, ExtensionReview, ExtensionClose, ExtensionClear, ExtensionMore,
+        SearchPreviousFeature, SearchNextFeature, SearchFilter, SearchScope, SearchPreviousMatch, SearchNextMatch, SearchInspect,
+        TrailBaseline, TrailPrevious, TrailNext, TrailJump, TrailLast, TrailReveal, TrailInspect,
+        ReviewCapture, ReviewPrevious, ReviewNext, ReviewDelete, ReviewMoveEarlier, ReviewMoveLater,
+        ReviewSave, ReviewLoad, ReviewPlay, ReviewPause, ReviewStop, ReviewEditText, ReviewKey, ReviewBackspace, ReviewTextDone
     }
 
     /// <summary>Rejects releases from a retired model, session, view, or node.</summary>

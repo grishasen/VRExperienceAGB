@@ -91,7 +91,7 @@ flowchart LR
 
 **User story:** As a visitor, I want a coherent twilight forest with clear landmarks so that the experience feels engaging while decisions and controls remain easy to see.
 
-**Priority:** Must. **Status:** Implemented; headset acceptance pending. **Owner role:** Environment/technical artist. **Depends on:** M3-01 for early work; M5-03 for final acceptance.
+**Priority:** Must. **Status:** Base atmosphere and October 3 horizon wolves/howling implemented; [wildlife evidence](../horizon-wolves-2026-10-03.md). Headset acceptance pending. **Owner role:** Environment/technical artist. **Depends on:** M3-01 for early work; M5-03 for final acceptance.
 
 **Acceptance criteria**
 
@@ -101,6 +101,7 @@ flowchart LR
 4. Audio reinforces location or interaction without being the sole carrier of an essential instruction. The demo remains understandable without relying on hearing a cue.
 5. Decorative movement stays away from decision text and does not trigger discomfort or interfere with controller target selection.
 6. Check the integrated environment on Quest early and feed measured costs into M6; Editor frame rate is not evidence of headset readiness.
+7. Added October 3, 2026: show wolves on the distant horizon with occasional spatialized howling from their direction. Keep silhouettes clear of decision text and interaction targets; howls remain background ambience and respect the existing sound on/off control. Hardware acceptance and performance checks remain deferred to the final pass at the user's request.
 
 **Evidence required:** visual/audio design review, asset inventory reference, and headset readability/orientation observations with the final effects enabled.
 

@@ -18,6 +18,8 @@ Within a tree, the root is the entry node. Branches lead upward and outward thro
 
 The environment includes distant trees, restrained mist, soft moonlight, fireflies, quiet spatial audio, and landmarks for orientation. Decorative scenery stays distinct from model-bearing trees. Text, active branches, and interaction targets remain clear against the background.
 
+**Added requirement — October 3, 2026; implemented, Quest acceptance pending:** include visible wolves on the distant horizon and occasional distant, spatialized howling. Keep the wolves in the background and the howls quiet enough to preserve the explanation and interaction cues. Howling follows the existing sound on/off control. See the [M5-05 implementation record](horizon-wolves-2026-10-03.md).
+
 The first scene should contain a small polished clearing rather than a large unfinished landscape. A flat console or wrist display carries persistent status; detailed explanations appear beside the current node.
 
 ## S01 — Drive the model yourself
@@ -59,6 +61,8 @@ The first scene should contain a small polished clearing rather than a large unf
 
 ## S03 — The boosting trail
 
+**Implementation update — October 4:** Iteration selection, an ordered ground trail, prefix tree revelation and intermediate prepared-profile results are implemented. See the [extension record](exploration-extensions-2026-10-04.md). Quest acceptance remains pending.
+
 **Purpose:** understand the ensemble as an ordered collection of contributions.
 
 Trees stand along a trail in boosting order. The user can jump to an iteration, inspect a tree, and return to the same forest position. An iteration control reveals trees progressively and shows the selected profile's intermediate raw score and probability.
@@ -83,6 +87,8 @@ For dense trees, show a bounded neighborhood around the selected node. Collapsed
 
 ## S05 — Predictor fireflies
 
+**Implementation update — October 4:** Feature filtering, exact-ID search, model/path scopes, distant markers and occurrence inspection are implemented. See the [extension record](exploration-extensions-2026-10-04.md). Quest acceptance remains pending.
+
 **Purpose:** locate the use of a feature across the ensemble.
 
 Selecting a feature lights up matching split nodes and adds distant tree markers. “Next occurrence” and “Previous occurrence” navigate the matches. The inspector shows the split, gain, sample count, and tree iteration.
@@ -103,6 +109,8 @@ The existing audit engine is an exploratory reference, not a validated assurance
 
 ## S07 — Guided review
 
+**Implementation update — October 4:** Local stop capture, explanation editing, reordering, persistence and validated replay with pause/restore are implemented. Live multi-user review remains deferred. See the [extension record](exploration-extensions-2026-10-04.md). Quest acceptance remains pending.
+
 **Purpose:** let a presenter lead a coherent discussion.
 
 A tour consists of saved stops: a forest view, a tree, a node, a profile run, or a comparison. Each stop contains a short English explanation and an optional pointer target. The visitor can pause and inspect, then resume the tour.
@@ -112,6 +120,8 @@ Start with a single-user recorded route. Live multi-user review, avatars, shared
 **Acceptance:** replay preserves stop order, selected profile, and target node IDs. Missing or changed targets produce an explanation rather than a broken camera move.
 
 ## S08 — Two profiles, two paths
+
+**Implementation update — October 3:** synthetic comparison is implemented with independent A/B routes, two labeled drops, path badges, first-divergence inspection and complete-result deltas. Step/Play advances the selected profile; simultaneous dual autoplay is not implemented. See the [record](profile-comparison-2026-10-03.md). Quest acceptance remains deferred.
 
 **Purpose:** explain how a model prediction changes under a hypothetical feature edit.
 

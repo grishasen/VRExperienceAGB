@@ -1,0 +1,19 @@
+WINTER STAR CATALOG ATTRIBUTION
+
+Source: HYG Stellar Database v4.1, David Nash / Astronomy Nexus (astronexus).
+https://github.com/astronexus/HYG-Database/blob/main/hyg/CURRENT/hygdata_v41.csv
+https://github.com/astronexus/HYG-Database/blob/main/hyg/README.md
+
+HYG v4.1 is licensed under Creative Commons Attribution-ShareAlike 4.0 International:
+https://creativecommons.org/licenses/by-sa/4.0/
+https://creativecommons.org/licenses/by-sa/4.0/legalcode
+
+WinterStars.csv is an adapted subset: Sun removed; visual magnitude <= 6.0;
+columns restricted to HYG ID, proper name, right ascension (hours), declination
+(degrees), apparent visual magnitude and B-V color index (missing index = 0.65).
+Coordinates retain the catalog's J2000 mean equatorial reference.
+This adapted CSV is distributed under the same CC BY-SA 4.0 license.
+These data terms apply to the catalog subset, not a declaration of a source-code license.
+
+Downloaded source SHA-256:
+d9f69fd86bbf90a4e4d52b4c5c53eacfa6dfc0bfdef85bfd94f095e0bebe4ebd

@@ -26,6 +26,8 @@ namespace VRExperienceAGB.Presentation
         public GameObject EnterButton { get; private set; }
         public GameObject PreviousButton { get; private set; }
         public GameObject NextButton { get; private set; }
+        private LineRenderer boostingTrail;
+        public int VisiblePlotCount => plots.Count(p => p.root.gameObject.activeSelf);
         private sealed class Plot
         {
             public Transform root;
@@ -148,6 +150,10 @@ namespace VRExperienceAGB.Presentation
             }
             M6.EnsureModel();
             for(int i=0;i<metrics.Length;i++)BuildPlot(i);
+            var trailObject = new GameObject("BoostingOrderTrail"); trailObject.transform.SetParent(root.transform, false);
+            boostingTrail = trailObject.AddComponent<LineRenderer>(); boostingTrail.useWorldSpace = false;
+            boostingTrail.sharedMaterial = selectedMaterial; boostingTrail.widthMultiplier = .06f;
+            boostingTrail.gameObject.SetActive(false);
             if(simplifiedNavigation) Navigation = new SimpleExperienceNavigation(this, root.transform);
             else { Navigation = null; BuildGuide(); }
         }
@@ -228,9 +234,13 @@ namespace VRExperienceAGB.Presentation
         public void Activate(GardenCommand command,int index=0)
         {
             if(!Visible)return;
-            if(M5.HelpOpen)return;
+            if(M5.HelpOpen || M5.Comparison.PanelOpen || M5.Extensions.PanelOpen)return;
             if(command==GardenCommand.SelectTree && index>=0 && index<PlotCount) M5.Atmosphere.SelectAt(plots[index].root.position+Vector3.up);
             if(simplifiedNavigation && Navigation.Activate(command,index)) return;
+            M5.Extensions.RefreshMatches();
+            boostingTrail.gameObject.SetActive(M5.Extensions.TrailActive && Navigation?.Page == NavigationPage.Forest);
+            boostingTrail.positionCount = M5.Extensions.TrailActive ? M5.Extensions.Iteration : 0;
+            for (int t = 0; t < boostingTrail.positionCount; t++) boostingTrail.SetPosition(t, StandingPoint(t) + Vector3.up * .07f);
             int selected=Experience.Ensemble.Index;
             hovered=-1;
             switch(command)
@@ -254,6 +264,8 @@ namespace VRExperienceAGB.Presentation
         }
         public void ToggleGuide()
         {
+            if (M5?.Extensions?.PanelOpen == true) { M5.Extensions.Close(); return; }
+            if (M5?.Comparison?.PanelOpen == true) { M5.Comparison.Close(); return; }
             if (M5 != null && M5.HelpOpen) { M5.CloseHelp(); return; }
             if(simplifiedNavigation && Navigation.Page==NavigationPage.Tree) { Navigation.ToggleTreeMenu(); return; }
             if(!Visible)return;
@@ -280,6 +292,10 @@ namespace VRExperienceAGB.Presentation
         }
         private void RefreshState()
         {
+            M5.Extensions.RefreshMatches();
+            boostingTrail.gameObject.SetActive(M5.Extensions.TrailActive && Navigation?.Page == NavigationPage.Forest);
+            boostingTrail.positionCount = M5.Extensions.TrailActive ? M5.Extensions.Iteration : 0;
+            for (int t = 0; t < boostingTrail.positionCount; t++) boostingTrail.SetPosition(t, StandingPoint(t) + Vector3.up * .07f);
             int selected=Experience.Ensemble.Index;int bed=selected/TreesPerBed;
             if(!simplifiedNavigation) {
             header.text="MOONLIT MODEL GARDEN  |  "+PlotCount+" trees\nBed "+(bed+1)+" / "+((PlotCount+9)/10)+"  |  "+Experience.Ensemble.CompletedCount+" leaves reached";
@@ -290,23 +306,28 @@ namespace VRExperienceAGB.Presentation
             var ledger=Experience.Ensemble.Ledger;
             for(int i=0;i<plots.Count;i++)
             {
+                plots[i].root.gameObject.SetActive(M5.Extensions.TreeVisible(i));
                 var state=Experience.Ensemble.Trees[i].State;var tree=metrics[i];
                 var row=ledger[i];bool reached=row.Progress!=ContributionProgress.Pending;
                 double contribution=row.PresentedContribution;
+                if (M5.Extensions.TrailActive && Experience.Ensemble.Evaluation != null) {
+                    reached = i < M5.Extensions.Iteration; contribution = Experience.Ensemble.Evaluation.Trees[i].Contribution;
+                }
                 var material=!reached||contribution==0?quietRing:contribution>0?positiveRing:negativeRing;
                 plots[i].ring.sharedMaterial=material;
                 float magnitude=reached&&maximumContribution>0?(float)Math.Min(1,Math.Abs(contribution)/maximumContribution):0;
                 var scale=plots[i].ringScale;scale.y*=1+4*magnitude;plots[i].ring.transform.localScale=scale;
                 string sign=!reached?"":contribution>0?" +":contribution<0?" −":" 0";
-                plots[i].label.text="TREE "+(i+1)+sign+(M6.LinkedFeature!=null && M6.Analysis.MatchingTrees(M6.LinkedFeature).Contains(i)?" ◆":"");
+                string linkedFeature = M5.Extensions.SearchActive ? M5.Extensions.Feature : M6.LinkedFeature;
+                bool linked = M5.Extensions.SearchActive ? M5.Extensions.Matches(i) : linkedFeature != null && M6.Analysis.MatchingTrees(linkedFeature).Contains(i);
+                plots[i].label.text="TREE "+(i+1)+sign+(linked?" ◆":"");
                 plots[i].label.color=reached&&contribution!=0?material.color:new Color(.88f,.96f,.94f);
-                bool linked=M6.LinkedFeature!=null && M6.Analysis.MatchingTrees(M6.LinkedFeature).Contains(i);
-                plots[i].linkLabel.text=linked?"LINK · "+M6.Analysis.Label(M6.LinkedFeature):"";
+                plots[i].linkLabel.text=linked?"LINK · "+M6.Analysis.Label(linkedFeature):"";
                 plots[i].linkLabel.transform.parent.gameObject.SetActive(linked);
                 plots[i].hoverLabel.transform.parent.gameObject.SetActive(i==hovered);
                 string value=contribution.ToString("+0.###;-0.###;0",System.Globalization.CultureInfo.InvariantCulture);
                 string route=reached?(Experience.Ensemble.Mode==ExperienceMode.Manual?"Route contribution: ":"Profile contribution: ")+value:"Contribution not reached";
-                plots[i].hoverLabel.text=M6.Analysis.Passport(i)+"\n"+route+"\n"+(M6.LinkedFeature==null?"Point at node names to link predictors":"◆ "+M6.Analysis.Label(M6.LinkedFeature)+" · "+(M6.Analysis.MatchingTrees(M6.LinkedFeature).Contains(i)?"present":"absent"))+"\nTrigger / Click to explore";
+                plots[i].hoverLabel.text=M6.Analysis.Passport(i)+"\n"+route+"\n"+(linkedFeature==null?"Point at node names to link predictors":"◆ "+M6.Analysis.Label(linkedFeature)+" · "+(linked?"in search scope":"outside search scope"))+"\nTrigger / Click to explore";
             }
             if(simplifiedNavigation) { Navigation.Refresh(); RefreshNearbyPlaques(); return; }
             if(shownBed!=bed)
@@ -348,9 +369,10 @@ namespace VRExperienceAGB.Presentation
         {
             if(!Visible)return;
             bool forest = !simplifiedNavigation || Navigation.Page == NavigationPage.Forest;
-            foreach(var plot in plots)
+            for (int i = 0; i < plots.Count; i++)
             {
-                plot.root.gameObject.SetActive(forest);
+                var plot = plots[i];
+                plot.root.gameObject.SetActive(forest && M5.Extensions.TreeVisible(i));
                 bool nearby=forest && Vector3.Distance(Locomotion.Head.position,plot.root.position)<12;
                 var link=plot.linkLabel.transform.parent;
                 link.gameObject.SetActive(forest && plot.linkLabel.text.Length>0 && Vector3.Distance(Locomotion.Head.position,plot.root.position)<32);

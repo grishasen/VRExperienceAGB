@@ -13,6 +13,8 @@ namespace VRExperienceAGB.Presentation
         public OneTreeExperience View => Garden.Experience;
         public ForestDioramaView Diorama { get; private set; }
         public ForestAtmosphere Atmosphere { get; private set; }
+        public ProfileComparisonPresentation Comparison { get; private set; }
+        public ExplorationExtensions Extensions { get; private set; }
         public bool HelpOpen { get; private set; }
         public int HelpPage { get; private set; }
         public long Revision { get; private set; }
@@ -34,6 +36,8 @@ namespace VRExperienceAGB.Presentation
             Garden = garden;
             root = new GameObject("M5ForestPresentation").transform; root.SetParent(View.transform, false);
             Diorama = new ForestDioramaView(this, root);
+            Comparison = new ProfileComparisonPresentation(this, root);
+            Extensions = new ExplorationExtensions(this, root);
             Atmosphere = gameObject.AddComponent<ForestAtmosphere>(); Atmosphere.Configure(garden);
             help = Panel("VisitorGuide", new Vector2(1000, 650), root);
             helpText = garden.Text(help.transform, "Guidance", "", new Vector2(0, 65), new Vector2(900, 430), 29);
@@ -42,14 +46,16 @@ namespace VRExperienceAGB.Presentation
             Button(help, "Skip / Close", new Vector2(315, -232), new Vector2(250, 62), M5Action.CloseHelp);
             help.gameObject.SetActive(false);
 
-            overviewTools = Panel("ForestViewTools", new Vector2(660, 205), root);
+            overviewTools = Panel("ForestViewTools", new Vector2(660, 290), root);
             Button(overviewTools, "Tabletop view", new Vector2(-158, 53), new Vector2(300, 58), M5Action.Diorama);
             Button(overviewTools, "Help / legend", new Vector2(158, 53), new Vector2(300, 58), M5Action.Help);
             Button(overviewTools, "Entrance", new Vector2(-158, -25), new Vector2(300, 58), M5Action.Entrance);
             Button(overviewTools, "Sound on / off", new Vector2(158, -25), new Vector2(300, 58), M5Action.ToggleAudio);
+            Button(overviewTools, "Compare profiles", new Vector2(0, -105), new Vector2(620, 58), M5Action.CompareProfiles);
+            Button(overviewTools, "Extensions", new Vector2(0, -175), new Vector2(620, 58), M5Action.Extensions);
             overviewTools.gameObject.SetActive(false);
 
-            treeTools = Panel("TreeViewTools", new Vector2(660, 540), View.presentationRoot);
+            treeTools = Panel("TreeViewTools", new Vector2(660, 750), View.presentationRoot);
             treeTools.transform.localPosition = new Vector3(-1.38f, 1.05f, 3.22f);
             garden.Text(treeTools.transform, "Title", "VIEW AND HELP", new Vector2(0, 220), new Vector2(620, 48), 27);
             Button(treeTools, "Pause / Resume", new Vector2(0, 145), new Vector2(590, 60), M5Action.Pause);
@@ -57,6 +63,8 @@ namespace VRExperienceAGB.Presentation
             Button(treeTools, "Parent view", new Vector2(0, -15), new Vector2(590, 60), M5Action.FocusParent);
             Button(treeTools, "Help / legend", new Vector2(0, -95), new Vector2(590, 60), M5Action.Help);
             Button(treeTools, "Sound on / off", new Vector2(0, -175), new Vector2(590, 60), M5Action.ToggleAudio);
+            Button(treeTools, "Compare profiles", new Vector2(0, -255), new Vector2(590, 60), M5Action.CompareProfiles);
+            Button(treeTools, "Extensions", new Vector2(0, -330), new Vector2(590, 60), M5Action.Extensions);
             treeTools.gameObject.SetActive(false);
 
             focusStatus = Panel("FocusContext", new Vector2(680, 240), View.presentationRoot);
@@ -91,6 +99,24 @@ namespace VRExperienceAGB.Presentation
         public void Activate(M5Action action, int index = 0, string nodeId = null)
         {
             if (!View.Ready) return;
+            if (action >= M5Action.Extensions)
+            {
+                if (HelpOpen || Comparison.PanelOpen) return;
+                Revision++; Garden.Navigation?.InvalidatePointerPresses();
+                if (action == M5Action.ReviewKey) Extensions.TypeCharacter(index);
+                else Extensions.Activate(action);
+                Refresh(); return;
+            }
+            if (Extensions.PanelOpen) return;
+            bool comparisonAction = action >= M5Action.CompareProfiles && action <= M5Action.CompareInspect;
+            if (Comparison.PanelOpen && !comparisonAction) return;
+            if (comparisonAction)
+            {
+                if (Extensions.ReviewRunning) return;
+                if (HelpOpen) return;
+                Revision++; Garden.Navigation?.InvalidatePointerPresses();
+                Comparison.Activate(action); Refresh(); return;
+            }
             if (HelpOpen && action != M5Action.HelpNext && action != M5Action.HelpPrevious && action != M5Action.CloseHelp) return;
             bool tree = Garden.Navigation?.Page == NavigationPage.Tree;
             bool table = Garden.Navigation?.Page == NavigationPage.Diorama;
@@ -157,10 +183,11 @@ namespace VRExperienceAGB.Presentation
             help.GetComponentsInChildren<M5PointerTarget>().First(t => t.action == M5Action.HelpPrevious).GetComponent<UnityEngine.UI.Button>().interactable = HelpPage > 0;
             foreach (var target in overviewTools.GetComponentsInChildren<M5PointerTarget>(true))
             {
-                target.gameObject.SetActive(page == NavigationPage.Forest || target.action == M5Action.Help);
-                if(target.action == M5Action.Help) ((RectTransform)target.transform).anchoredPosition = page == NavigationPage.Forest ? new Vector2(158, 53) : Vector2.zero;
+                target.gameObject.SetActive(page == NavigationPage.Forest || target.action == M5Action.Help || target.action == M5Action.CompareProfiles || target.action == M5Action.Extensions);
+                if (target.action == M5Action.Extensions) ((RectTransform)target.transform).anchoredPosition = new Vector2(0, page == NavigationPage.Forest ? -175 : -115);
+                if(target.action == M5Action.Help) ((RectTransform)target.transform).anchoredPosition = page == NavigationPage.Forest ? new Vector2(158, 53) : new Vector2(0, 45);
             }
-            ((RectTransform)overviewTools.transform).sizeDelta = page == NavigationPage.Forest ? new Vector2(660, 205) : new Vector2(320, 80);
+            ((RectTransform)overviewTools.transform).sizeDelta = page == NavigationPage.Forest ? new Vector2(660, 430) : new Vector2(660, 360);
             foreach (var target in treeTools.GetComponentsInChildren<M5PointerTarget>(true))
             {
                 if (target.action == M5Action.Pause) target.GetComponentInChildren<TMP_Text>().text = Garden.Navigation?.ExplicitlyPaused == true ? "Resume" : "Pause";
@@ -184,6 +211,20 @@ namespace VRExperienceAGB.Presentation
                 foreach (string name in new[] { "TrueChoiceStone", "FalseChoiceStone" })
                     View.presentationRoot.Find(name)?.gameObject.SetActive(false);
             }
+            foreach (var target in root.GetComponentsInChildren<M5PointerTarget>(true).Where(t => t.action == M5Action.CompareProfiles))
+            {
+                target.GetComponent<UnityEngine.UI.Button>().interactable = !Extensions.ReviewRunning;
+                target.GetComponentInChildren<TMP_Text>(true).text = View.Comparison != null ? "Compare A / B" : View.Model.StructureOnlyPreview ? "Compare synthetic profiles" : "Compare profiles";
+                if (target.transform.parent == overviewTools.transform)
+                    ((RectTransform)target.transform).anchoredPosition = new Vector2(0, page == NavigationPage.Forest ? -105 : -40);
+            }
+            if (Comparison.PanelOpen || Extensions.PanelOpen)
+            {
+                overviewTools.gameObject.SetActive(false); treeTools.gameObject.SetActive(false); focusStatus.gameObject.SetActive(false);
+                foreach (var control in View.controls) control.gameObject.SetActive(false);
+            }
+            Comparison.Refresh();
+            Extensions.Refresh();
             Atmosphere.SetActive(simple ? page == NavigationPage.Forest || page == NavigationPage.Diorama : Garden.Visible);
             Garden.M6?.Refresh();
         }
@@ -199,6 +240,7 @@ namespace VRExperienceAGB.Presentation
             forward.Normalize(); canvas.transform.rotation = Quaternion.LookRotation(forward);
             canvas.transform.position = head.position + forward * distance + Vector3.up * vertical + canvas.transform.right * side;
         }
-        private void OnDestroy() { if (root != null) Destroy(root.gameObject); }
+        private void Update() { Extensions?.AdvanceReview(Time.unscaledDeltaTime); }
+        private void OnDestroy() { Comparison?.Dispose(); if (root != null) Destroy(root.gameObject); }
     }
 }

@@ -19,6 +19,11 @@ namespace VRExperienceAGB.Presentation
         private readonly Stack<string> focusHistory = new Stack<string>();
         public string FocusRoot => focus;
         public int FocusDepth => focusHistory.Count;
+        public bool Inspect(string id)
+        {
+            if (tree == null || !tree.Nodes.Any(n => n.Id == id)) return false;
+            focusHistory.Push(focus ?? view.Session.State.NodeId); focus = id; return true;
+        }
         public bool Focus(string id)
         {
             if (tree == null || !tree.Nodes.Any(n => n.Id == id)) return false;
@@ -86,6 +91,15 @@ namespace VRExperienceAGB.Presentation
                     (hidden > 0 ? "  +" + hidden + " hidden" : "");
                 slot.title.enabled = i != 0 || focus != null;
                 slot.marker.enabled = i != 0 && state.NodeId != addresses[i];
+                if (view.Comparison != null)
+                {
+                    var compared = view.Comparison.Trees[view.Ensemble.Index];
+                    bool inA = compared.A.VisitedNodeIds.Contains(addresses[i]);
+                    bool inB = compared.B.VisitedNodeIds.Contains(addresses[i]);
+                    slot.marker.text = (inA && inB ? "A + B" : inA ? "A ONLY" : inB ? "B ONLY" : "NEITHER PATH") +
+                        (state.NodeId == addresses[i] ? " · CURRENT" : "") + (hidden > 0 ? " · +" + hidden + " hidden" : "");
+                    slot.marker.enabled = true;
+                }
                 slot.platform.sharedMaterial = state.NodeId == addresses[i] ? view.activeMaterial : state.Path.Contains(addresses[i]) ? view.visitedMaterial : view.idleMaterial;
                 visible[addresses[i]] = position;
             }

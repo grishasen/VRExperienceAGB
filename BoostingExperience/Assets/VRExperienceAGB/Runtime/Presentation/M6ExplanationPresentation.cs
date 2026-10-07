@@ -112,8 +112,8 @@ namespace VRExperienceAGB.Presentation
                 describedSession=View.Session;describedRevision=View.Session.State.Revision;describedFocus=View.FocusedView.FocusRoot;
                 inspected=null;hoverOwner=null;pendingFeature=null;View.NameTooltip?.Hide();
             }
-            bool tree=garden.Navigation?.Page==NavigationPage.Tree && !garden.Navigation.TreeMenuOpen && !garden.M5.HelpOpen;
-            bool forest=garden.Navigation?.Page==NavigationPage.Forest && !garden.M5.HelpOpen;
+            bool tree=garden.Navigation?.Page==NavigationPage.Tree && !garden.Navigation.TreeMenuOpen && !garden.M5.HelpOpen && !garden.M5.Comparison.PanelOpen && !garden.M5.Extensions.PanelOpen;
+            bool forest=garden.Navigation?.Page==NavigationPage.Forest && !garden.M5.HelpOpen && !garden.M5.Comparison.PanelOpen && !garden.M5.Extensions.PanelOpen;
             segment.gameObject.SetActive(tree); evidence.gameObject.SetActive(tree); story.gameObject.SetActive(forest);
             StoryText.text=Analysis.ModelStory()+(LinkedFeature==null?"":"\nLINKED: "+Analysis.Label(LinkedFeature)+" · "+Analysis.Occurrences(LinkedFeature)+" splits / "+Analysis.MatchingTrees(LinkedFeature).Length+" trees");
             if(!tree) foreach(var edge in edges)edge.transform.parent.gameObject.SetActive(false);
@@ -145,7 +145,7 @@ namespace VRExperienceAGB.Presentation
                 View.explanation.text=node==View.Session.CurrentNode && node is SplitNode current?Analysis.Question(current):View.Session.CurrentNode is SplitNode decisionNode ? Analysis.Question(decisionNode) : "Leaf reached · see contribution beside the tree";
                 var decision=View.Session.CurrentProfileDecision;
                 if(decision!=null)View.explanation.text+="\nProfile: "+Value(decision.ObservedValue)+" → "+(decision.Matched?"TRUE":"FALSE");
-                View.score.text="Tree "+(index+1)+" / "+View.Model.Trees.Count+" · "+(View.Ensemble.Profile==null?"Manual route · no profile probability":"Prepared profile · full ensemble evaluated")+"\nPoint at labels for evidence · A: tree menu";
+                View.score.text="Tree "+(index+1)+" / "+View.Model.Trees.Count+" · "+(View.Ensemble.Profile==null?"Manual route · no profile probability":(View.Comparison == null ? "Prepared profile" : (View.Comparison.ShowingB ? "B · " : "A · ")+View.Ensemble.Profile.DisplayName)+" · full ensemble evaluated")+"\nPoint at labels for evidence · A: tree menu";
                 foreach(var control in View.controls.Where(c=>c.action==TreeAction.TrueBranch||c.action==TreeAction.FalseBranch))
                     if(View.Session.CurrentNode is SplitNode branch)control.label.text=ShortBranch(branch,control.action==TreeAction.TrueBranch);
             }
@@ -155,7 +155,7 @@ namespace VRExperienceAGB.Presentation
                 slot.title.richText=false;
                 if(source is SplitNode question)slot.title.text=Analysis.Question(question);
                 int si=Array.IndexOf(View.nodeViews,slot);
-                bool linked=source is SplitNode match&&match.FeatureId==LinkedFeature;
+                bool linked=garden.M5.Extensions.SearchActive ? garden.M5.Extensions.Matches(index, source.Id) : source is SplitNode match&&match.FeatureId==LinkedFeature;
                 badges[si].text=(source is SplitNode missing&&missing.Condition.Operator==DecisionOperator.IsMissing?"[MISSING] ":"")+(linked?"LINKED":"");
                 if(!(source is SplitNode parent))continue;
                 foreach(bool matched in new[]{true,false}) {
@@ -200,7 +200,7 @@ namespace VRExperienceAGB.Presentation
         private static string Value(ProfileValue value) => value.Kind==ValueKind.Number?ForestExplanation.Number(value.Number):value.Kind==ValueKind.Category?value.Category:value.Kind==ValueKind.Missing?"missing":"not supplied";
         private void Update()
         {
-            if(pendingFeature!=null&&Time.unscaledTime>=linkAt){var feature=pendingFeature;pendingFeature=null;LinkFeature(feature);}
+            if(!garden.M5.Extensions.SearchActive && pendingFeature!=null&&Time.unscaledTime>=linkAt){var feature=pendingFeature;pendingFeature=null;LinkFeature(feature);}
             if(Time.unscaledTime<nextFacing||garden==null)return;nextFacing=Time.unscaledTime+.15f;
             foreach(var canvas in facing.Where(c=>c.gameObject.activeInHierarchy)){
                 var direction=canvas.transform.position-garden.Locomotion.Head.position;

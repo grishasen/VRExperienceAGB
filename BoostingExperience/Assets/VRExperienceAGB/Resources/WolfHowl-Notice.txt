@@ -1,0 +1,11 @@
+WOLF HOWL RECORDING
+
+Source: U.S. Fish and Wildlife Service, "Wolf howls", via Wikimedia Commons.
+https://commons.wikimedia.org/wiki/File:Wolf_howls.ogg
+https://upload.wikimedia.org/wikipedia/commons/8/87/Wolf_howls.ogg
+The source page identifies this official U.S. government recording as public domain (PD-USGov-FWS).
+Retrieved October 7, 2026.
+Original SHA-256: 98129d715778d3a46476784090d92c1ff3a74957838ec88de187d6ab603188fd
+
+Adaptation: excerpt from 13.35 to 17.55 seconds; mono, 22050 Hz PCM;
+Gain +12.04 dB (4x), 150 ms fade-in and 600 ms fade-out. No pitch shifting or synthesized howl.

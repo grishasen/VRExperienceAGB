@@ -13,6 +13,15 @@ namespace VRExperienceAGB.Presentation
     {
         public TextAsset modelFile;
         public TextAsset profilesFile;
+        public TextAsset comparisonModelFile;
+        public TextAsset comparisonProfilesFile;
+        public ProfileComparisonSession Comparison { get; private set; }
+        public ProfileSet AvailableProfiles => profiles;
+        private ModelDefinition returnModel;
+        private ProfileSet returnProfiles;
+        private EnsembleSession returnEnsemble;
+        private AgbPreviewResult returnExport;
+        private int returnProfileIndex;
         public TreeNodeView[] nodeViews;
         public Transform drop;
         public Transform presentationRoot;
@@ -73,6 +82,7 @@ namespace VRExperienceAGB.Presentation
             var imported = AgbStructurePreview.Read(json, displayName);
             if (!imported.IsSuccess) return imported;
             if (!Ready && !Initialize()) return Outcome<AgbPreviewResult>.Failure(new[] { new Diagnostic("SceneUnavailable", "The teaching scene is unavailable.") });
+            ClearComparison();
             model = imported.Value.Model; ExportPreview = imported.Value; exportName = displayName;
             profiles = new ProfileSet(1, model.Id, Array.Empty<PreparedProfile>());
             profileIndex = 0; deepExample = false; treeMap = false; showProfileDetails = false;
@@ -83,6 +93,7 @@ namespace VRExperienceAGB.Presentation
         private void Start() { Initialize(); }
         public bool Initialize()
         {
+            ClearComparison();
             Session = null; ExportPreview = null;
             if (modelFile == null) return Fail("The model file is missing.");
             var input = NormalizedModelJson.ReadModel(modelFile.text);
@@ -124,6 +135,93 @@ namespace VRExperienceAGB.Presentation
             }
             PrepareNameHover(); Garden = GetComponent<ForestGardenView>(); Garden?.Configure(this); return StartEnsemble(null, true);
         }
+
+        public Outcome<ProfileComparisonSession> BeginComparison(bool synthetic)
+        {
+            if (Comparison != null) return Outcome<ProfileComparisonSession>.Success(Comparison);
+            var selectedModel = model; var selectedProfiles = profiles;
+            if (synthetic)
+            {
+                if (comparisonModelFile == null || comparisonProfilesFile == null)
+                    return Outcome<ProfileComparisonSession>.Failure(new[] { new Diagnostic("MissingComparisonFixture", "The synthetic comparison files are unavailable.") });
+                var imported = NormalizedModelJson.ReadModel(comparisonModelFile.text);
+                if (!imported.IsSuccess) return Outcome<ProfileComparisonSession>.Failure(imported.Diagnostics);
+                selectedModel = imported.Value;
+                var prepared = NormalizedModelJson.ReadProfiles(comparisonProfilesFile.text, selectedModel);
+                if (!prepared.IsSuccess) return Outcome<ProfileComparisonSession>.Failure(prepared.Diagnostics);
+                selectedProfiles = prepared.Value;
+            }
+            var original = selectedModel == model && Ensemble.Mode == ExperienceMode.PreparedProfile ? Ensemble.Profile : selectedProfiles.Profiles.FirstOrDefault();
+            var result = ProfileComparisonSession.Create(selectedModel, original);
+            if (!result.IsSuccess) return result;
+            if (Garden?.Navigation?.TreeMenuOpen == true) Garden.Navigation.ToggleTreeMenu();
+            if (MenuOpen) Session.SetPaused(pausedBeforeMenu);
+            returnModel = model; returnProfiles = profiles; returnEnsemble = Ensemble;
+            returnExport = ExportPreview; returnProfileIndex = profileIndex;
+            Session.ReturnToOverview();
+            Comparison = result.Value; model = selectedModel; profiles = selectedProfiles; profileIndex = 0;
+            ExportPreview = selectedModel == returnModel ? returnExport : null;
+            Ensemble = Comparison.Active; MenuOpen = false; editingProfile = false; inspectingNodes = false;
+            reviewingResult = false; showProfileDetails = false;
+            AdoptCurrent(true); Garden?.Navigation?.ShowForest();
+            return result;
+        }
+
+        public void ShowComparisonProfile(bool b, int index)
+        {
+            if (Comparison == null || index < 0 || index >= model.Trees.Count) return;
+            bool inTree = Garden?.Navigation?.Page == NavigationPage.Tree;
+            if (Garden?.Navigation?.TreeMenuOpen == true) Garden.Navigation.ToggleTreeMenu();
+            Comparison.Show(b, index); Ensemble = Comparison.Active;
+            MenuOpen = false; editingProfile = false; inspectingNodes = false; reviewingResult = false;
+            AdoptCurrent(true);
+            if (inTree) { Session.EnterTree(); Refresh(); }
+        }
+
+        public void EndComparison()
+        {
+            if (Comparison == null) return;
+            if (Garden?.Navigation?.TreeMenuOpen == true) Garden.Navigation.ToggleTreeMenu();
+            foreach (var session in Comparison.A.Trees.Concat(Comparison.B.Trees)) session.ReturnToOverview();
+            model = returnModel; profiles = returnProfiles; Ensemble = returnEnsemble;
+            ExportPreview = returnExport; profileIndex = returnProfileIndex;
+            ClearComparison(); MenuOpen = false; editingProfile = false; inspectingNodes = false; reviewingResult = false;
+            AdoptCurrent(true); Garden?.Navigation?.ShowForest();
+        }
+
+        private void ClearComparison()
+        {
+            Comparison = null; returnModel = null; returnProfiles = null; returnEnsemble = null; returnExport = null;
+            Garden?.M5?.Comparison?.Reset();
+        }
+
+        // Review playback uses new sessions so recorded stops cannot overwrite an accepted manual route.
+        public System.Action IsolateReview()
+        {
+            var savedEnsemble = Ensemble; var savedComparison = Comparison;
+            var savedReturnModel = returnModel; var savedReturnProfiles = returnProfiles;
+            var savedReturnEnsemble = returnEnsemble; var savedReturnExport = returnExport;
+            int savedReturnIndex = returnProfileIndex;
+            Session.ReturnToOverview();
+            Comparison = null; Ensemble = EnsembleSession.Create(model).Value; AdoptCurrent(true);
+            return () => {
+                Session.ReturnToOverview();
+                Ensemble = savedEnsemble; Comparison = savedComparison;
+                returnModel = savedReturnModel; returnProfiles = savedReturnProfiles; returnEnsemble = savedReturnEnsemble;
+                returnExport = savedReturnExport; returnProfileIndex = savedReturnIndex;
+                AdoptCurrent(true);
+            };
+        }
+        public void SetReviewProfiles(PreparedProfile a, PreparedProfile b, bool showingB)
+        {
+            Session.ReturnToOverview(); Comparison = null;
+            if (b != null) {
+                Comparison = ProfileComparisonSession.Create(model, a).Value;
+                Comparison.ReplaceB(b); Comparison.Show(showingB, 0); Ensemble = Comparison.Active;
+            } else Ensemble = EnsembleSession.Create(model, a).Value;
+            AdoptCurrent(true);
+        }
+        public bool ApplicationSuspended => lifecycleSuspended;
 
         public string FullNodeName(string nodeId)
         {
@@ -227,6 +325,10 @@ namespace VRExperienceAGB.Presentation
         public void Execute(TreeAction action, long revision, string nodeId)
         {
             if (Session == null || revision != Session.State.Revision || nodeId != Session.State.NodeId) return;
+            if ((Garden?.M5?.Comparison?.PanelOpen == true || Garden?.M5?.Extensions?.PanelOpen == true)) return;
+            if (Comparison != null && (action == TreeAction.TrueBranch || action == TreeAction.FalseBranch ||
+                action == TreeAction.Manual || action == TreeAction.Profile || action == TreeAction.NextProfile ||
+                action == TreeAction.EditProfile || action == TreeAction.DeepExample || action == TreeAction.LargerEnsemble)) return;
             if (Garden?.simplifiedNavigation == true && focusedView?.FocusRoot != null &&
                 (action == TreeAction.TrueBranch || action == TreeAction.FalseBranch || action == TreeAction.Step || action == TreeAction.Play)) return;
             NameTooltip?.Hide();
@@ -340,6 +442,7 @@ namespace VRExperienceAGB.Presentation
         private void Update() { Advance(Time.unscaledDeltaTime); }
         public void Advance(float seconds)
         {
+            if ((Garden?.M5?.Comparison?.PanelOpen == true || Garden?.M5?.Extensions?.PanelOpen == true)) return;
             if (Garden?.simplifiedNavigation == true && focusedView?.FocusRoot != null) return;
             if (Session == null || !float.IsFinite(seconds) || seconds < 0) return;
             var state = Session.State;
@@ -365,6 +468,7 @@ namespace VRExperienceAGB.Presentation
                     message = Session.State.AtLeaf ? (Ensemble.Complete ? "All tree leaves reached. Review the complete result." : "Leaf recorded. Choose Next tree, or inspect another tree in Forest overview.") : reply.Message;
                 }
             }
+            Garden?.M5?.Comparison?.RefreshDrops();
             if (Session.State.Revision != displayedRevision || (feedback.gameObject.activeSelf && !MenuOpen && !profilePreview && Time.unscaledTime >= feedbackUntil)) Refresh();
         }
 

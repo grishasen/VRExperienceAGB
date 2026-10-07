@@ -14,7 +14,7 @@ Status: Domain and normalized synthetic Import implemented for M2-01–M2-05; 84
 | Presentation | Layout, nodes, paths, drop animation, score view | Prediction truth |
 | XR | Controller actions, tracked rig, comfort transitions | Model evaluation |
 | Environment | Art, lighting, audio, landmarks | Model-health verdicts |
-| Analytics (later) | Predictor queries, reviewed audit findings, comparisons | Unqualified causal claims |
+| Analytics (later) | Predictor queries, reviewed audit findings | Unqualified causal claims |
 
 Use the same domain and session state for desktop inspection and the XR scene. Input devices issue commands such as `ChooseBranch`, `StepProfile`, `UndoDecision`, `EditProfile`, and `ReturnToDiorama`. Visuals subscribe to the resulting state rather than modifying scores directly.
 
@@ -79,3 +79,11 @@ The initial repository's Python verifier is a small executable specification for
 ## M6 explanatory presentation
 
 `ForestExplanation` in Import caches full-model structure, predictor occurrences, threshold sets, tree summaries and optional exported monitoring. It is independent of Unity and never invokes or modifies model evaluation. `M6ExplanationPresentation` binds those descriptions to the accepted session and focused neighborhood, adding bounded world-space labels, source-detail hover, segment/evidence cards and predictor links. Garden and tabletop composition strips share that index. Source-model verification and Quest performance acceptance remain separate gates; see the [M6 record](m6-in-world-explanations-2026-09-30.md).
+
+## Two-profile comparison
+
+`ProfileComparisonSession` owns independent A/B ensemble sessions and full-model comparison rows without Unity dependencies. `ProfileComparisonPresentation` supplies paged differences, an atomic B draft editor and two labeled profile drops. `OneTreeExperience` switches between the saved A/B routes and restores the preceding experience on exit. Structure-only exports remain excluded from profile evaluation; see the [implementation record](profile-comparison-2026-10-03.md).
+
+## Exploration extensions
+
+`PredictorSearch` indexes exact feature IDs and filters by complete evaluated profile paths. `BoostingProgression` produces baseline/prefix results without changing route progress. `GuidedReview` stores stable targets, explicit profile snapshots and a semantic model fingerprint. All three live in the Unity-independent Application assembly. `ExplorationExtensions` and its guided-review presentation provide world-space controls, scoped markers, progressive tree visibility, local save/load and isolated replay sessions. See the [October 4 implementation record](exploration-extensions-2026-10-04.md).

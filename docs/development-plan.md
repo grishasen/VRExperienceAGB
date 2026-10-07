@@ -94,7 +94,7 @@ These checkboxes do not imply a Unity project or VR build exists.
 
 ## M5 — Diorama, depth, and environment
 
-**Implementation status:** implemented; [evidence and device limits](m5-progress-2026-09-30.md). Checkmarks indicate implementation, not Quest acceptance. Headset checks are deferred at the user's request.
+**Implementation status:** base scope implemented; [evidence and device limits](m5-progress-2026-09-30.md). The [October 3 addition of horizon wolves and howling](horizon-wolves-2026-10-03.md) is implemented; Quest acceptance remains pending. Checkmarks indicate implementation, not Quest acceptance. Headset checks are deferred at the user's request.
 
 **Estimate:** 4–6 days. **Depends on:** M4; visual work can start during M3.
 
@@ -105,6 +105,7 @@ These checkboxes do not imply a Unity project or VR build exists.
 - [x] Integrate coherent materials, restrained lighting, distant scenery, and spatial audio.
 - [x] Track licenses and provenance for any introduced external assets.
 - [x] Add a short onboarding sequence and visible recovery controls.
+- [x] Add wolves on the distant horizon and occasional spatialized howling, respecting the sound toggle (M5-05; requested October 3, 2026).
 
 **Exit:** the full demonstration is understandable without the presenter operating a keyboard. Foreground text stays legible; decorative scenery does not obscure decisions.
 
@@ -129,11 +130,11 @@ These checkboxes do not imply a Unity project or VR build exists.
 
 | Feature | Prerequisite | Main work |
 | --- | --- | --- |
-| Predictor fireflies | Verified parsing and feature identities | Model-wide/path-only search, distant markers, navigation |
-| Full boosting trail | Stable ensemble/diorama | Iteration control, gain legend, intermediate profile scores |
-| Two-profile comparison | Independent profile sessions | Path divergence, contribution differences, comparison UI |
+| Predictor fireflies | Implemented; October 4 record | Exact-ID search, name filter, entire-model/profile-path scopes, markers and occurrence navigation; Quest acceptance pending |
+| Full boosting trail | Implemented; October 4 record | Iteration selection, progressive tree reveal, ordered trail, distinct gain/contribution labels and intermediate verified-profile results; Quest acceptance pending |
+| Two-profile comparison | Implemented for synthetic profiles; [October 3 record](profile-comparison-2026-10-03.md) | Independent A/B sessions, full-model deltas, first-divergence inspection and B editing; Quest acceptance deferred |
 | Audit environment | Reviewed audit definitions | Evidence-linked findings, severity, missing-evidence state |
-| Recorded guided review | Stable node IDs and scene navigation | Tour authoring, stop descriptions, replay |
+| Recorded guided review | Implemented; October 4 record | Stop capture/reorder, local save/load, explanations, validated replay and pause/restore; Quest acceptance pending |
 | Live guided review | Recorded review and network design | Multi-user state, roles, avatars, pointers, voice |
 | Hand tracking | Controller interactions validated | Input parity and accessibility testing |
 | Continuous riding | Core comfort testing | User-controlled speed, stopping, additional comfort options |
@@ -155,3 +156,5 @@ Do not expand the MVP by treating every slide idea as a launch requirement.
 ## Working conventions
 
 Use short feature branches after the baseline. Make each implementation change reviewable with relevant acceptance evidence. Update documentation when behavior changes. Keep a runnable scene at each milestone boundary. Use actual failures or changed behavior to decide when to expand testing.
+
+See [October 4 extension implementation and verification](exploration-extensions-2026-10-04.md) for the current scope and evidence.

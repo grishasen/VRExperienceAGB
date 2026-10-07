@@ -141,4 +141,12 @@ See the [setup review](setup-review-2026-09-27.md) for D01–D12, installed vers
 
 ## Scope boundaries
 
-This backlog implements M1–M6, not every scenario in the reference material. Full predictor search/fireflies, heuristic audit overlays, recorded multi-stop tours, live multi-user review, two simultaneous profile paths, hand tracking, continuous riding, and learning-history terrain remain deferred. Basic prepared-profile playback, a single editable profile copy, forest overview, and selected-tree navigation are in scope. A hypothetical edit illustrates model sensitivity, not causality.
+This backlog implements M1–M6, not every scenario in the reference material. Heuristic audit overlays, live multi-user review, hand tracking, continuous riding, and learning-history terrain remain deferred. Predictor search/fireflies, boosting progression and recorded multi-stop tours were implemented as the October 4 extensions; their Quest acceptance remains pending. Basic prepared-profile playback, a single editable profile copy, forest overview, and selected-tree navigation are in scope. A hypothetical edit illustrates model sensitivity, not causality.
+
+## October 3 extension
+
+[Two-profile comparison](profile-comparison-2026-10-03.md) is implemented for synthetic data with independent A/B routes, labeled drops, complete-result differences and B editing. Controller tuning and hardware performance acceptance remain deferred to the final pass at the user's request. Real profile/model/output reconciliation is a separate pending dependency.
+
+## October 4 extensions
+
+[Predictor search, boosting progression and recorded guided review](exploration-extensions-2026-10-04.md) are implemented. Real scorer reconciliation and device acceptance remain separate pending gates.

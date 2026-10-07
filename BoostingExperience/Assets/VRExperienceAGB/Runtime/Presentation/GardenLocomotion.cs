@@ -96,7 +96,7 @@ namespace VRExperienceAGB.Presentation
         public void Move(Vector2 axis, float seconds)
         {
             var garden = experience.Garden;
-            if (!InGarden || garden == null || garden.M5.HelpOpen ||
+            if (!InGarden || garden == null || garden.M5.HelpOpen || garden.M5.Comparison.PanelOpen || garden.M5.Extensions.PanelOpen ||
                 (garden.simplifiedNavigation && garden.Navigation?.Page != NavigationPage.Forest) || seconds <= 0 ||
                 !float.IsFinite(seconds) || !float.IsFinite(axis.x) || !float.IsFinite(axis.y) || !float.IsFinite(WalkSpeed)) return;
             float magnitude = Mathf.Clamp01(axis.magnitude);

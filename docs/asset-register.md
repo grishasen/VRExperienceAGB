@@ -1,11 +1,13 @@
 # Asset provenance register
 
-Updated: September 30, 2026. Scope: the teaching scene and M5 runtime views. This is an inventory of observed sources and bundled notices; it is not a legal determination or a distribution approval. No new third-party art, font, audio or package was introduced for M5.
+Updated: October 5, 2026. Scope: the teaching scene, M5 runtime views and horizon wildlife. This is an inventory of observed sources and bundled notices; it is not a legal determination or a distribution approval. No new third-party art, font, audio or package was introduced for M5.
 
 | Included content | Source / version | Evidence and distribution follow-up |
 | --- | --- | --- |
 | Pine, trunk, rock, stone and ring meshes; materials; sky, bark and moon shaders | Original project-generated geometry and authored Unity materials under `Assets/VRExperienceAGB/Art/Moonlit/` | Generation code in `Editor/MoonlitClearingStyler.cs`; implementation history in [moonlit design record](design/moonlit-clearing.md). M5 reuses these shared meshes and materials. The project has not selected a public source license. |
 | `SlateAlbedo.png`, `PineFoliage.png`, `TwilightPanorama.png` | Generated with built-in ImageGen for this project | Source descriptions and actual use recorded in [moonlit design record](design/moonlit-clearing.md#art-assets). These are generated content, not downloaded stock assets. The concept PNG in `docs/design/` is reference material, not a runtime texture. |
+| Winter star catalog and astronomical sky | HYG v4.1 by David Nash / Astronomy Nexus, CC BY-SA 4.0; original project shaders and meteor ribbon | 5070 magnitude ≤ 6 catalog entries in `Resources/WinterStars.csv`. Adapted CSV remains CC BY-SA 4.0; bundled `WinterStars-Notice.txt` preserves attribution, source and license links. See [October 5 record](winter-sky-2026-10-05.md). |
+| Horizon wolves, rocky ridges and distant howl | Original procedural meshes, materials and synthesized mono PCM in `Runtime/Presentation/HorizonWolves.cs` | Three decorative wolves; shared meshes and one six-second clip. No external art or audio recording. See [October 3 record](horizon-wolves-2026-10-03.md). |
 | M5 breeze and selection cue | Original deterministic procedural audio in `Runtime/Presentation/ForestAtmosphere.cs` | Runtime PCM generation, with no external audio file or sample. One eight-second mono loop and one short positional cue; both can be muted. |
 | Liberation Sans font and SDF assets | TextMesh Pro Essential Resources; source font under `Assets/TextMesh Pro/Fonts/` | The tracked `LiberationSans - OFL.txt` includes Google (2010), Red Hat (2012), reserved names and SIL OFL 1.1. Retain that complete notice with any distribution containing the font; do not substitute a bare attribution. |
 | TextMesh Pro shaders/resources and uGUI | Installed `com.unity.ugui` 2.0.0 and imported Essential Resources | Installed `com.unity.ugui` `LICENSE.md` states Unity Companion License. Exact dependency is pinned in `Packages/packages-lock.json`. Keep upstream notices and review distribution scope during M6. |
@@ -20,3 +22,7 @@ Updated: September 30, 2026. Scope: the teaching scene and M5 runtime views. Thi
 The M6 presenter package must retain the complete bundled font notice and relevant SDK/package notices, record the actual build's used assets, and distinguish generated art, original code/geometry, and package content. The project/source license and external distribution remain separate decisions. No unverified rights are asserted here.
 
 The M5 source changes introduce no downloaded media or external asset requiring a new purchase or account. Runtime scenery keeps the existing moon, distant conifers and restrained materials; the diorama shares those assets. Detailed logs, screenshots and APKs stay under ignored `artifacts/`.
+
+## Recorded wolf howl — October 7, 2026
+
+`Resources/WolfHowl.wav`: U.S. Fish and Wildlife Service recording via [Wikimedia Commons](https://commons.wikimedia.org/wiki/File:Wolf_howls.ogg), marked public domain (PD-USGov-FWS). Excerpt, mono conversion, gain and fades are documented in the bundled `WolfHowl-Notice.txt`. Replaces the initial synthesized wildlife sound.

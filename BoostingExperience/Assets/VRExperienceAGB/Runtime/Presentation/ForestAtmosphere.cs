@@ -7,15 +7,19 @@ namespace VRExperienceAGB.Presentation
     public sealed class ForestAtmosphere : MonoBehaviour
     {
         private AudioSource breeze, selection;
+        public WinterNightSky Sky { get; private set; }
+        public HorizonWolves Wildlife { get; private set; }
         private AudioClip breezeClip, selectionClip;
         private bool active, soundEnabled = true;
         public bool SoundEnabled
         {
             get => soundEnabled;
-            set { soundEnabled = value; UpdateSound(); }
+            set { soundEnabled = value; Wildlife?.SetSoundEnabled(value); UpdateSound(); }
         }
         public void Configure(ForestGardenView garden)
         {
+            Sky = gameObject.AddComponent<WinterNightSky>(); Sky.Configure(garden);
+            Wildlife = gameObject.AddComponent<HorizonWolves>(); Wildlife.Configure(garden);
             var wind = new GameObject("GardenBreeze"); wind.transform.SetParent(garden.transform, false); wind.transform.localPosition = new Vector3(0, 2, 8);
             breeze = wind.AddComponent<AudioSource>(); breeze.loop = true; breeze.playOnAwake = false;
             breeze.spatialBlend = 1; breeze.rolloffMode = AudioRolloffMode.Linear; breeze.minDistance = 6; breeze.maxDistance = 35; breeze.volume = .08f;

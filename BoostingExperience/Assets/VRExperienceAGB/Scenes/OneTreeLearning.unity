@@ -31216,6 +31216,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: VRExperienceAGB.Presentation::VRExperienceAGB.Presentation.OneTreeExperience
   modelFile: {fileID: 4900000, guid: 98a1088f0503a48158036c7a81c2d509, type: 3}
   profilesFile: {fileID: 4900000, guid: a530b8ed1a37846559fadf9189db9fad, type: 3}
+  comparisonModelFile: {fileID: 4900000, guid: 75314d5e9287a40319bf5102e30ef002, type: 3}
+  comparisonProfilesFile: {fileID: 4900000, guid: a530b8ed1a37846559fadf9189db9fad, type: 3}
   nodeViews:
   - {fileID: 579900230}
   - {fileID: 714819154}
