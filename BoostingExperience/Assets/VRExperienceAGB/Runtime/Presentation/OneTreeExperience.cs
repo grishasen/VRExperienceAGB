@@ -95,6 +95,19 @@ namespace VRExperienceAGB.Presentation
             StartEnsemble(null, true); Refresh(); return imported;
         }
 
+        public void OpenImportedModel(ImportedModel imported, ProfileSet available, string name)
+        {
+            Director?.StopPlayback(false);ClearComparison();LocalSampleActive=false;
+            model=imported.Model;ExportPreview=imported.Preview;exportName=name;
+            profiles=available;profileIndex=0;deepExample=false;treeMap=false;showProfileDetails=false;
+            StartEnsemble(null,true);Director?.ResetProfileSelection();Garden.Navigation.ShowForest();
+        }
+        public void UseImportedProfiles(ProfileSet available)
+        {
+            if(available.ModelId!=model.Id)throw new InvalidOperationException("Profiles belong to another model.");
+            Director?.StopPlayback(false);ClearComparison();profiles=available;profileIndex=0;
+            StartEnsemble(null,true);Director?.ResetProfileSelection();Garden.Navigation.ShowForest();
+        }
         private void Start() { Initialize(); }
         public bool Initialize()
         {

@@ -27,6 +27,35 @@ namespace VRExperienceAGB.Tests
             view.SendMessage("OnApplicationFocus",true);view.SendMessage("OnApplicationPause",false);
             view.Director.CloseMenu();
         }
+        [UnityTest] public IEnumerator NodeDetailsStayReadableAndStableWithoutSidePanels()
+        {
+            view.Garden.Navigation.ShowForest();view.Garden.Navigation.OpenTree(10);
+            yield return null;
+            Object.FindAnyObjectByType<DesktopTreePreview>().enabled=false;
+            Assert.That(view.Garden.M6.SegmentText.gameObject.activeInHierarchy,Is.False);
+            Assert.That(view.Garden.M6.EvidenceText.gameObject.activeInHierarchy,Is.False);
+            var tooltip=view.NameTooltip;
+            var owner=view.explanation.GetComponent<NodeNameHover>();
+            owner.OnPointerEnter(new PointerEventData(EventSystem.current));
+            yield return null;
+            Assert.That(tooltip.Visible,Is.True);
+            Assert.That(tooltip.Text.fontSize,Is.EqualTo(32));
+            Assert.That(tooltip.Text.GetComponentInParent<Canvas>().sortingOrder,Is.EqualTo(1000));
+            Assert.That(tooltip.Text.enableAutoSizing,Is.False);
+            Assert.That(tooltip.Text.text,Does.Contain("SEGMENT").And.Contain("SOURCE"));
+            var scroll=tooltip.Text.GetComponentInParent<UnityEngine.UI.ScrollRect>();
+            Assert.That(scroll.content.rect.height,Is.GreaterThan(scroll.viewport.rect.height));
+            scroll.verticalNormalizedPosition=.4f;
+            var position=scroll.content.anchoredPosition;var world=scroll.transform.position;
+            var revision=view.Session.State.Revision;
+            yield return new WaitForSecondsRealtime(.6f);
+            Assert.That(tooltip.Visible,Is.True);
+            Assert.That(Vector2.Distance(position,scroll.content.anchoredPosition),Is.LessThan(.1f));
+            Assert.That(Vector3.Distance(world,scroll.transform.position),Is.LessThan(.001f));
+            Assert.That(view.Session.State.Revision,Is.EqualTo(revision));
+            Assert.That(tooltip.Text.GetComponent<UnityEngine.UI.ContentSizeFitter>(),Is.Null);
+            Assert.That(view.explanation.fontSizeMin,Is.GreaterThanOrEqualTo(30));
+        }
         [UnityTest] public IEnumerator SampleProfilesMatchIndependentReferenceForEveryLeaf()
         {
             Assert.That(view.Model.Trees.Count,Is.EqualTo(100));
@@ -188,10 +217,14 @@ namespace VRExperienceAGB.Tests
             var material=branches[0].sharedMaterial;
             Assert.That(material.name,Is.EqualTo("BlueFrostSceneryFoliage"));
             Assert.That(branches.All(r=>r.sharedMaterial==material),Is.True);
-            var color=material.GetColor("_BaseColor");Assert.That(color.b-color.g,Is.GreaterThan(.35f));
-            Assert.That(material.GetColor("_EmissionColor").b,Is.GreaterThan(.2f));
+            var color=material.GetColor("_BaseColor");Assert.That(color.b-color.g,Is.InRange(.08f,.25f));
+            Assert.That(material.GetColor("_EmissionColor").b,Is.InRange(.04f,.09f));
             var model=view.transform.Find("ModelPineGarden/ModelTree-1/Pine").GetComponent<Renderer>();
             Assert.That(model.sharedMaterial,Is.Not.SameAs(material));Assert.That(model.sharedMaterial.color.g,Is.GreaterThan(model.sharedMaterial.color.b));
+            Assert.That(model.sharedMaterial.GetColor("_EmissionColor").g,Is.InRange(.04f,.09f));
+            view.Director.Activate("table");
+            foreach(var pine in view.Garden.M5.Diorama.ModelRoot.GetComponentsInChildren<MeshRenderer>().Where(r=>r.name=="Pine"))
+                Assert.That(pine.sharedMaterial,Is.SameAs(model.sharedMaterial));
             yield return null;
         }
         [UnityTest] public IEnumerator WildlifeOnlyAppearsDuringSoundEvent()
@@ -202,6 +235,101 @@ namespace VRExperienceAGB.Tests
             wildlife.SetSoundEnabled(true);wildlife.AdvanceAmbience(13);Assert.That(wildlife.Visible,Is.True);
             wildlife.AdvanceAmbience(8);Assert.That(wildlife.Visible,Is.False);
             yield return null;
+        }
+        [UnityTest] public IEnumerator ForestGroundCoversEverySceneryTreeIncludingSmallImportedModels()
+        {
+            for(int pass=0;pass<2;pass++) {
+                if(pass==1) {
+                    var model=DeepTreeExample.Model();
+                    view.OpenImportedModel(new VRExperienceAGB.Import.ImportedModel(model),new VRExperienceAGB.Domain.ProfileSet(1,model.Id,Array.Empty<VRExperienceAGB.Domain.PreparedProfile>()),"Small test model");
+                }
+                view.Director.Activate("forest");yield return null;
+                var root=view.transform.Find("ModelPineGarden");var ground=root.Find("GardenGround").GetComponent<Renderer>().bounds;
+                foreach(var tree in root.Cast<Transform>().Where(t=>t.name=="GardenBackdrop-PineTree" || t.name.StartsWith("ModelTree-")))
+                    foreach(var renderer in tree.GetComponentsInChildren<MeshRenderer>()) {
+                        var bounds=renderer.bounds;
+                        Assert.That(bounds.min.x,Is.GreaterThanOrEqualTo(ground.min.x),tree.name);
+                        Assert.That(bounds.max.x,Is.LessThanOrEqualTo(ground.max.x),tree.name);
+                        Assert.That(bounds.min.z,Is.GreaterThanOrEqualTo(ground.min.z),tree.name);
+                        Assert.That(bounds.max.z,Is.LessThanOrEqualTo(ground.max.z),tree.name);
+                    }
+            }
+        }
+        [UnityTest] public IEnumerator PlaybackBoardDoesNotCoverTheBallsAndStaysAnchored()
+        {
+            var d=view.Director;var camera=view.Garden.Locomotion.Head.GetComponent<Camera>();
+            foreach(bool pair in new[]{false,true}) {
+                d.StartPlayback(pair);d.SendMessage("LateUpdate");
+                var panel=(RectTransform)view.presentationRoot.Find("ProfileRoutePresentation/ProfileExplanation");
+                for(int step=0;step<35;step++) {
+                    d.AdvanceTour(.15f);
+                    foreach(var dot in panel.parent.Cast<Transform>().Where(t=>t.name.StartsWith("Profile") && t!=panel && t.gameObject.activeSelf))
+                        Assert.That(RectTransformUtility.RectangleContainsScreenPoint(panel,camera.WorldToScreenPoint(dot.position),camera),Is.False,"Explanation must not obscure "+dot.name);
+                }
+                var position=panel.position;var rotation=panel.rotation;
+                camera.transform.localRotation*=Quaternion.Euler(0,20,0);d.SendMessage("LateUpdate");
+                Assert.That(panel.position,Is.EqualTo(position));Assert.That(panel.rotation,Is.EqualTo(rotation));
+            }
+            yield return null;
+        }
+        [UnityTest] public IEnumerator ButtonHintsExplainCommandsWithoutInterceptingClicks()
+        {
+            view.Director.OpenMenu("home");yield return null;
+            var button=view.GetComponentsInChildren<ExperienceMenuTarget>().First(b=>b.Command=="profiles");
+            var pointer=new PointerEventData(EventSystem.current){pointerId=92,button=PointerEventData.InputButton.Left};
+            ExecuteEvents.Execute(button.gameObject,pointer,ExecuteEvents.pointerEnterHandler);yield return null;
+            var hint=button.GetComponent<ButtonHint>();Assert.That(hint.Visible,Is.True);
+            var canvas=view.transform.Find("ButtonHint");
+            Assert.That(canvas.GetComponentInChildren<TMPro.TMP_Text>().text,Does.Contain("every tree"));
+            Assert.That(canvas.GetComponentsInChildren<UnityEngine.UI.Graphic>().All(g=>!g.raycastTarget),Is.True);
+            Assert.That(button.transform.Find("HoverArrow").gameObject.activeSelf,Is.True);
+            ExecuteEvents.Execute(button.gameObject,pointer,ExecuteEvents.pointerDownHandler);
+            ExecuteEvents.Execute(button.gameObject,pointer,ExecuteEvents.pointerClickHandler);
+            Assert.That(view.Director.MenuPage,Is.EqualTo("profiles"));yield return null;
+            Assert.That(canvas==null || !canvas.gameObject.activeInHierarchy,Is.True);
+        }
+        [UnityTest] public IEnumerator ScreenshotButtonSavesOnePngPerPressWithoutChangingPlayback()
+        {
+            var capture=view.GetComponent<FeedbackCapture>();capture.enabled=false;
+            view.Director.StartPlayback(true);var score=view.Director.Playback.A.RawScore;
+            var head=view.Garden.Locomotion.Head;var position=head.localPosition;var rotation=head.localRotation;
+            capture.HandleButton(true);float deadline=Time.realtimeSinceStartup+20;
+            while(capture.Busy && Time.realtimeSinceStartup<deadline)yield return null;
+            Assert.That(capture.Busy,Is.False);Assert.That(capture.LastPath,Is.Not.Null,capture.Status);
+            string file=capture.LastPath;var bytes=System.IO.File.ReadAllBytes(file);
+            Assert.That(bytes.Take(8),Is.EqualTo(new byte[]{137,80,78,71,13,10,26,10}));
+            var image=new Texture2D(2,2);Assert.That(image.LoadImage(bytes),Is.True);
+            Assert.That(image.width,Is.EqualTo(1600));Assert.That(image.height,Is.EqualTo(900));
+            Assert.That(image.GetPixels32().Count(c=>c.r>30 || c.g>30 || c.b>30),Is.GreaterThan(1000),"Capture must contain scene pixels, not an empty XR buffer.");
+            Object.Destroy(image);
+            capture.HandleButton(true);Assert.That(capture.Busy,Is.False);Assert.That(capture.LastPath,Is.EqualTo(file));
+            Assert.That(head.localPosition,Is.EqualTo(position));Assert.That(head.localRotation,Is.EqualTo(rotation));
+            Assert.That(view.Director.Playback.A.RawScore,Is.EqualTo(score));
+            System.IO.File.Delete(file);
+        }
+        [UnityTest] public IEnumerator ForestInfoCanBeClosedAndReopenedWithoutChangingTheModel()
+        {
+            view.Director.Activate("forest");yield return null;
+            var info=view.Garden.M6;var model=view.Model;var score=view.Ensemble.RouteTotal;
+            Assert.That(info.StoryText.gameObject.activeInHierarchy,Is.False);
+            var handle=view.GetComponentsInChildren<ForestInfoTarget>().Single(t=>!t.Close);
+            var pointer=new PointerEventData(EventSystem.current){pointerId=95,button=PointerEventData.InputButton.Left};
+            ExecuteEvents.Execute(handle.gameObject,pointer,ExecuteEvents.pointerDownHandler);
+            ExecuteEvents.Execute(handle.gameObject,pointer,ExecuteEvents.pointerClickHandler);yield return null;
+            Assert.That(info.StoryText.gameObject.activeInHierarchy,Is.True);
+            var close=view.GetComponentsInChildren<ForestInfoTarget>().Single(t=>t.Close);
+            Canvas.ForceUpdateCanvases();var camera=view.Garden.Locomotion.Head.GetComponent<Camera>();
+            var hits=new System.Collections.Generic.List<RaycastResult>();
+            EventSystem.current.RaycastAll(new PointerEventData(EventSystem.current){position=camera.WorldToScreenPoint(close.transform.position)},hits);
+            Assert.That(hits.Count,Is.GreaterThan(0));Assert.That(ExecuteEvents.GetEventHandler<IPointerClickHandler>(hits[0].gameObject),Is.EqualTo(close.gameObject));
+            ExecuteEvents.Execute(close.gameObject,pointer,ExecuteEvents.pointerDownHandler);
+            ExecuteEvents.Execute(close.gameObject,pointer,ExecuteEvents.pointerClickHandler);info.Refresh();
+            Assert.That(info.StoryText.gameObject.activeInHierarchy,Is.False);
+            view.Garden.Navigation.OpenTree(0);view.Garden.Navigation.ReturnFromTree();
+            Assert.That(info.StoryText.gameObject.activeInHierarchy,Is.False);
+            view.Director.OpenMenu("home");view.Director.Activate("forest-info");yield return null;
+            Assert.That(info.StoryText.gameObject.activeInHierarchy,Is.True);Assert.That(view.Director.MenuVisible,Is.False);
+            Assert.That(view.Model,Is.SameAs(model));Assert.That(view.Ensemble.RouteTotal,Is.EqualTo(score));
         }
     }
 }

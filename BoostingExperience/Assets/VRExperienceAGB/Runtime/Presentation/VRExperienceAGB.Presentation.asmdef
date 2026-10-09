@@ -1,5 +1,5 @@
 {
   "name": "VRExperienceAGB.Presentation",
-  "references": ["VRExperienceAGB.Domain", "VRExperienceAGB.Import", "VRExperienceAGB.Application", "Unity.TextMeshPro", "Unity.ugui", "Unity.InputSystem", "Oculus.Interaction"],
+  "references": ["VRExperienceAGB.Domain", "VRExperienceAGB.Import", "VRExperienceAGB.Application", "Unity.TextMeshPro", "Unity.ugui", "Unity.InputSystem", "Oculus.Interaction", "Unity.RenderPipelines.Universal.Runtime", "Unity.RenderPipelines.Core.Runtime"],
   "autoReferenced": true
 }

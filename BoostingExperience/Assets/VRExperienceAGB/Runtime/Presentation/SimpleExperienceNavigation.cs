@@ -170,7 +170,7 @@ namespace VRExperienceAGB.Presentation
                 control.GetComponent<UnityEngine.UI.Image>().color=branch?Color.clear:new Color(.045f,.17f,.21f,.98f);
                 var rect=(RectTransform)control.transform;
                 rect.sizeDelta=branch?new Vector2(210,76):new Vector2(280,54);
-                control.label.enableAutoSizing=true;control.label.fontSizeMin=16;control.label.fontSizeMax=21;
+                control.label.enableAutoSizing=true;control.label.fontSizeMin=24;control.label.fontSizeMax=28;
                 control.label.rectTransform.sizeDelta=rect.sizeDelta-new Vector2(16,8);
                 switch(control.action)
                 {
@@ -197,13 +197,13 @@ namespace VRExperienceAGB.Presentation
             }
             View.explanation.gameObject.SetActive(true);
             View.explanation.rectTransform.anchoredPosition=new Vector2(0,TreeMenuOpen?110:-5);
-            View.explanation.rectTransform.sizeDelta=new Vector2(740,72);
-            View.explanation.enableAutoSizing=true;View.explanation.fontSizeMin=18;View.explanation.fontSizeMax=24;
+            View.explanation.rectTransform.sizeDelta=new Vector2(740,115);
+            View.explanation.enableAutoSizing=true;View.explanation.fontSizeMin=30;View.explanation.fontSizeMax=34;
             View.explanation.text=TreeMenuOpen ? "TREE MENU · "+(View.IsSeated?"Seated":"Standing") :
                 View.Session.CurrentNode is VRExperienceAGB.Domain.SplitNode split ? View.Condition(split,true)+"?" : "Leaf reached";
             View.explanation.raycastTarget=!TreeMenuOpen;
             View.score.gameObject.SetActive(!TreeMenuOpen);
-            View.score.rectTransform.anchoredPosition=new Vector2(0,-118);View.score.rectTransform.sizeDelta=new Vector2(740,50);View.score.fontSize=18;
+            View.score.rectTransform.anchoredPosition=new Vector2(0,-118);View.score.rectTransform.sizeDelta=new Vector2(740,75);View.score.fontSize=24;
             View.score.text="Tree "+(View.Ensemble.Index+1)+" / "+garden.PlotCount+" · "+(View.Session.State.AtLeaf?"Leaf score "+View.Session.State.Contribution.ToString("0.###",System.Globalization.CultureInfo.InvariantCulture):"Point at a label for its full condition")+"\nA: Tree menu · No profile probability";
             if(prepared)
                 View.score.text="Tree "+(View.Ensemble.Index+1)+" / "+garden.PlotCount+" · "+(View.Comparison != null ? (View.Comparison.ShowingB ? "B · " : "A · ") : "")+View.Ensemble.Profile.DisplayName+

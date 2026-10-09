@@ -21,7 +21,9 @@ namespace VRExperienceAGB.Presentation
         private ForestGardenView garden;
         private OneTreeExperience View => garden.Experience;
         private Transform root;
-        private Canvas segment, evidence, story;
+        private Canvas segment, evidence, story, storyHandle;
+        private TMP_Text storyHandleLabel;
+        public bool StoryOpen { get; private set; }
         private readonly List<TMP_Text> edges = new List<TMP_Text>();
         private readonly List<TMP_Text> badges = new List<TMP_Text>();
         private readonly List<RectTransform> ticks = new List<RectTransform>();
@@ -51,8 +53,12 @@ namespace VRExperienceAGB.Presentation
             for(int i=0;i<64;i++) ticks.Add(Tick("Cutpoint", new Color(.7f,.68f,.95f), 3, 18));
             currentTick = Tick("CurrentCutpoint", Color.white, 7, 28);
             story = Card("ForestStory", new Vector3(-1.25f,1.8f,4.5f), new Vector2(1060,720), .0016f);
-            StoryText = Text(story, "ModelStory", Vector2.zero, new Vector2(990,660), 32);
+            StoryText = Text(story, "ModelStory", new Vector2(0,-35), new Vector2(990,580), 32);
             StoryText.enableAutoSizing=true;StoryText.fontSizeMin=28;StoryText.fontSizeMax=32;
+            StoryButton(story,"X",new Vector2(465,305),new Vector2(70,65),true);
+            storyHandle=Card("ForestInfoHandle",new Vector3(-1.25f,1.05f,4.5f),new Vector2(440,85),.0016f);
+            storyHandleLabel=StoryButton(storyHandle,"Forest info",Vector2.zero,new Vector2(430,80),false);
+            story.gameObject.SetActive(false);
             for (int i = 0; i < 6; i++) {
                 var card=Card("BranchExplanation-"+i, Vector3.zero, new Vector2(430,92), .0022f);
                 var label=Text(card,"Condition",Vector2.zero,new Vector2(410,82),28); edges.Add(label);
@@ -68,6 +74,28 @@ namespace VRExperienceAGB.Presentation
             var canvas=garden.CanvasAt(name,p,size,scale,root);
             var image=canvas.gameObject.AddComponent<UnityEngine.UI.Image>(); image.color=new Color(.018f,.046f,.063f,.96f); image.raycastTarget=false;
             facing.Add(canvas); return canvas;
+        }
+        private TMP_Text StoryButton(Canvas canvas,string label,Vector2 position,Vector2 size,bool close)
+        {
+            var go=new GameObject(close?"CloseForestInfo":"ToggleForestInfo",typeof(RectTransform),typeof(UnityEngine.UI.Image),typeof(UnityEngine.UI.Button),typeof(ForestInfoTarget),typeof(ButtonHint));
+            go.transform.SetParent(canvas.transform,false);var rect=(RectTransform)go.transform;rect.sizeDelta=size;rect.anchoredPosition=position;
+            go.GetComponent<UnityEngine.UI.Image>().color=new Color(.045f,.17f,.21f,.98f);
+            go.GetComponent<UnityEngine.UI.Button>().navigation=new UnityEngine.UI.Navigation{mode=UnityEngine.UI.Navigation.Mode.None};
+            var target=go.GetComponent<ForestInfoTarget>();target.Owner=this;target.Close=close;
+            return garden.Text(go.transform,"Label",label,Vector2.zero,size-new Vector2(15,8),30);
+        }
+        public void SetStoryOpen(bool open)
+        {
+            StoryOpen=open;
+            if(open) {
+                var head=garden.Locomotion.Head;
+                var forward=Vector3.ProjectOnPlane(head.forward,Vector3.up).normalized;
+                if(forward.sqrMagnitude<.01f)forward=Vector3.forward;
+                story.transform.position=head.position+forward*2.4f-Vector3.up*.1f;
+                storyHandle.transform.position=story.transform.position-Vector3.up*.72f;
+                story.transform.rotation=storyHandle.transform.rotation=Quaternion.LookRotation(forward);
+            }
+            Refresh();
         }
         private TMP_Text Text(Canvas canvas,string name,Vector2 p,Vector2 size,int font)
         {
@@ -121,8 +149,10 @@ namespace VRExperienceAGB.Presentation
                 inspected=null;hoverOwner=null;pendingFeature=null;View.NameTooltip?.Hide();
             }
             bool tree=garden.Navigation?.Page==NavigationPage.Tree && !garden.Navigation.TreeMenuOpen && !garden.M5.HelpOpen && !garden.M5.Comparison.PanelOpen && !garden.M5.Extensions.PanelOpen;
-            bool forest=View.Director?.ResultsVisible!=true && garden.Navigation?.Page==NavigationPage.Forest && !garden.M5.HelpOpen && !garden.M5.Comparison.PanelOpen && !garden.M5.Extensions.PanelOpen;
-            segment.gameObject.SetActive(tree); evidence.gameObject.SetActive(tree); story.gameObject.SetActive(forest);
+            bool forest=garden.Navigation?.Page==NavigationPage.Forest && !garden.M5.HelpOpen && !garden.M5.Comparison.PanelOpen && !garden.M5.Extensions.PanelOpen;
+            // Evidence and segment remain available in the single hover detail panel.
+            segment.gameObject.SetActive(false); evidence.gameObject.SetActive(false); story.gameObject.SetActive(forest && StoryOpen);
+            storyHandle.gameObject.SetActive(forest);storyHandleLabel.text=StoryOpen?"Hide forest info":"Forest info";
             StoryText.text=Analysis.ModelStory()+(LinkedFeature==null?"":"\nLINKED: "+Analysis.Label(LinkedFeature)+" · "+Analysis.Occurrences(LinkedFeature)+" splits / "+Analysis.MatchingTrees(LinkedFeature).Length+" trees");
             if(!tree) foreach(var edge in edges)edge.transform.parent.gameObject.SetActive(false);
             if(!tree) { inspected=null;pendingFeature=null;return; }
@@ -149,7 +179,7 @@ namespace VRExperienceAGB.Presentation
             }
             Spectrum(node as SplitNode);
             if(garden.simplifiedNavigation && View.FocusedView.FocusRoot==null) {
-                View.explanation.text=node==View.Session.CurrentNode && node is SplitNode current?Analysis.Question(current):View.Session.CurrentNode is SplitNode decisionNode ? Analysis.Question(decisionNode) : "Leaf reached · see contribution beside the tree";
+                View.explanation.text=node==View.Session.CurrentNode && node is SplitNode current?Analysis.Question(current):View.Session.CurrentNode is SplitNode decisionNode ? Analysis.Question(decisionNode) : "Leaf reached · point for contribution";
                 var decision=View.Session.CurrentProfileDecision;
                 if(decision!=null)View.explanation.text+="\nProfile: "+Value(decision.ObservedValue)+" → "+(decision.Matched?"TRUE":"FALSE");
                 View.score.text="Tree "+(index+1)+" / "+View.Model.Trees.Count+" · "+(View.Ensemble.Profile==null?"Manual route · no profile probability":(View.Comparison == null ? "Prepared profile" : (View.Comparison.ShowingB ? "B · " : "A · ")+View.Ensemble.Profile.DisplayName)+" · full ensemble evaluated")+"\nPoint at labels for evidence · A: tree menu";
@@ -233,6 +263,15 @@ namespace VRExperienceAGB.Presentation
             garden.Text(canvas.transform,"Legend","H / C / X / O · stored gain",new Vector2(0,-18),new Vector2(600,30),19);
         }
         private void OnDestroy(){if(root!=null)Destroy(root.gameObject);}
+    }
+    public sealed class ForestInfoTarget : MonoBehaviour, IPointerDownHandler, IPointerClickHandler, IPointerExitHandler
+    {
+        public M6ExplanationPresentation Owner;public bool Close;
+        private int pointer;private bool pressed,wasOpen;
+        public void OnPointerDown(PointerEventData e){pressed=e.button==PointerEventData.InputButton.Left;pointer=e.pointerId;wasOpen=Owner.StoryOpen;}
+        public void OnPointerClick(PointerEventData e){if(pressed && e.pointerId==pointer && e.button==PointerEventData.InputButton.Left && gameObject.activeInHierarchy && wasOpen==Owner.StoryOpen){pressed=false;Owner.SetStoryOpen(!Close && !Owner.StoryOpen);}}
+        public void OnPointerExit(PointerEventData e){pressed=false;}
+        private void OnDisable(){pressed=false;}
     }
     public sealed class M6ExplanationHover : MonoBehaviour,IPointerEnterHandler,IPointerExitHandler
     {

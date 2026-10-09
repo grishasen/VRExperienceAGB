@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using System.IO;
 using TMPro;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -14,6 +15,9 @@ namespace VRExperienceAGB.Presentation
     public sealed class ExperienceDirector : MonoBehaviour
     {
         public OneTreeExperience View { get; private set; }
+        public JsonLibraryController Library { get; private set; }
+        private int libraryPage;
+        public void ResetProfileSelection() { SelectedA=0;SelectedB=View.AvailableProfiles.Profiles.Count>1?1:0;wasPaused=false; }
         public ForestPlayback Playback { get; private set; }
         public bool PlayingTour { get; private set; }
         public bool ResultsVisible { get; private set; }
@@ -45,21 +49,27 @@ namespace VRExperienceAGB.Presentation
             View = view;
             if (configured) return;
             configured = true;
+            Library=gameObject.AddComponent<JsonLibraryController>();Library.Configure(this);
+            gameObject.AddComponent<FeedbackCapture>().Configure(view);
+            foreach(var control in view.controls)if(control.GetComponent<ButtonHint>()==null)control.gameObject.AddComponent<ButtonHint>();
             menu = Garden.M5.Panel("UnifiedExperienceMenu",new Vector2(1100,820),view.transform);
             menu.sortingOrder = 50;
             menu.transform.localScale=Vector3.one*.00135f;
             title = Garden.Text(menu.transform,"Title","",new Vector2(-30,340),new Vector2(920,65),42);
             subtitle = Garden.Text(menu.transform,"Subtitle","",new Vector2(0,268),new Vector2(980,65),28);
+            title.richText=false;subtitle.richText=false;subtitle.enableAutoSizing=true;subtitle.fontSizeMin=18;subtitle.fontSizeMax=28;
             content = new GameObject("MenuContent",typeof(RectTransform)).transform; content.SetParent(menu.transform,false);
             AddButton(menu.transform,"X",new Vector2(480,345),new Vector2(75,65),"close");
             AddButton(menu.transform,"Main menu",new Vector2(-340,-350),new Vector2(290,65),"home");
             AddButton(menu.transform,"Position scene",new Vector2(0,-350),new Vector2(290,65),"position");
             AddButton(menu.transform,"Tools",new Vector2(340,-350),new Vector2(290,65),"tools");
+            Garden.Text(menu.transform,"ControllerShortcuts","A: menu  ·  B: center scene  ·  X (left): screenshot",new Vector2(0,-260),new Vector2(1000,45),23);
             routeRoot = new GameObject("ProfileRoutePresentation").transform; routeRoot.SetParent(view.presentationRoot,false);
-            detailCanvas = Garden.M5.Panel("ProfileExplanation",new Vector2(1400,460),routeRoot);
-            detailCanvas.transform.localPosition = new Vector3(0,.90f,2.8f);
-            detailCanvas.transform.localScale=Vector3.one*.0018f;
-            explanation = Garden.Text(detailCanvas.transform,"Explanation","",Vector2.zero,new Vector2(1320,420),36);
+            detailCanvas = Garden.M5.Panel("ProfileExplanation",new Vector2(1100,560),routeRoot);
+            detailCanvas.transform.localPosition = new Vector3(-3.2f,1.5f,3.4f);
+            detailCanvas.transform.localScale=Vector3.one*.0015f;
+            detailCanvas.GetComponent<UnityEngine.UI.Image>().raycastTarget=false;
+            explanation = Garden.Text(detailCanvas.transform,"Explanation","",Vector2.zero,new Vector2(1020,520),36);
             explanation.enableAutoSizing=true; explanation.fontSizeMin=28; explanation.fontSizeMax=36;
             resultCanvas = Garden.CanvasAt("WholeForestResult",Vector3.zero,new Vector2(1300,280),.0014f,view.transform);
             resultText = Garden.Text(resultCanvas.transform,"FinalProbability","",Vector2.zero,new Vector2(1280,270),36);
@@ -74,7 +84,8 @@ namespace VRExperienceAGB.Presentation
             go.GetComponent<UnityEngine.UI.Image>().color=new Color(.045f,.19f,.25f,.98f);
             go.GetComponent<UnityEngine.UI.Button>().navigation=new UnityEngine.UI.Navigation{mode=UnityEngine.UI.Navigation.Mode.None};
             var target=go.GetComponent<ExperienceMenuTarget>();target.Owner=this;target.Command=command;
-            Garden.Text(go.transform,"Label",text,Vector2.zero,size-new Vector2(22,12),32);
+            Garden.Text(go.transform,"Label",text,Vector2.zero,size-new Vector2(22,12),32).richText=false;
+            go.AddComponent<ButtonHint>();
         }
         private void Row(string label,string command,int row,int column=0,bool half=false)
         { AddButton(content,label,new Vector2(half?(column==0?-245:245):0,175-row*82),new Vector2(half?460:940,68),command); }
@@ -102,9 +113,30 @@ namespace VRExperienceAGB.Presentation
             switch(MenuPage)
             {
                 case "home":
-                    Row("One tree · choose in the forest","single",0);Row("Explore the whole forest","forest",1);
+                    Row("One tree · choose in the forest","single",0);Row("Explore the forest","forest",1,0,true);Row("Forest info","forest-info",1,1,true);
                     Row("Play a prepared profile","profiles",2);Row("Compare profiles A / B","compare",3);
-                    Row(ResultsVisible?"Table View · results":"Table View","table",4);break;
+                    Row(ResultsVisible?"Table View · results":"Table View","table",4,0,true);Row("Models / profiles","library",4,1,true);break;
+                case "library":
+                    title.text="MODELS AND PROFILES";subtitle.text=Library.Status;
+                    Row("Saved models","models",0);Row("Saved profile files","profile-files",1);
+                    Row("Import model JSON","import-model",2);Row("Import profile JSON","import-profile",3);
+                    Row("From computer / Wi-Fi","upload",4,0,true);Row("Formats / folders","library-help",4,1,true);break;
+                case "upload":
+                    title.text="UPLOAD FROM COMPUTER";subtitle.text=Library.Status;
+                    var address=Garden.Text(content,"UploadAddress",Library.UploadAddress==null?"Enable a temporary upload session.\nUse a computer on the same Wi-Fi network.":Library.UploadAddress+"\nAccess code: "+Library.UploadCode+"\nOpen this address in your computer browser.\nChoose Model JSON or Profile JSON.\nKeep this app open; session expires after 15 minutes.",new Vector2(0,70),new Vector2(970,250),30);address.richText=false;
+                    Row(Library.UploadAddress==null?"Start receiving":"Stop receiving",Library.UploadAddress==null?"upload-start":"upload-stop",3);
+                    Row("Models","models",4,0,true);Row("Profile files","profile-files",4,1,true);break;
+                case "library-help":
+                    title.text="IMPORT JSON";subtitle.text="Files stay on this device. Main menu → Compare chooses A and B.";
+                    var help=Garden.Text(content,"ImportHelp","Models: normalized v1 for scoring, or AGB export for structure.\nProfiles: schemaVersion, matching modelId, profiles array.\nEach profile has id, displayName and values.\n\nSaved folders:\n"+Library.Storage.ModelsPath+"\n"+Library.Storage.ProfilesPath+"\n\nImport from Downloads or copy files to these folders and Refresh.\nMaximum file size: 32 MiB. Invalid files keep the current scene.",new Vector2(0,-5),new Vector2(970,445),25);help.richText=false;break;
+                case "models":case "profile-files":
+                    bool profileFiles=MenuPage=="profile-files";
+                    title.text=profileFiles?"PROFILE FILES":"MODEL FILES";subtitle.text=Library.Status;
+                    Library.List(profileFiles);int pages=Math.Max(1,(Library.ListedFiles.Length+2)/3);libraryPage=Math.Min(libraryPage,pages-1);
+                    for(int i=0;i<3;i++){int index=libraryPage*3+i;if(index<Library.ListedFiles.Length)Row(VRExperienceAGB.Import.ModelFileLibrary.DisplayName(Library.ListedFiles[index]).Replace("<","‹"),"library-open:"+index,i);}
+                    if(Library.ListedFiles.Length==0)Garden.Text(content,"EmptyLibrary","No saved files. Import a JSON document.",new Vector2(0,85),new Vector2(950,90),28);
+                    Row("Import JSON",profileFiles?"import-profile":"import-model",3,0,true);Row("Refresh files","library-refresh",3,1,true);
+                    Row("Previous · "+(libraryPage+1)+" / "+pages,"library-prev",4,0,true);Row("Next","library-next",4,1,true);break;
                 case "tree":
                     title.text="TREE "+(View.Ensemble.Index+1)+" / "+View.Model.Trees.Count;
                     Row("Previous decision","tree-back",0,0,true);Row("Restart tree","tree-restart",0,1,true);
@@ -120,14 +152,14 @@ namespace VRExperienceAGB.Presentation
                     Row("Menu lower","lower",4,0,true);Row("Menu higher","higher",4,1,true);break;
                 case "profiles":case "compare":
                     title.text=MenuPage=="compare"?"COMPARE TWO PROFILES":"PLAY A PREPARED PROFILE";
-                    subtitle.text="Synthetic inputs · same complete "+View.Model.Trees.Count+"-tree model";
+                    subtitle.text=View.AvailableProfiles.Profiles.Count+" profiles · "+View.Model.Trees.Count+" trees · "+View.Model.Id;
                     if(View.AvailableProfiles.Profiles.Count==0){subtitle.text="No compatible prepared profiles are loaded.";break;}
                     Row("A: "+View.AvailableProfiles.Profiles[SelectedA].DisplayName,"next-a",0);
                     if(MenuPage=="compare")Row("B: "+View.AvailableProfiles.Profiles[SelectedB%View.AvailableProfiles.Profiles.Count].DisplayName,"next-b",1);
                     Row("Review selected profile values","values",2);
                     Row("Start · visit every tree",MenuPage=="compare"?"start-ab":"start-profile",3);break;
                 case "values":
-                    title.text="SYNTHETIC PROFILE INPUTS";subtitle.text="Fully supplied values; no missing-value routing is inferred.";
+                    title.text="PROFILE INPUTS";subtitle.text="Fully supplied values; no missing-value routing is inferred.";
                     var profile=View.AvailableProfiles.Profiles[SelectedA];
                     var values=profile.Values.Skip(valuePage*7).Take(7).Select(v=>v.Key+" = "+Value(v.Value));
                     var label=Garden.Text(content,"Values",string.Join("\n",values),new Vector2(0,20),new Vector2(970,380),23);label.richText=false;
@@ -150,19 +182,33 @@ namespace VRExperienceAGB.Presentation
                     Row("Table: smaller","table-smaller",3,0,true);Row("Table: larger","table-larger",3,1,true);
                     Row("Table: turn left","table-left",4,0,true);Row("Table: turn right","table-right",4,1,true);break;
                 case "help":
-                    title.text="HOW TO EXPLORE";subtitle.text="A / Tab: menu · B / R: center scene · X: close";
-                    Garden.Text(content,"Help","Point and press the trigger to select.\nLeft stick: walk. Right stick: turn.\n\nChoose a tree in the forest for manual branches.\nPlay profiles to see every tree in order.\nGold = A · Purple = B\nBlue result = positive · Red = negative\n\nPosition scene places the forest in front of you.",new Vector2(0,0),new Vector2(970,440),27);break;
+                    title.text="HOW TO EXPLORE";subtitle.text="A / Tab: menu · B / R: center scene · X / F12: screenshot";
+                    Garden.Text(content,"Help","Point and press the trigger to select. Hover for help.\nLeft stick: walk. Right stick: turn.\nX (left) / F12: save a screenshot.\nDownload: Models / profiles → From computer / Wi-Fi.\n\nChoose a tree in the forest for manual branches.\nPlay profiles to see every tree in order.\nGold = A · Purple = B\nBlue result = positive · Red = negative\n\nPosition scene places the forest in front of you.",new Vector2(0,0),new Vector2(970,440),27);break;
             }
         }
         private int valuePage;
         public void Activate(string command)
         {
             if(!View.Ready)return;
+            if(Library.Busy && command!="close")return;
+            if(command.StartsWith("library-open:")) {
+                int index;if(int.TryParse(command.Substring(13),out index) && index>=0 && index<Library.ListedFiles.Length)
+                    Library.ImportPath(Library.ListedFiles[index],MenuPage=="profile-files",false);
+                return;
+            }
             Revision++;
             switch(command)
             {
-                case "home":case "position":case "profiles":case "compare":case "tools":case "help":case "values":OpenMenu(command);return;
+                case "home":case "position":case "profiles":case "compare":case "tools":case "help":case "values":case "library":case "models":case "profile-files":case "library-help":case "upload":OpenMenu(command);return;
+                case "import-model":Library.Pick(false);OpenMenu(Library.PickerUnavailable?"upload":"models");return;
+                case "import-profile":Library.Pick(true);OpenMenu(Library.PickerUnavailable?"upload":"profile-files");return;
+                case "upload-start":Library.StartUpload();OpenMenu("upload");return;
+                case "upload-stop":Library.StopUpload();OpenMenu("upload");return;
+                case "library-refresh":BuildMenu();return;
+                case "library-prev":libraryPage=Math.Max(0,libraryPage-1);BuildMenu();return;
+                case "library-next":libraryPage++;BuildMenu();return;
                 case "close":CloseMenu();return;
+                case "forest-info":StopPlayback(true);CloseMenu();Garden.Navigation.ShowForest();Garden.M6.SetStoryOpen(true);return;
                 case "next-a":SelectedA=(SelectedA+1)%View.AvailableProfiles.Profiles.Count;BuildMenu();return;
                 case "next-b":SelectedB=(SelectedB+1)%View.AvailableProfiles.Profiles.Count;BuildMenu();return;
                 case "values-prev":valuePage=Math.Max(0,valuePage-1);BuildMenu();return;
@@ -207,6 +253,7 @@ namespace VRExperienceAGB.Presentation
         }
         public void StartPlayback(bool comparison)
         {
+            if(View.Model.StructureOnlyPreview || View.AvailableProfiles.Profiles.Count==0){OpenMenu("profile-files");return;}
             CloseMenu(); StopPlayback(false);
             View.StartScenarioProfiles(SelectedA,comparison?SelectedB%View.AvailableProfiles.Profiles.Count:-1);
             Playback=new ForestPlayback(View.Ensemble.Evaluation,comparison?View.Comparison.B.Evaluation:null){DecisionSeconds=.45,MoveSeconds=.3,ResultSeconds=1.2};
@@ -277,7 +324,11 @@ namespace VRExperienceAGB.Presentation
             menu.transform.SetPositionAndRotation(Vector3.Lerp(menu.transform.position,position,t),Quaternion.Slerp(menu.transform.rotation,rotation,t));
         }
         private void PlaceRoute()
-        { routeRoot.localPosition=Vector3.zero;routeRoot.localRotation=Quaternion.identity; }
+        {
+            routeRoot.localPosition=Vector3.zero;routeRoot.localRotation=Quaternion.identity;
+            // Place once at entry/recenter; never attach the explanation board to head motion.
+            detailCanvas.transform.rotation=Quaternion.LookRotation(detailCanvas.transform.position-Garden.Locomotion.Head.position);
+        }
         private void PlaceResult(bool table)
         {
             resultCanvas.gameObject.SetActive(ResultsVisible);if(!ResultsVisible)return;

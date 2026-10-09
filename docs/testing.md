@@ -159,3 +159,35 @@ Android Development build: **Succeeded**, zero errors and five warnings, `artifa
 See [current fixes, test evidence and device-sampling procedure](quest-feedback-2026-10-08.md). The updated suites pass **180 EditMode and 79 PlayMode** tests. The opt-in recording passes separately and produces a 99.67-second video demonstrating stone playback, pause/resume and Calculate whole model. The previous October 7 APK was installed and launched before the user reported the issues addressed here.
 
 The corrected APK was built, installed and launched on Quest 3. A focused 15-second sample with the user wearing the headset measured **68.65 FPS average**, median **13.889 ms** and p95 **15.511 ms**. This is a short single-tree sample with manual interactions, not a sustained frame-rate guarantee. Full details, APK identity and limitations are in the linked follow-up record.
+
+
+## JSON library — October 8, 2026
+
+See [the import guide and verification record](json-library.md). Full pre-Wi-Fi regression: 184 EditMode and 84 ordinary PlayMode passes. Additional final checks: two TCP protocol tests and four library PlayMode integration tests. The Android candidate was installed and the device HTTP endpoint imported a model plus separate A/B profile files; full three-tree scores matched the fixture (-4.1 / -2.6). A force-stop/relaunch followed by reopening the saved model restored its three trees and both profiles. Direct Wi-Fi routing remains unverified because the host reported no route; the device endpoint was exercised through USB forwarding.
+
+Repeatable manual acceptance scenario:
+
+1. Open Models / profiles → From computer / Wi-Fi → Start receiving. Open the address on the same network, enter the code, then upload `demo-model.json`, `profile-A.json`, and `profile-B.json` from the example ZIP in that order.
+2. Put on the headset if it was removed. Confirm three trees, two profiles, and separate saved Models / Profiles listings.
+3. Open a tree for manual exploration; return to the forest. Choose Compare profiles A / B, start, pause/resume, then Calculate whole model. Expect -4.1 and -2.6, and sigmoid probabilities approximately 1.63025% and 6.91384%. Show the final forest and Table View.
+4. Restart the app. Open Saved models → demo-model. Confirm both profiles are restored.
+5. Import malformed JSON and a profile for a different modelId. Expect a readable error and the existing model to remain usable. Open a supported nested AGB export; confirm structure viewing works and profile scoring is explicitly unavailable.
+6. Stop receiving. Confirm the browser can no longer upload.
+
+The Development build also accepts `start`, `status`, `compare`, `open-demo`, and `stop` in `json-library-request.txt` under the app persistent folder. It writes `json-library-report.json`; this opt-in probe supports automated device checks and requires the application to be ticking. `open-demo` only targets a previously saved file named demo-model. The regular user flow does not use these commands.
+
+
+## Forest/playback visibility follow-up — October 8, 2026
+
+All 13 focused ScenarioRevisionTests passed after extending the ground below scenery, moving the playback explanation board to the side, and separating model/scenery foliage under moonlight. See [the change record](quest-feedback-2026-10-08.md#forest-ground-playback-visibility-and-foliage-follow-up). Reports and reviewed Editor captures: `artifacts/visibility-fixes/`.
+
+For repeatable Development-build captures, the device probe also accepts `forest`, `playback`, and `ab`; the latter two start a paused route for visual inspection without moving the tracked head. Resume using the playback menu. The rendering tests do not establish headset performance or user acceptance.
+
+
+## Hover hints and feedback capture — October 8, 2026
+
+Focused verification passed 15 ScenarioRevisionTests and 3 HTTP server tests. This includes saving a complete PNG in Editor, preventing repeated captures while X remains held, preserving local head pose and evaluation state, and selecting a button while its tooltip is visible. The authenticated screenshot listing/download rejects traversal and non-screenshot filenames. Final tooltip and muted palette captures were visually reviewed; see the [feedback record](quest-feedback-2026-10-08.md#muted-palette-hover-hints-and-screenshots).
+
+Device check: hover a menu button, verify its outline/arrow and explanation; close the menu, press X on the left controller, wait for confirmation, then connect through Models / profiles → From computer / Wi-Fi and download the resulting PNG. Check both forest and paused A/B views. The Development probe accepts `screenshot` to exercise the same capture method; this does not substitute for physically pressing X.
+
+The initial device ScreenCapture path needed an Android-relative filename and then produced a black PNG. The final capture uses a separate mono URP render instead. The focused capture test passed with an explicit non-black pixel check and 1600×900 dimensions (`artifacts/feedback-tools/capture-test.json`). Final Android Development build: zero errors, seven warnings; installed and launched on Quest. APK: `artifacts/builds/VRExperienceAGB-feedback-tools.apk`, 109356811 bytes, SHA-256 `308a177c7add863741fd8c159bac5ec0e992697dfb8cc4d91b20e7069e0e859b`. The capture method saved a visually inspected **1600×900 scene image** on Quest (`artifacts/feedback-tools/quest-screenshot.png`, 271183 bytes). The device HTTP listing and download were verified through USB forwarding; downloaded bytes matched exactly (`download-check.txt`). Direct Wi-Fi routing and physically pressing X remain user acceptance checks. The temporary server and forwarding were stopped; the failed black test PNG was removed.

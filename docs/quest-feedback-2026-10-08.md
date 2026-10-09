@@ -49,3 +49,52 @@ Right-controller **B** now centers the current scene and unified menu on a fresh
 All **11 focused ScenarioRevisionTests** pass, including the new tests for shared scenery materials and button press/release behavior across tree and table views. Physical B-button acceptance and the new scenery color on Quest remain to be checked by the user.
 
 The follow-up recording passed **1/1** and was visually inspected for blue scenery versus green model pines (`artifacts/tree-performance/blue-frost-forest.jpg`). The follow-up Android Development build succeeded with zero errors and six warnings, and was installed on Quest with `adb install -r`. APK: `artifacts/builds/VRExperienceAGB-blue-frost-recenter.apk`, 109,331,857 bytes, SHA-256 `c5d22c8e1e0337e12146c88ca8fdde5d128c5e1a409fea09a8d9ea874e6b43a7`. Physical button/color acceptance remains pending; the earlier performance sample belongs to the preceding APK.
+
+
+## Forest ground, playback visibility and foliage follow-up
+
+The forest floor previously ended at x = ±21 m while decorative pines were placed around x = ±26–34 m, with some also beyond its rear edge. The floor now includes the actual bounds of every decorative pine, plus a 12 m margin, independent of the loaded ensemble size. This adds no new ground draw calls.
+
+The playback explanation board moves from the central line of sight to the left of the stone route. It faces the observer at entry/recenter and stays world anchored while the head moves. The smaller board does not intercept pointer rays. Existing pause/resume and full-model calculation remain in the menu.
+
+Model foliage uses a stronger green tint and a low green emission floor to retain its hue under blue moonlight. Decorative foliage uses a stronger blue emission floor. Table View now shares the model foliage material rather than using the original asset separately. Geometry, scoring and headset pose are unchanged.
+
+All **13 ScenarioRevisionTests** passed, including coverage of scenery ground bounds for both the 100-tree sample and a small imported model, projected ball visibility in single/A/B playback, and shared forest/table foliage. Editor screenshots were visually inspected in `artifacts/visibility-fixes/forest.png` and `playback.png`; the new panel leaves the central route clear. These are Editor checks; final Quest appearance requires headset confirmation.
+
+
+The follow-up Android Development APK built with zero errors and six warnings, installed successfully on the connected Quest, and was launched. File: `artifacts/builds/VRExperienceAGB-visibility-fixes.apk`, 102850453 bytes; SHA-256 `669fba70765649987af855d209258768f8521f5a469dfb962df271e1adc059e2`. Final headset visual acceptance remains open.
+
+
+## Muted palette, hover hints and screenshots
+
+Following feedback that the previous palette was too vivid, model trees now use muted forest green and scenery uses grey-blue. Emission floors are reduced from 0.22 green / 0.48 blue to 0.06 / 0.065; Table View retains the same model material.
+
+Buttons in the unified menu and the shared forest/table/tool factories show an arrow and outline on hover. Command-specific explanations appear above the unified menu; other controls show their label and trigger instruction near the control. Hint graphics do not intercept pointer rays and disappear when the button is hidden or the pointer exits.
+
+**X on the left controller / F12** requests an application screenshot. A and B keep their menu/recenter assignments. Captures render a 1600×900 mono view through URP using a temporary non-XR camera, unique filenames and a two-second cooldown. The tracked camera is untouched; confirmation appears after the asynchronous PNG write completes. The session-protected browser page includes screenshot downloads. See [sharing screenshots](json-library.md#sharing-screenshots).
+
+All **15 focused ScenarioRevisionTests** passed, including an actual Editor PNG capture, hold-to-repeat prevention and hover/click coexistence. All **3 HTTP tests** passed, including screenshot authentication and path restrictions. The final tooltip position above the menu and muted forest palette were visually inspected in Editor. Evidence: `artifacts/feedback-tools/playmode.json`, `http-tests.json`, `hint.png`, `forest.png`. Android and physical controller evidence follow separately; these tests do not establish Quest image output.
+
+
+The initial device ScreenCapture path needed an Android-relative filename and then produced a black PNG. The final capture uses a separate mono URP render instead. The focused capture test passed with an explicit non-black pixel check and 1600×900 dimensions (`artifacts/feedback-tools/capture-test.json`). Final Android Development build: zero errors, seven warnings; installed and launched on Quest. APK: `artifacts/builds/VRExperienceAGB-feedback-tools.apk`, 109356811 bytes, SHA-256 `308a177c7add863741fd8c159bac5ec0e992697dfb8cc4d91b20e7069e0e859b`. The capture method saved a visually inspected **1600×900 scene image** on Quest (`artifacts/feedback-tools/quest-screenshot.png`, 271183 bytes). The device HTTP listing and download were verified through USB forwarding; downloaded bytes matched exactly (`download-check.txt`). Direct Wi-Fi routing and physically pressing X remain user acceptance checks. The temporary server and forwarding were stopped; the failed black test PNG was removed.
+
+
+## Collapsible forest summary
+
+The large forest information card starts closed. A small **Forest info** button opens it, and **Hide forest info** or the card's close button hides it. The main menu also exposes **Forest info** so the card can be recalled after walking away from the entrance. Opening places it ahead of the current horizontal gaze without moving the tracked head. The open/closed choice survives scene navigation within the running session; the card is hidden during tree viewing, playback, menus and Table View. Model metadata and evaluation are unchanged.
+
+The focused PlayMode regression passed (1/1), exercising actual pointer events, close-button raycasts, navigation persistence, menu reopening and unchanged model/score. The open panel was visually inspected in Editor. Evidence: `artifacts/forest-info/test.json` and `open.png`.
+
+Android Development build succeeded with zero errors and nine warnings, then installed and launched on Quest. APK: `artifacts/builds/VRExperienceAGB-forest-info.apk`; SHA-256 `24ffa255bd477f18594bc5f91787023e550f0dd65c81cddaf4acd158e412ad70`. Physical headset interaction acceptance remains pending.
+
+## Single-tree text readability
+
+Following the four October 8 user captures, the segment and evidence side cards are hidden. Their complete evidence and path conditions remain in the node hover detail, including long category lists. Main questions, branch controls, node labels and route status use larger text. The detail panel uses fixed 32-point light text, an opaque background and an independent canvas placed 2.2 m ahead when opened. It stays anchored while reading; repeated entry to the same visible content preserves scrolling.
+
+Editor inspection exposed background stone labels drawing over the detail panel. The detail canvas now sorts above these labels. Text is separated from its background plane, inertial scrolling is disabled, and content height is resolved once for each new source instead of using a live ContentSizeFitter. These changes address overlap and clipping instability; absence of the reported flicker on the physical headset still requires confirmation.
+
+Visual evidence: `artifacts/text-readability/tree.png` and `detail.png`. The long-condition scroll regression passed. The new scenario regression verifies hidden side cards, fixed text size, sorting priority, stable position/scroll across delayed feature linking and an unchanged route revision.
+
+Final validation: **17/17 ScenarioRevisionTests passed**, plus the long-condition scrolling test (1/1). Android Development build `artifacts/builds/VRExperienceAGB-readable-text.apk` succeeded with zero errors and six toolchain/Pipeline/TMP warnings. Installation on the connected Quest succeeded. Physical readability and flicker acceptance remain pending.
+
+Menu hover follow-up: removed the redundant arrow and replaced the gold outline with a thin, muted blue-gray highlight. Compilation and Android build passed (zero errors); `artifacts/builds/VRExperienceAGB-subtle-hover.apk` was installed on Quest. Physical visual acceptance remains pending.

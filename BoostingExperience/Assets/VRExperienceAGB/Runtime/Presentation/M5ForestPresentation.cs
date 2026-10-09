@@ -94,6 +94,7 @@ namespace VRExperienceAGB.Presentation
             go.GetComponent<UnityEngine.UI.Button>().navigation = new UnityEngine.UI.Navigation { mode = UnityEngine.UI.Navigation.Mode.None };
             var pointer = go.GetComponent<M5PointerTarget>(); pointer.presentation = this; pointer.action = action; pointer.index = index;
             Garden.Text(go.transform, "Label", text, Vector2.zero, size - new Vector2(14, 8), fontSize);
+            go.AddComponent<ButtonHint>();
             return go;
         }
         public void Activate(M5Action action, int index = 0, string nodeId = null)

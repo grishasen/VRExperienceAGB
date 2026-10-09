@@ -144,7 +144,7 @@ namespace VRExperienceAGB.Presentation
                 // Stepped supports keep rear labels above the foreground rows instead of hiding them.
                 float support = .02f + i / columns * .045f;
                 Mesh("Planter", plot, Vector3.down * (support - .02f), new Vector3(spacing * .8f, support, spacing * .8f), garden.planterMesh, garden.stoneMaterial);
-                Mesh("Pine", plot, new Vector3(0, .02f, 0), new Vector3(diameter, height, diameter), garden.pineMesh, garden.pineMaterial);
+                Mesh("Pine", plot, new Vector3(0, .02f, 0), new Vector3(diameter, height, diameter), garden.pineMesh, garden.ModelFoliage);
                 garden.M6.AddComposition(plot,index,new Vector3(0,.012f,-spacing*.42f),spacing*.0012f);
                 rings.Add(Mesh("Ring", plot, new Vector3(0, .024f, 0), new Vector3(spacing * .8f, .009f, spacing * .8f), garden.ringMesh, garden.completedMaterial));
                 ringsB.Add(Mesh("RingB", plot, new Vector3(0, .034f, 0), new Vector3(spacing * .6f, .009f, spacing * .6f), garden.ringMesh, garden.completedMaterial));

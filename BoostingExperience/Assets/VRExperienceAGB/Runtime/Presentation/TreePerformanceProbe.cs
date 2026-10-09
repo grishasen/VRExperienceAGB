@@ -25,10 +25,38 @@ namespace VRExperienceAGB.Presentation
         }
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
         private static void Install() { new GameObject("DevelopmentPerformanceProbe").AddComponent<TreePerformanceProbe>(); }
+        [Serializable] private class LibraryReport {
+            public string status,address,code,modelId;public int trees,profiles;
+            public double scoreA,scoreB,probabilityA,probabilityB;public bool complete;
+        }
+        private void LibraryCommand(string path)
+        {
+            var view=FindAnyObjectByType<OneTreeExperience>();if(view==null || !view.Ready || view.Director==null)return;
+            string command=File.ReadAllText(path).Trim();File.Delete(path);var d=view.Director;
+            if(command=="start"){d.Library.StartUpload();d.OpenMenu("upload");}
+            if(command=="forest")d.Activate("forest");
+            if(command=="screenshot")view.GetComponent<FeedbackCapture>().Request();
+            if(command=="playback" || command=="ab") {
+                d.StartPlayback(command=="ab");
+                if(d.Playback!=null)d.Playback.Paused=true;
+            }
+            if(command=="compare" && view.AvailableProfiles.Profiles.Count>=2){d.StartPlayback(true);d.Activate("calculate-all");}
+            if(command=="open-demo"){
+                var file=d.Library.Storage.Files(false).FirstOrDefault(f=>VRExperienceAGB.Import.ModelFileLibrary.DisplayName(f)=="demo-model");
+                if(file!=null)d.Library.ImportPath(file,false,false);
+            }
+            if(command=="stop")d.Library.StopUpload();
+            File.WriteAllText(Path.Combine(UnityEngine.Application.persistentDataPath,"json-library-report.json"),JsonUtility.ToJson(new LibraryReport{
+                status=d.Library.Status,address=d.Library.UploadAddress,code=d.Library.UploadCode,modelId=view.Model.Id,trees=view.Model.Trees.Count,profiles=view.AvailableProfiles.Profiles.Count,
+                complete=d.Playback?.Complete==true,scoreA=d.Playback?.A.RawScore??0,scoreB=d.Playback?.B?.RawScore??0,probabilityA=d.Playback?.A.Probability??0,probabilityB=d.Playback?.B?.Probability??0
+            },true));
+        }
         private void Update()
         {
             if(!requested) {
                 if(Time.unscaledTime<pollAt)return;pollAt=Time.unscaledTime+1;
+                string libraryRequest=Path.Combine(UnityEngine.Application.persistentDataPath,"json-library-request.txt");
+                if(File.Exists(libraryRequest))LibraryCommand(libraryRequest);
                 string path=Path.Combine(UnityEngine.Application.persistentDataPath,"tree-performance-request.txt");
                 if(!File.Exists(path))return;
                 File.Delete(path);requested=true;entered=false;warmup=elapsed=0;frames.Clear();

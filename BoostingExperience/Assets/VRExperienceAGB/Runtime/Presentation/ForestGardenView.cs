@@ -48,6 +48,7 @@ namespace VRExperienceAGB.Presentation
         public bool GuideOpen => guide != null && guide.gameObject.activeSelf;
         private bool guideButtonReleased = true;
         private Material gardenFoliage, backdropFoliage;
+        internal Material ModelFoliage => gardenFoliage;
         private TMP_Text header;
         private GameObject profileButton;
         private Material quietRing, positiveRing, negativeRing;
@@ -71,8 +72,8 @@ namespace VRExperienceAGB.Presentation
                     if(decoration.name=="PineTree")StyleBackdrop(decoration.gameObject);
             }
             gardenFoliage=new Material(pineMaterial) { name="GardenEvergreen", enableInstancing=true };
-            gardenFoliage.color=new Color(.42f,.8f,.5f);
-            gardenFoliage.EnableKeyword("_EMISSION");gardenFoliage.SetColor("_EmissionColor",new Color(.01f,.045f,.016f));
+            gardenFoliage.SetColor("_BaseColor",new Color(.28f,.46f,.31f));
+            gardenFoliage.EnableKeyword("_EMISSION");gardenFoliage.SetColor("_EmissionColor",new Color(.012f,.06f,.018f));
             quietRing=new Material(completedMaterial) { name="UnvisitedPlanterRing" };
             quietRing.color=new Color(.10f,.25f,.27f); quietRing.enableInstancing=true;
             quietRing.DisableKeyword("_EMISSION");quietRing.SetColor("_EmissionColor",Color.black);
@@ -120,7 +121,7 @@ namespace VRExperienceAGB.Presentation
             root=new GameObject("ModelPineGarden");root.transform.SetParent(Experience.transform,false);root.SetActive(false);
             int rows=(metrics.Length+TreesPerBed-1)/TreesPerBed;
             float length=rows*4.8f+12;
-            Block("GardenGround",new Vector3(0,-.13f,length*.5f-3),new Vector3(42,.22f,length+10),soilMaterial);
+            var groundBounds=new Bounds(new Vector3(0,0,length*.5f-3),new Vector3(42,0,length+10));
             Block("CentralWalkway",new Vector3(0,-.005f,length*.5f-3),new Vector3(2.2f,.025f,length),pathMaterial);
             var oldEnvironment=Experience.transform.Find("MoonlitEnvironment");
             if(oldEnvironment!=null)
@@ -134,8 +135,17 @@ namespace VRExperienceAGB.Presentation
                     p.x = (p.x<0?-1:1)*(23+Mathf.Abs(p.x)*.4f);p.z=p.z*1.7f;
                     copy.transform.localPosition=p;
                     StyleBackdrop(copy);
+                    // Include the actual scenery footprint, even for a short imported ensemble.
+                    foreach(var renderer in copy.GetComponentsInChildren<Renderer>()) {
+                        var bounds=renderer.localBounds;
+                        for(int corner=0;corner<8;corner++) {
+                            var point=bounds.center+Vector3.Scale(bounds.extents,new Vector3((corner&1)==0?-1:1,(corner&2)==0?-1:1,(corner&4)==0?-1:1));
+                            groundBounds.Encapsulate(root.transform.InverseTransformPoint(renderer.transform.TransformPoint(point)));
+                        }
+                    }
                 }
             }
+            Block("GardenGround",new Vector3(groundBounds.center.x,-.13f,groundBounds.center.z),new Vector3(groundBounds.size.x+24,.22f,groundBounds.size.z+24),soilMaterial);
             for(int row=0;row<rows;row++)
             {
                 float z=6.6f+row*4.8f-2.1f;
@@ -168,9 +178,9 @@ namespace VRExperienceAGB.Presentation
                 if(renderer.name!="RadialBranches")continue;
                 if(backdropFoliage==null) {
                     backdropFoliage=new Material(renderer.sharedMaterial){name="BlueFrostSceneryFoliage",enableInstancing=true};
-                    backdropFoliage.SetColor("_BaseColor",new Color(.22f,.48f,.9f));
+                    backdropFoliage.SetColor("_BaseColor",new Color(.36f,.47f,.58f));
                     backdropFoliage.EnableKeyword("_EMISSION");
-                    backdropFoliage.SetColor("_EmissionColor",new Color(.025f,.09f,.22f));
+                    backdropFoliage.SetColor("_EmissionColor",new Color(.018f,.035f,.065f));
                 }
                 renderer.sharedMaterial=backdropFoliage;
             }
@@ -438,7 +448,7 @@ namespace VRExperienceAGB.Presentation
             go.GetComponent<UnityEngine.UI.Image>().color=new Color(.045f,.17f,.21f,.96f);
             go.GetComponent<UnityEngine.UI.Button>().navigation=new UnityEngine.UI.Navigation{mode=UnityEngine.UI.Navigation.Mode.None};
             var target=go.GetComponent<GardenPointerTarget>();target.garden=this;target.command=command;target.index=index;
-            Text(go.transform,"Label",label,Vector2.zero,size-new Vector2(12,8),fontSize);return go;
+            Text(go.transform,"Label",label,Vector2.zero,size-new Vector2(12,8),fontSize);go.AddComponent<ButtonHint>();return go;
         }
         internal TMP_Text Text(Transform parent,string name,string text,Vector2 position,Vector2 size,int fontSize)
         {

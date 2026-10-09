@@ -78,9 +78,9 @@ namespace VRExperienceAGB.Presentation
                 slot.title.transform.parent.localScale = Vector3.one * (compact ? .0035f : .0045f);
                 var node = lookup[addresses[i]];
                 bool preview = view.Model.StructureOnlyPreview;
-                slot.title.enableAutoSizing = preview;
-                slot.title.fontSizeMin = compact ? 16 : 18; slot.title.fontSizeMax = compact ? 22 : 29;
-                slot.title.rectTransform.sizeDelta = new Vector2(compact ? 300 : preview ? 400 : i == 0 ? 610 : 520, compact || preview ? 110 : 65);
+                slot.title.enableAutoSizing = preview || compact;
+                slot.title.fontSizeMin = compact ? 26 : 18; slot.title.fontSizeMax = compact ? 30 : 29;
+                slot.title.rectTransform.sizeDelta = new Vector2(compact ? 360 : preview ? 400 : i == 0 ? 610 : 520, compact || preview ? 145 : 65);
                 slot.marker.rectTransform.anchoredPosition = new Vector2(0, compact ? -70 : preview ? -64 : -37);
                 if(compact) { slot.marker.fontSize=15; slot.marker.rectTransform.sizeDelta=new Vector2(300,30); }
                 slot.title.textWrappingMode = TMPro.TextWrappingModes.Normal;
@@ -141,8 +141,8 @@ namespace VRExperienceAGB.Presentation
                 slot.nodeId=addresses[i];slot.transform.localPosition=locations[i];slot.dropAnchor.localPosition=locations[i]+Vector3.up*.29f;
                 slot.title.transform.parent.localPosition=locations[i]+new Vector3(0,.48f,-.16f);
                 slot.title.transform.parent.localScale=Vector3.one*.0035f;
-                slot.title.enabled=true;slot.title.enableAutoSizing=true;slot.title.fontSizeMin=16;slot.title.fontSizeMax=22;
-                slot.title.rectTransform.sizeDelta=new Vector2(300,110);
+                slot.title.enabled=true;slot.title.enableAutoSizing=true;slot.title.fontSizeMin=26;slot.title.fontSizeMax=30;
+                slot.title.rectTransform.sizeDelta=new Vector2(360,145);
                 var node=lookup[addresses[i]];
                 slot.title.text=node is SplitNode split?view.Condition(split,true):"LEAF "+(tree.Weight*((LeafNode)node).Score).ToString("+0.###;-0.###;0",System.Globalization.CultureInfo.InvariantCulture);
                 slot.marker.enabled=false;
