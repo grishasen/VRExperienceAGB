@@ -141,14 +141,15 @@ namespace VRExperienceAGB.Domain
         public string OutcomeLabel { get; }
         public double BaseScore { get; }
         public bool StructureOnlyPreview { get; }
+        public AgbExportInfo ExportInfo { get; }
         public IReadOnlyList<FeatureDefinition> Features { get; }
         public IReadOnlyList<ModelTree> Trees { get; }
         public ModelDefinition(int schemaVersion, string id, string provenance, string objective, string outcomeLabel,
-            double baseScore, IEnumerable<FeatureDefinition> features, IEnumerable<ModelTree> trees, bool structureOnlyPreview = false)
+            double baseScore, IEnumerable<FeatureDefinition> features, IEnumerable<ModelTree> trees, bool structureOnlyPreview = false, AgbExportInfo exportInfo = null)
         {
             SchemaVersion = schemaVersion; Id = id; Provenance = provenance; Objective = objective;
             OutcomeLabel = outcomeLabel; BaseScore = baseScore;
-            Features = Snapshot.List(features); Trees = Snapshot.List(trees); StructureOnlyPreview = structureOnlyPreview;
+            Features = Snapshot.List(features); Trees = Snapshot.List(trees); StructureOnlyPreview = structureOnlyPreview; ExportInfo = exportInfo;
         }
     }
 
@@ -159,10 +160,11 @@ namespace VRExperienceAGB.Domain
         public string Id { get; }
         public string DisplayName { get; }
         public IReadOnlyDictionary<string, ProfileValue> Values { get; }
+        public CdhProfileSource Source { get; }
         public PreparedProfile(int schemaVersion, string modelId, string id, string displayName,
-            IEnumerable<KeyValuePair<string, ProfileValue>> values)
+            IEnumerable<KeyValuePair<string, ProfileValue>> values, CdhProfileSource source = null)
         {
-            SchemaVersion = schemaVersion; ModelId = modelId; Id = id; DisplayName = displayName;
+            SchemaVersion = schemaVersion; ModelId = modelId; Id = id; DisplayName = displayName; Source = source;
             var copy = new Dictionary<string, ProfileValue>(StringComparer.Ordinal);
             foreach (var pair in values ?? Enumerable.Empty<KeyValuePair<string, ProfileValue>>())
                 copy.Add(pair.Key, pair.Value);

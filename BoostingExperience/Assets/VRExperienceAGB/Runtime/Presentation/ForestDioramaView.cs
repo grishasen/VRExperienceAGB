@@ -12,7 +12,7 @@ namespace VRExperienceAGB.Presentation
     {
         public const float MinimumScale = .7f, MaximumScale = 1.4f;
         private readonly M5ForestPresentation owner;
-        private readonly Transform root, model;
+        private readonly Transform root, model, magnified;
         private readonly Canvas controls, hoverCard;
         public TMP_Text HoverText { get; private set; }
         public int HoveredIndex { get; private set; } = -1;
@@ -26,6 +26,10 @@ namespace VRExperienceAGB.Presentation
         private int builtPage = -1;
         private bool placed;
         public const int TreesPerPage = 50;
+        public bool ShowAllLabels { get; set; }
+        public int GroupPage { get; private set; } = -1;
+        public string GroupDescription => GroupPage<0?"All trees":"Group "+(GroupPage+1)+" / "+((owner.View.Model.Trees.Count+TreesPerPage-1)/TreesPerPage);
+        public void NextGroup() { int pages=(owner.View.Model.Trees.Count+TreesPerPage-1)/TreesPerPage;GroupPage=GroupPage+1>=pages?-1:GroupPage+1;Refresh(); }
         public float Scale { get; private set; } = 1;
         public float Yaw { get; private set; }
         public Transform ModelRoot => model;
@@ -37,6 +41,7 @@ namespace VRExperienceAGB.Presentation
             root = new GameObject("ForestDiorama").transform; root.SetParent(parent, false);
             model = new GameObject("DioramaModel").transform; model.SetParent(root, false);
             model.localPosition = new Vector3(0, 0, 0);
+            magnified=new GameObject("MagnifiedTableTree").transform;magnified.SetParent(root,false);magnified.localPosition=new Vector3(1.05f,.15f,.15f);magnified.gameObject.SetActive(false);
             controls = owner.Panel("DioramaControls", new Vector2(1000, 500), root);
             controls.transform.localScale = Vector3.one * .0007f;
             details = owner.Garden.Text(controls.transform, "SelectedTree", "", new Vector2(0, 135), new Vector2(940, 110), 25);
@@ -85,7 +90,7 @@ namespace VRExperienceAGB.Presentation
         private void ApplyTransform() { ClearHover(HoveredIndex); model.localScale = Vector3.one * Scale; model.localRotation = Quaternion.Euler(0, Yaw, 0); }
         public void Refresh()
         {
-            if (builtModel != owner.View.Model || builtPage != 0) Build();
+            if (builtModel != owner.View.Model || builtPage != GroupPage) Build();
             int selected = owner.View.Ensemble.Index;
             var metric = owner.Garden.Metrics[selected];
             var ensemble = owner.View.Ensemble;
@@ -96,11 +101,11 @@ namespace VRExperienceAGB.Presentation
             string identity = ensemble.Profile == null ? "Manual routes · no profile probability" : "Prepared profile: " + ensemble.Profile.DisplayName;
             details.text = "TREE " + (selected + 1) + " / " + builtModel.Trees.Count + " · Depth " + metric.MaximumDepth + " · " + metric.LeafCount + " leaves\n" +
                 identity + "\n" + ensemble.CompletedCount + " leaves reached · Scale " + Scale.ToString("0.0", CultureInfo.InvariantCulture) + "×" +
-                " · Showing all " + builtModel.Trees.Count + " trees";
+                " · "+GroupDescription+" · every tree still evaluated";
             var ledger = ensemble.Ledger;
             for (int i = 0; i < rings.Count; i++)
             {
-                int index = builtPage * TreesPerPage + i;
+                int index = Mathf.Max(0,builtPage) * TreesPerPage + i;
                 bool reached = ledger[index].Progress != VRExperienceAGB.Application.ContributionProgress.Pending;
                 double contribution=ledger[index].PresentedContribution;
                 if(owner.View.Director != null && owner.View.Director.TryContribution(index,false,out var finalValue)){reached=true;contribution=finalValue;}
@@ -110,8 +115,9 @@ namespace VRExperienceAGB.Presentation
                 if(hasB){owner.View.Director.TryContribution(index,true,out var bv);ringsB[i].sharedMaterial=owner.Garden.ContributionRing(true,bv);}
                 targets[i].color = new Color(.02f,.07f,.1f,.025f);
                 targets[i].GetComponentInChildren<TMP_Text>().color=index==selected?new Color(1,.8f,.25f):Color.white;
-                string sign = reached ? ledger[index].PresentedContribution > 0 ? "+" : ledger[index].PresentedContribution < 0 ? "−" : "0" : "";
-                targets[i].GetComponentInChildren<TMP_Text>().text = (index + 1) + sign;
+                string sign = reached ? contribution > 0 ? "+" : contribution < 0 ? "−" : "0" : "";
+                var number=targets[i].GetComponentInChildren<TMP_Text>();
+                number.text = (index + 1) + sign;number.enabled=ShowAllLabels || index==selected || index==HoveredIndex;
                 // Pointer cards face the table's observer even after model rotation.
                 crownTargets[i].rotation = root.rotation;
             }
@@ -122,10 +128,10 @@ namespace VRExperienceAGB.Presentation
             ClearHover(HoveredIndex);
             bool replacingModel = builtModel != owner.View.Model;
             rings.Clear(); ringsB.Clear(); targets.Clear(); crownTargets.Clear(); builtModel = owner.View.Model;
-            builtPage = 0;
-            if (replacingModel) { Scale = 1; Yaw = 0; ApplyTransform(); }
+            builtPage = GroupPage;
+            if (replacingModel) { GroupPage=builtPage=-1;Scale = 1; Yaw = 0; ApplyTransform(); }
             var garden = owner.Garden;
-            int start = 0, count = builtModel.Trees.Count;
+            int start = Mathf.Max(0,GroupPage)*TreesPerPage, count = GroupPage<0?builtModel.Trees.Count:Mathf.Min(TreesPerPage,builtModel.Trees.Count-start);
             int columns = Mathf.Min(10, count), rows = (count + columns - 1) / columns;
             float spacing = Mathf.Min(.15f, 1.5f / Mathf.Max(columns, rows));
             float width = Mathf.Max(.5f, columns * spacing + .15f), length = Mathf.Max(.35f, rows * spacing + .15f);
@@ -137,12 +143,12 @@ namespace VRExperienceAGB.Presentation
                 int index = start + i;
                 var metric = garden.Metrics[index]; var plot = new GameObject("DioramaTree-" + (index + 1)).transform;
                 plot.SetParent(model, false);
-                plot.localPosition = new Vector3((i % columns - (columns - 1) * .5f) * spacing, i / columns * .045f, .20f + (i / columns - (rows - 1) * .5f) * spacing);
+                plot.localPosition = new Vector3((i % columns - (columns - 1) * .5f) * spacing, i / columns * Mathf.Min(.045f,.35f/Mathf.Max(1,rows-1)), .20f + (i / columns - (rows - 1) * .5f) * spacing);
                 float depth=maxDepth==minDepth?.5f:(float)(metric.MaximumDepth-minDepth)/(maxDepth-minDepth);
                 float leaves=maxLeaves==minLeaves?.5f:Mathf.Sqrt((float)(metric.LeafCount-minLeaves)/(maxLeaves-minLeaves));
                 float height=spacing*(.65f+1.25f*depth),diameter=spacing*(.32f+.42f*leaves);
                 // Stepped supports keep rear labels above the foreground rows instead of hiding them.
-                float support = .02f + i / columns * .045f;
+                float support = .02f + i / columns * Mathf.Min(.045f,.35f/Mathf.Max(1,rows-1));
                 Mesh("Planter", plot, Vector3.down * (support - .02f), new Vector3(spacing * .8f, support, spacing * .8f), garden.planterMesh, garden.stoneMaterial);
                 Mesh("Pine", plot, new Vector3(0, .02f, 0), new Vector3(diameter, height, diameter), garden.pineMesh, garden.ModelFoliage);
                 garden.M6.AddComposition(plot,index,new Vector3(0,.012f,-spacing*.42f),spacing*.0012f);
@@ -162,17 +168,24 @@ namespace VRExperienceAGB.Presentation
         public void Hover(int index)
         {
             if(!Visible || owner.View.Director?.MenuVisible==true || index<0 || index>=owner.Garden.PlotCount)return;
-            HoveredIndex=index;
+            HoveredIndex=index;Refresh();
             HoverText.text=owner.Garden.M6.Analysis.Passport(index)+"\nHeight = depth · Width = leaf count";
             if(owner.View.Director!=null && owner.View.Director.TryContribution(index,false,out var a))
-                HoverText.text+="\nA contribution: "+a.ToString("+0.######;-0.######;0",CultureInfo.InvariantCulture);
+                HoverText.text+="\nA · outer ring · contribution: "+a.ToString("+0.######;-0.######;0",CultureInfo.InvariantCulture);
             if(owner.View.Director!=null && owner.View.Director.TryContribution(index,true,out var b))
-                HoverText.text+="\nB contribution: "+b.ToString("+0.######;-0.######;0",CultureInfo.InvariantCulture);
+                HoverText.text+="\nB · inner ring · contribution: "+b.ToString("+0.######;-0.######;0",CultureInfo.InvariantCulture);
             hoverCard.transform.rotation=Quaternion.LookRotation(hoverCard.transform.position-owner.Garden.Locomotion.Head.position);
             hoverCard.gameObject.SetActive(true);
+            foreach(Transform child in magnified){child.gameObject.SetActive(false);Object.Destroy(child.gameObject);}
+            var metric=owner.Garden.Metrics[index];
+            float h=.25f+.25f*metric.MaximumDepth/Mathf.Max(1,owner.Garden.Metrics.Max(m=>m.MaximumDepth));
+            float w=.16f+.15f*Mathf.Sqrt((float)metric.LeafCount/Mathf.Max(1,owner.Garden.Metrics.Max(m=>m.LeafCount)));
+            Mesh("MagnifiedPine",magnified,new Vector3(0,.03f,0),new Vector3(w,h,w),owner.Garden.pineMesh,owner.Garden.ModelFoliage);
+            Mesh("MagnifiedPlanter",magnified,Vector3.zero,new Vector3(.36f,.03f,.36f),owner.Garden.planterMesh,owner.Garden.stoneMaterial);
+            magnified.gameObject.SetActive(true);
         }
         public void ClearHover(int index)
-        { if(index!=HoveredIndex)return;HoveredIndex=-1;if(hoverCard!=null)hoverCard.gameObject.SetActive(false); }
+        { if(index!=HoveredIndex)return;HoveredIndex=-1;if(hoverCard!=null)hoverCard.gameObject.SetActive(false);if(magnified!=null)magnified.gameObject.SetActive(false); }
         private static Renderer Mesh(string name, Transform parent, Vector3 position, Vector3 size, Mesh mesh, Material material)
         {
             var go = new GameObject(name, typeof(MeshFilter), typeof(MeshRenderer)); go.transform.SetParent(parent, false);

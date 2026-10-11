@@ -50,7 +50,7 @@ namespace VRExperienceAGB.Import
         internal ExplainedTree(ModelTree tree, AgbPreviewResult export)
         {
             Tree = tree; Nodes = tree.Nodes.ToDictionary(n => n.Id, StringComparer.Ordinal);
-            var families = ForestExplanation.Families.ToDictionary(f => f, f => 0d);
+            var families = tree.Nodes.OfType<SplitNode>().Select(n => ForestExplanation.Family(n.FeatureId)).Distinct(StringComparer.Ordinal).ToDictionary(f => f, f => 0d);
             bool complete = export != null;
             double gain = 0;
             foreach (var split in tree.Nodes.OfType<SplitNode>())
@@ -75,20 +75,30 @@ namespace VRExperienceAGB.Import
     /// <summary>Cached, read-only descriptions over every tree. No Unity objects, scoring, or route mutations.</summary>
     public sealed class ForestExplanation
     {
-        public static readonly string[] Families = { "History", "Customer", "Context", "Other" };
+        public IReadOnlyList<string> Families { get; }
+        public string SourceSha256 => export?.Sha256;
+        private readonly Dictionary<string, string> labels;
         public ModelDefinition Model { get; }
         public IReadOnlyList<ExplainedTree> Trees { get; }
         public double? TotalGain { get; }
+        public IReadOnlyDictionary<string,double> PredictorGains { get; }
         private readonly AgbPreviewResult export;
         private readonly Dictionary<string, FeatureDefinition> features;
         private readonly Dictionary<string, List<(int tree, SplitNode node)>> occurrences;
         private readonly Dictionary<string, double[]> thresholds;
         public static string Number(double value) => value.ToString("G5", CultureInfo.InvariantCulture);
-        public static string Family(string id) => id.StartsWith("IH.", StringComparison.Ordinal) ? "History" :
-            id.StartsWith("Customer.", StringComparison.Ordinal) ? "Customer" : id.StartsWith("py", StringComparison.Ordinal) || id.StartsWith("Param.", StringComparison.Ordinal) ? "Context" : "Other";
-        public ForestExplanation(ModelDefinition model, AgbPreviewResult preview = null)
+        // Namespace is an identifier grouping, never an inferred business role.
+        public static string Family(string id)
         {
-            Model = model; export = preview?.Model == model ? preview : null;
+            int dot = id.IndexOf('.');
+            return dot > 0 ? id.Substring(0, dot) : "Unqualified";
+        }
+        public ForestExplanation(ModelDefinition model, AgbPreviewResult preview = null, string sourceSha256 = null)
+        {
+            Model = model; export = ExportMetadataBinding.Matches(model, preview, sourceSha256) ? preview : null;
+            Families = Array.AsReadOnly(model.Trees.SelectMany(t => t.Nodes.OfType<SplitNode>()).Select(n => Family(n.FeatureId)).Distinct(StringComparer.Ordinal).OrderBy(f => f, StringComparer.Ordinal).ToArray());
+            var duplicateNames = model.Features.GroupBy(f => f.DisplayName, StringComparer.Ordinal).Where(g => g.Count() > 1).Select(g => g.Key).ToHashSet(StringComparer.Ordinal);
+            labels = model.Features.ToDictionary(f => f.Id, f => duplicateNames.Contains(f.DisplayName) ? f.DisplayName + " [" + f.Id + "]" : f.DisplayName, StringComparer.Ordinal);
             features = model.Features.ToDictionary(f => f.Id, StringComparer.Ordinal);
             Trees = Array.AsReadOnly(model.Trees.Select(t => new ExplainedTree(t, export)).ToArray());
             double sum = Trees.Sum(t => t.Gain ?? 0);
@@ -98,10 +108,14 @@ namespace VRExperienceAGB.Import
                 if (!occurrences.TryGetValue(node.FeatureId, out var list)) occurrences.Add(node.FeatureId, list = new List<(int, SplitNode)>());
                 list.Add((i, node));
             }
+            var predictorGains=features.Keys.ToDictionary(f=>f,f=>0d,StringComparer.Ordinal);
+            if(export!=null)foreach(var t in model.Trees)foreach(var n in t.Nodes.OfType<SplitNode>())
+                if(export.Metadata.TryGetValue(t.Id+"/"+n.Id,out var evidence)&&evidence.Gain>=0)predictorGains[n.FeatureId]+=evidence.Gain;
+            PredictorGains=new System.Collections.ObjectModel.ReadOnlyDictionary<string,double>(predictorGains);
             thresholds = occurrences.ToDictionary(p => p.Key, p => p.Value.Where(x => x.node.Condition.Operator == DecisionOperator.LessThan)
                 .Select(x => x.node.Condition.Threshold.Value).Distinct().OrderBy(v => v).ToArray(), StringComparer.Ordinal);
         }
-        public string Label(string feature) => features[feature].DisplayName;
+        public string Label(string feature) => labels[feature];
         public double[] Thresholds(string feature) => thresholds.TryGetValue(feature, out var result) ? (double[])result.Clone() : Array.Empty<double>();
         public int Occurrences(string feature) => occurrences.TryGetValue(feature, out var list) ? list.Count : 0;
         public int[] MatchingTrees(string feature) => occurrences.TryGetValue(feature, out var list) ? list.Select(x => x.tree).Distinct().ToArray() : Array.Empty<int>();
@@ -116,7 +130,7 @@ namespace VRExperienceAGB.Import
         }
         public string Kind(SplitNode node) => features[node.FeatureId].Kind +
             (features[node.FeatureId].Kind == FeatureKind.Number ? " · " + (features[node.FeatureId].Unit ?? "unit not supplied") : "") +
-            (Model.StructureOnlyPreview ? " · label inferred from identifier" : " · supplied feature dictionary");
+            (Model.StructureOnlyPreview || Model.ExportInfo != null ? " · label inferred from identifier" : " · supplied feature dictionary");
         public string NodeEvidence(int index, string id)
         {
             var tree = Trees[index];
@@ -130,7 +144,7 @@ namespace VRExperienceAGB.Import
         public string NodeDetail(int index, string id)
         {
             var tree = Trees[index]; var node = tree.Nodes[id];
-            string text = "SOURCE " + tree.Tree.Id + "/" + id + "\n";
+            string text = "SOURCE " + tree.Tree.Id + "/" + id + "\nSHA-256: " + (SourceSha256 ?? "not supplied") + "\n";
             if (node is SplitNode split) {
                 text += split.FeatureId + "\n" + Kind(split) + "\nTRUE: " + Branch(split, true, true) + "\nFALSE: " + Branch(split, false, true) +
                     "\nUsed " + tree.Tree.Nodes.OfType<SplitNode>().Count(n => n.FeatureId == split.FeatureId) + " times here; " + Occurrences(split.FeatureId) + " splits in " + MatchingTrees(split.FeatureId).Length + " trees.";
@@ -168,7 +182,7 @@ namespace VRExperienceAGB.Import
             string root = t.Nodes[t.Tree.RootId] is SplitNode split ? "First: " + Question(split) : "Single leaf; no split";
             return "TREE " + (index + 1) + " · source index " + index + "\nDepth " + t.Depth + " · " + t.Leaves + " leaves · " + t.Tree.Nodes.Count + " nodes\n" +
                 (t.Gain.HasValue ? "Stored gain " + Number(t.Gain.Value) + (TotalGain > 0 ? " · " + Number(t.Gain.Value * 100 / TotalGain.Value) + "% of ensemble" : " · share unavailable") : "Gain not supplied") +
-                "\nLeaf contributions " + Number(t.MinimumLeaf) + " to " + Number(t.MaximumLeaf) + "\n" + root + "\nMost repeated: " + (names.Any() ? string.Join(", ", names) : "none");
+                "\nNamespace stored gain: " + (t.Gain>0?string.Join(" · ",t.FamilyGains.Select(g=>g.Key+" "+Number(100*g.Value/t.Gain.Value)+"%")):"unavailable") + "\nLeaf contributions " + Number(t.MinimumLeaf) + " to " + Number(t.MaximumLeaf) + "\n" + root + "\nMost repeated: " + (names.Any() ? string.Join(", ", names) : "none");
         }
         private string cachedStory;
         public string ModelStory() => cachedStory ?? (cachedStory = BuildModelStory());
@@ -183,8 +197,8 @@ namespace VRExperienceAGB.Import
             return "ABOUT THIS FOREST\n" + Trees.Count + " trees · " + occurrences.Count + " used predictors\nVersion: " + (m?.Version ?? "not supplied") +
                 "\nExport update: " + (m?.Updated ?? "not supplied") + "\n" + observations + "\nSplits by identifier family: " + string.Join(" · ", families) +
                 "\nThe forest asks " + (occurrences.Count == 0 ? "no split questions." : "most often about " + string.Join(", ", occurrences.OrderByDescending(p => p.Value.Count).ThenBy(p => p.Key, StringComparer.Ordinal).Take(3).Select(p => Label(p.Key))) + ".") +
-                "\nHeight = depth · crown width = leaves\nBase strip = family share of stored gain (H / C / X / O)\nHistory / Customer / Context / Other · families inferred from identifiers\nRing + / - = reached leaf contribution\nTree numbers preserve export order; they are not dates.\n" +
-                (Model.StructureOnlyPreview ? "Structure preview · scoring unverified" : "Normalized teaching model · supplied scoring contract");
+                "\nHeight = depth · crown width = leaves\nBase strip = namespace share of stored gain\nNamespace names do not establish business meaning.\nRing + / - = reached leaf contribution\nTree numbers preserve export order; they are not dates.\n" +
+                (Model.StructureOnlyPreview ? "Structure preview · scoring unverified" : Model.ExportInfo != null ? "Exported-tree calculation · CDH propensity reconciliation deferred" : "Normalized teaching model · supplied scoring contract");
         }
     }
 }

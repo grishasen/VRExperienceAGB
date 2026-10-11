@@ -53,15 +53,15 @@ namespace VRExperienceAGB.Tests
             Assert.That(view.AvailableProfiles.Profiles.Count,Is.EqualTo(2));Assert.That(view.Comparison,Is.Null);
             view.Director.Activate("table");Assert.That(view.Garden.M5.Diorama.Visible,Is.True);
         }
-        [UnityTest] public IEnumerator NestedExportRemainsViewableWithoutEnablingUnverifiedScoring()
+        [UnityTest] public IEnumerator NestedExportEnablesTreeCalculationButRequiresProfilesForPlayback()
         {
             string json=File.ReadAllText(Path.Combine(UnityEngine.Application.dataPath,"../../data/examples/demo-agb-export.json"));
             var library=view.Director.Library;library.ImportPath(Input("export.json",json),false,true);yield return WaitForImport();
-            Assert.That(view.Model.StructureOnlyPreview,Is.True);Assert.That(view.Garden.PlotCount,Is.EqualTo(3));
+            Assert.That(view.Model.StructureOnlyPreview,Is.False);Assert.That(view.Model.ExportInfo,Is.Not.Null);Assert.That(view.Garden.PlotCount,Is.EqualTo(3));
             view.Director.CloseMenu();view.Garden.Navigation.OpenTree(0);Assert.That(view.Session.State.Overview,Is.False);
             view.Director.StartPlayback(true);Assert.That(view.Director.PlayingTour,Is.False);
             var accepted=view.Model;library.ImportPath(Input("profiles.json","{}"),true,true);yield return WaitForImport();
-            Assert.That(view.Model,Is.SameAs(accepted));Assert.That(library.Status,Does.Contain("structure viewing only"));
+            Assert.That(view.Model,Is.SameAs(accepted));Assert.That(library.Status,Does.Contain("RequiredField"));
         }
         [UnityTest] public IEnumerator BrowserUploadOpensValidatedModelThroughMainThreadQueue()
         {

@@ -219,7 +219,7 @@ namespace VRExperienceAGB.Presentation
             {
                 var point = points[Iteration]; var final = points[points.Count - 1];
                 body.text += "Profile: " + View.Ensemble.Profile.DisplayName + "\nIntermediate raw score " + N(point.RawScore) +
-                    " · probability " + N(point.Probability * 100) + "%\nFull-model raw score " + N(final.RawScore) + " · probability " + N(final.Probability * 100) + "%\n";
+                    "\nFull-model raw score " + N(final.RawScore) + "\n" + ModelInsightText.CalibrationNotice + "\n";
                 if (Iteration > 0) body.text += "This tree's weighted contribution: " + N(View.Ensemble.Evaluation.Trees[Iteration - 1].Contribution) + "\n";
             }
             else body.text += "Structure / manual preview: no profile probability.\nUse Compare synthetic profiles for verified intermediate results.\n";

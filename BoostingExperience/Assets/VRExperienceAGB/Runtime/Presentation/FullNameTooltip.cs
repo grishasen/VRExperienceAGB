@@ -15,6 +15,8 @@ namespace VRExperienceAGB.Presentation
         private string shownText;
         private object source;
         private bool overPanel;
+        public bool Pinned { get; private set; }
+        public void TogglePin() { if(!Visible)return;Pinned=!Pinned;hideAt=float.PositiveInfinity;Text.text=(Pinned?"PINNED DETAILS · click panel to unpin":"NODE DETAILS · click to pin · scroll for more")+"\n"+shownText; }
         private float hideAt = float.PositiveInfinity;
         public bool Visible => panel != null && panel.activeSelf;
         public void Build(Transform parent, TMP_Text style)
@@ -53,12 +55,13 @@ namespace VRExperienceAGB.Presentation
         }
         public void Show(object owner, string text)
         {
+            if(Pinned)return;
             bool unchanged=Visible && shownText==text;
             source=owner; hideAt=float.PositiveInfinity;
             if(unchanged)return;
             overPanel=false;shownText=text;
             Text.richText=false;
-            Text.text="NODE DETAILS · scroll for more\n"+text;
+            Text.text="NODE DETAILS · click to pin · scroll for more\n"+text;
             if(readingCanvas!=null) {
                 var head=GetComponent<OneTreeExperience>().Garden.Locomotion.Head;
                 var forward=Vector3.ProjectOnPlane(head.forward,Vector3.up).normalized;
@@ -71,16 +74,17 @@ namespace VRExperienceAGB.Presentation
                 Mathf.Max(scroll.viewport.rect.height,Text.GetPreferredValues(Text.text,scroll.viewport.rect.width,Mathf.Infinity).y+8));
             scroll.StopMovement();scroll.verticalNormalizedPosition=1;
         }
-        public void Leave(object owner) { if (source == owner) hideAt=Time.unscaledTime+.2f; }
-        public void Hide() { source=null; overPanel=false; hideAt=float.PositiveInfinity; if(panel!=null)panel.SetActive(false); }
+        public void Leave(object owner) { if (!Pinned && source == owner) hideAt=Time.unscaledTime+.7f; }
+        public void Hide() { Pinned=false;source=null; overPanel=false; hideAt=float.PositiveInfinity; if(panel!=null)panel.SetActive(false); }
         public void OnPointerEnter(PointerEventData data) { overPanel=true; }
-        public void OnPointerExit(PointerEventData data) { overPanel=false; hideAt=Time.unscaledTime+.2f; }
-        private void Update() { if(!overPanel && Time.unscaledTime>=hideAt) Hide(); }
+        public void OnPointerExit(PointerEventData data) { overPanel=false; hideAt=Time.unscaledTime+.7f; }
+        private void Update() { if(!Pinned && !overPanel && Time.unscaledTime>=hideAt) Hide(); }
         private void OnDestroy() { if(panel!=null) Destroy(panel); }
     }
-    public sealed class TooltipPanelHover : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
+    public sealed class TooltipPanelHover : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler, IPointerClickHandler
     {
         public FullNameTooltip tooltip;
+        public void OnPointerClick(PointerEventData data) { if(data.button==PointerEventData.InputButton.Left)tooltip.TogglePin(); }
         public void OnPointerEnter(PointerEventData data) => tooltip.OnPointerEnter(data);
         public void OnPointerExit(PointerEventData data) => tooltip.OnPointerExit(data);
     }

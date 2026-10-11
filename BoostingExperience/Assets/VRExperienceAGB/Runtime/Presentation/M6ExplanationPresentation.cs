@@ -38,7 +38,6 @@ namespace VRExperienceAGB.Presentation
         private float linkAt;
         private float nextFacing;
         private readonly List<Canvas> facing = new List<Canvas>();
-        private static readonly Color[] FamilyColors = { new Color(.6f,.48f,.9f), new Color(.24f,.55f,.92f), new Color(.88f,.7f,.3f), new Color(.6f,.65f,.68f) };
         public void Configure(ForestGardenView owner)
         {
             garden = owner;
@@ -113,7 +112,7 @@ namespace VRExperienceAGB.Presentation
         public void EnsureModel()
         {
             if (Analysis?.Model == View.Model) return;
-            Analysis=new ForestExplanation(View.Model,View.ExportPreview);LinkedFeature=null;inspected=null;hoverOwner=null;pendingFeature=null;
+            Analysis=new ForestExplanation(View.Model,View.ExportPreview,View.ExportSourceSha256);LinkedFeature=null;inspected=null;hoverOwner=null;pendingFeature=null;
             View.NameTooltip?.Hide(); StoryText.text=Analysis.ModelStory();
         }
         public string Detail(string id) { EnsureModel(); return Analysis.NodeDetail(View.Ensemble.Index,id); }
@@ -175,7 +174,7 @@ namespace VRExperienceAGB.Presentation
                 bool current=id==View.Session.State.NodeId;
                 EvidenceText.text="LEAF · raw contribution "+ForestExplanation.Number(contribution)+"\n"+
                     (current?"Previous subtotal "+ForestExplanation.Number(View.Ensemble.RouteTotal-contribution)+" → "+ForestExplanation.Number(View.Ensemble.RouteTotal):"Inspection only · route unchanged")+"\n"+
-                    (View.Ensemble.Profile!=null&&View.Ensemble.Evaluation!=null?"Full profile result "+ForestExplanation.Number(100*View.Ensemble.Evaluation.Probability)+"% · all "+View.Model.Trees.Count+" trees": "Manual route · no profile probability")+"\n"+Analysis.NodeEvidence(index,id);
+                    (View.Ensemble.Profile!=null&&View.Ensemble.Evaluation!=null?"Full profile score "+ForestExplanation.Number(View.Ensemble.Evaluation.RawScore)+" · all "+View.Model.Trees.Count+" trees\n"+ModelInsightText.CalibrationNotice: "Manual route · no profile probability")+"\n"+Analysis.NodeEvidence(index,id);
             }
             Spectrum(node as SplitNode);
             if(garden.simplifiedNavigation && View.FocusedView.FocusRoot==null) {
@@ -190,11 +189,11 @@ namespace VRExperienceAGB.Presentation
             foreach(var slot in View.nodeViews.Where(s=>s.gameObject.activeSelf)) {
                 if(!modelTree.Nodes.TryGetValue(slot.nodeId,out var source))continue;
                 slot.title.richText=false;
-                if(source is SplitNode question)slot.title.text=Analysis.Question(question);
+                if(source is SplitNode question) slot.title.text=source.Id==(View.FocusedView.FocusRoot??View.Session.State.NodeId)?Analysis.Question(question):"Next question · point for details";
                 int si=Array.IndexOf(View.nodeViews,slot);
                 bool linked=garden.M5.Extensions.SearchActive ? garden.M5.Extensions.Matches(index, source.Id) : source is SplitNode match&&match.FeatureId==LinkedFeature;
                 badges[si].text=(source is SplitNode missing&&missing.Condition.Operator==DecisionOperator.IsMissing?"[MISSING] ":"")+(linked?"LINKED":"");
-                if(!(source is SplitNode parent))continue;
+                if(!(source is SplitNode parent) || source.Id!=(View.FocusedView.FocusRoot??View.Session.State.NodeId))continue;
                 foreach(bool matched in new[]{true,false}) {
                     string child=matched?parent.TrueChild:parent.FalseChild;
                     var target=View.nodeViews.FirstOrDefault(s=>s.gameObject.activeSelf&&s.nodeId==child);
@@ -254,13 +253,13 @@ namespace VRExperienceAGB.Presentation
             EnsureModel();var canvas=garden.CanvasAt("PredictorComposition",position,new Vector2(600,56),scale,parent);
             var gains=Analysis.Trees[index];float left=-300;
             if(!gains.Gain.HasValue||gains.Gain<=0){garden.Text(canvas.transform,"Unavailable",gains.Gain==0?"No split gain":"Gain composition unavailable",Vector2.zero,new Vector2(600,56),21);return;}
-            for(int i=0;i<ForestExplanation.Families.Length;i++){
-                double share=gains.FamilyGains[ForestExplanation.Families[i]]/gains.Gain.Value;if(share<=0)continue;
-                float width=600*(float)share;var go=new GameObject(ForestExplanation.Families[i],typeof(RectTransform),typeof(UnityEngine.UI.Image));go.transform.SetParent(canvas.transform,false);
+            for(int i=0;i<Analysis.Families.Count;i++){
+                double share=gains.FamilyGains.TryGetValue(Analysis.Families[i],out var gain)?gain/gains.Gain.Value:0;if(share<=0)continue;
+                float width=600*(float)share;var go=new GameObject(Analysis.Families[i],typeof(RectTransform),typeof(UnityEngine.UI.Image));go.transform.SetParent(canvas.transform,false);
                 var rect=(RectTransform)go.transform;rect.sizeDelta=new Vector2(width,25);rect.anchoredPosition=new Vector2(left+width*.5f,14);left+=width;
-                var image=go.GetComponent<UnityEngine.UI.Image>();image.color=FamilyColors[i];image.raycastTarget=false;
+                var image=go.GetComponent<UnityEngine.UI.Image>();image.color=Color.HSVToRGB(Mathf.Repeat(i*.618034f,.999f),.48f,.85f);image.raycastTarget=false;
             }
-            garden.Text(canvas.transform,"Legend","H / C / X / O · stored gain",new Vector2(0,-18),new Vector2(600,30),19);
+            garden.Text(canvas.transform,"Legend","Namespace gain · inspect tree for amounts",new Vector2(0,-18),new Vector2(600,30),19);
         }
         private void OnDestroy(){if(root!=null)Destroy(root.gameObject);}
     }

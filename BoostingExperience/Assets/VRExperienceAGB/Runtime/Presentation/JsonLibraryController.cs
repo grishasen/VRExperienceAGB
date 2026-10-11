@@ -41,7 +41,7 @@ namespace VRExperienceAGB.Presentation
             if(Busy)return;
             pickingProfiles=profiles;Busy=true;Status="Choose a JSON file in the system file picker.";
 #if UNITY_EDITOR
-            string path=UnityEditor.EditorUtility.OpenFilePanel(profiles?"Import profiles":"Import model","","json");
+            string path=UnityEditor.EditorUtility.OpenFilePanelWithFilters(profiles?"Import profiles":"Import model","",profiles?new[]{"JSON / JSONL","json,jsonl"}:new[]{"JSON","json"});
             Busy=false;if(string.IsNullOrEmpty(path)){Status="Import cancelled.";return;}
             ImportPath(path,profiles,true,Path.GetFileName(path));
 #elif UNITY_ANDROID
@@ -97,8 +97,19 @@ namespace VRExperienceAGB.Presentation
             var task=Task.Run(()=>{
                 string json=ModelFileLibrary.Read(path);
                 var loaded=new Loaded{name=name};
-                if(profileFile)ModelFileLibrary.ParseProfiles(json,selectedModel);
-                else loaded.model=ModelFileLibrary.ParseModel(json,name);
+                if(profileFile) {
+                    var incoming=ModelFileLibrary.ParseProfiles(json,selectedModel);
+                    var check=VRExperienceAGB.Application.ModelActivation.Prepare(selectedModel,incoming);
+                    if(!check.IsSuccess)throw new InvalidDataException(string.Join("; ",System.Linq.Enumerable.Select(check.Diagnostics,d=>d.Code+": "+d.Message)));
+                } else {
+                    loaded.model=ModelFileLibrary.ParseModel(json,name);
+                    var check=VRExperienceAGB.Application.ModelActivation.Prepare(loaded.model.Model,new ProfileSet(1,loaded.model.Model.Id,Array.Empty<PreparedProfile>()));
+                    if(!check.IsSuccess)throw new InvalidDataException(string.Join("; ",System.Linq.Enumerable.Select(check.Diagnostics,d=>d.Code+": "+d.Message)));
+                }
+                // Validate already stored profiles against the candidate before writing a new file.
+                var compatible=Storage.CompatibleProfiles(profileFile?selectedModel:loaded.model.Model,out _);
+                var prepared=VRExperienceAGB.Application.ModelActivation.Prepare(profileFile?selectedModel:loaded.model.Model,compatible);
+                if(!prepared.IsSuccess)throw new InvalidDataException("Stored profiles cannot be evaluated: "+string.Join("; ",System.Linq.Enumerable.Select(prepared.Diagnostics,d=>d.Code)));
                 if(copy)Storage.Save(profileFile,name,json);
                 loaded.profiles=Storage.CompatibleProfiles(profileFile?selectedModel:loaded.model.Model,out loaded.skipped);
                 return loaded;
@@ -113,9 +124,8 @@ namespace VRExperienceAGB.Presentation
             }else if(director.View.Model!=selectedModel)Status="Selection changed. Open the imported file again.";
             else {
                 var loaded=task.Result;
-                if(profileFile)director.View.UseImportedProfiles(loaded.profiles);
-                else director.View.OpenImportedModel(loaded.model,loaded.profiles,loaded.name);
-                Status=(profileFile?"Profiles loaded: "+loaded.profiles.Profiles.Count:loaded.name+" · "+loaded.model.Model.Trees.Count+" trees · "+(loaded.model.Model.StructureOnlyPreview?"structure only":"scoring enabled"))+
+                var activated=profileFile?director.View.UseImportedProfiles(loaded.profiles):director.View.OpenImportedModel(loaded.model,loaded.profiles,loaded.name);
+                Status=!activated.IsSuccess?"Import rejected; current route preserved. "+string.Join("; ",System.Linq.Enumerable.Select(activated.Diagnostics,d=>d.Code)) :(profileFile?"Profiles loaded: "+loaded.profiles.Profiles.Count:loaded.name+" · "+loaded.model.Model.Trees.Count+" trees · "+(loaded.model.Model.StructureOnlyPreview?"structure only":loaded.model.Model.ExportInfo!=null?"tree calculation enabled · CDH reconciliation deferred":"calculation enabled · source scoring unverified"))+
                     (loaded.skipped==0?"":" · "+loaded.skipped+" incompatible/invalid profile files skipped");
             }
             director.OpenMenu(profileFile?"profile-files":"models");

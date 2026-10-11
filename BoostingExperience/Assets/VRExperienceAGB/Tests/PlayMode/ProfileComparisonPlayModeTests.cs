@@ -41,7 +41,7 @@ namespace VRExperienceAGB.Tests
             var original = view.Ensemble; string node = view.Session.State.NodeId; double score = original.RouteTotal;
             Action(TreeAction.Menu); Click(M5Action.CompareProfiles);
             Assert.That(UI.PanelOpen, Is.True); Assert.That(view.Model.StructureOnlyPreview, Is.False);
-            Assert.That(view.Comparison, Is.Not.Null); Assert.That(UI.SummaryText, Does.Contain("all 3 trees evaluated"));
+            Assert.That(view.Comparison, Is.Not.Null); Assert.That(UI.SummaryText, Does.Contain("All 3 trees evaluated"));
             Assert.That(Object.FindObjectsByType<EventSystem>().Length, Is.EqualTo(1));
             Click(M5Action.CompareExit);
             Assert.That(view.Model, Is.SameAs(originalModel)); Assert.That(view.Ensemble, Is.SameAs(original));

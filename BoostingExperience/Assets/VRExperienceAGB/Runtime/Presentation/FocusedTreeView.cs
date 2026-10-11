@@ -80,7 +80,7 @@ namespace VRExperienceAGB.Presentation
                 bool preview = view.Model.StructureOnlyPreview;
                 slot.title.enableAutoSizing = preview || compact;
                 slot.title.fontSizeMin = compact ? 26 : 18; slot.title.fontSizeMax = compact ? 30 : 29;
-                slot.title.rectTransform.sizeDelta = new Vector2(compact ? 360 : preview ? 400 : i == 0 ? 610 : 520, compact || preview ? 145 : 65);
+                slot.title.rectTransform.sizeDelta = new Vector2(compact ? 280 : preview ? 400 : i == 0 ? 610 : 520, compact || preview ? 145 : 65);
                 slot.marker.rectTransform.anchoredPosition = new Vector2(0, compact ? -70 : preview ? -64 : -37);
                 if(compact) { slot.marker.fontSize=15; slot.marker.rectTransform.sizeDelta=new Vector2(300,30); }
                 slot.title.textWrappingMode = TMPro.TextWrappingModes.Normal;
@@ -89,6 +89,7 @@ namespace VRExperienceAGB.Presentation
                 int hidden = neighborhood.Descendants(addresses[i]) - ids.Count(id => id != addresses[i] && IsDescendant(lookup, addresses[i], id));
                 slot.marker.text = (state.NodeId == addresses[i] ? "CURRENT" : state.Path.Contains(addresses[i]) ? "VISITED" : "") +
                     (hidden > 0 ? "  +" + hidden + " hidden" : "");
+                if (compact && i > 0 && node is SplitNode) slot.title.text = i < 3 ? "Next question · point for details" : "Later question · point for details";
                 slot.title.enabled = i != 0 || focus != null;
                 slot.marker.enabled = i != 0 && state.NodeId != addresses[i];
                 if (view.Comparison != null)
@@ -142,10 +143,13 @@ namespace VRExperienceAGB.Presentation
                 slot.title.transform.parent.localPosition=locations[i]+new Vector3(0,.48f,-.16f);
                 slot.title.transform.parent.localScale=Vector3.one*.0035f;
                 slot.title.enabled=true;slot.title.enableAutoSizing=true;slot.title.fontSizeMin=26;slot.title.fontSizeMax=30;
-                slot.title.rectTransform.sizeDelta=new Vector2(360,145);
+                slot.title.rectTransform.sizeDelta=new Vector2(280,100);
                 var node=lookup[addresses[i]];
                 slot.title.text=node is SplitNode split?view.Condition(split,true):"LEAF "+(tree.Weight*((LeafNode)node).Score).ToString("+0.###;-0.###;0",System.Globalization.CultureInfo.InvariantCulture);
-                slot.marker.enabled=false;
+                if (node is SplitNode && addresses[i]!=a && addresses[i]!=b) slot.title.text="Next question · point for details";
+                slot.marker.enabled=addresses[i]==a || addresses[i]==b;
+                slot.marker.text=addresses[i]==a && addresses[i]==b?"A + B":addresses[i]==a?"A":"B";
+                slot.marker.rectTransform.anchoredPosition=new Vector2(0,-60);
                 slot.platform.sharedMaterial=addresses[i]==a || addresses[i]==b?view.activeMaterial:view.idleMaterial;
                 visible[addresses[i]]=locations[i];
             }

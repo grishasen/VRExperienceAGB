@@ -48,13 +48,14 @@ namespace VRExperienceAGB.Domain
         public IReadOnlyList<TreeEvaluation> Trees { get; }
         public double RawScore { get; }
         public double Probability { get; }
-        public string OutputMeaning => "Synthetic binary logistic probability";
+        public string OutputMeaning { get; }
         public bool IsSourceModelVerified => false;
         internal EvaluationResult(ModelDefinition model, PreparedProfile profile, IEnumerable<TreeEvaluation> trees, double rawScore)
         {
             ModelId = model.Id; ProfileId = profile.Id; OutcomeLabel = model.OutcomeLabel; Provenance = model.Provenance;
             BaseScore = model.BaseScore; Trees = Snapshot.List(trees); RawScore = rawScore;
             Probability = ModelEvaluator.Sigmoid(rawScore);
+            OutputMeaning = model.ExportInfo == null ? "Synthetic binary logistic probability" : "Exported-tree sigmoid probability; CDH propensity not reconciled";
         }
     }
 

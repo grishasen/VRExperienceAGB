@@ -78,7 +78,7 @@ namespace VRExperienceAGB.Tests
             Assert.That(view.Session.State.Revision,Is.EqualTo(state.Revision));
             Assert.That(view.Ensemble.RouteTotal,Is.EqualTo(total));
             ExecuteEvents.Execute(hover.gameObject,pointer,ExecuteEvents.pointerExitHandler);
-            yield return new WaitForSecondsRealtime(.25f);
+            yield return new WaitForSecondsRealtime(.8f);
             Assert.That(view.NameTooltip.Visible,Is.False);
             foreach(var node in view.nodeViews)
             {
@@ -295,7 +295,7 @@ namespace VRExperienceAGB.Tests
                 for(int safety=0; !view.Session.State.AtLeaf && safety<100; safety++) { Click(TreeAction.Step); Arrive(); }
             }
             Assert.That(view.Ensemble.Complete, Is.True);
-            Assert.That(view.score.text, Does.Contain("Full synthetic prediction"));
+            Assert.That(view.score.text, Does.Contain("Complete ensemble score").And.Contain("Propensity comes from calibration"));
             Assert.That(view.Ensemble.RouteTotal, Is.EqualTo(-4.1).Within(1e-12));
             Click(TreeAction.Overview); var saved = view.Session.State.NodeId;
             Click(TreeAction.PreviousTree); Click(TreeAction.NextTree); Click(TreeAction.Overview);
@@ -304,7 +304,7 @@ namespace VRExperienceAGB.Tests
             Click(TreeAction.EditProfile); Click(TreeAction.IncreaseValue);
             Assert.That(view.Ensemble.CompletedCount, Is.EqualTo(3), "A draft must preserve accepted route progress until Apply.");
             Assert.That(view.Ensemble.OriginalProfile, Is.SameAs(original));
-            Assert.That(view.score.text, Does.Contain("Accepted full synthetic prediction"));
+            Assert.That(view.score.text, Does.Contain("Accepted ensemble score").And.Contain("Propensity comes from calibration"));
             Click(TreeAction.RestoreProfile); Click(TreeAction.CloseEdit);
             Assert.That(view.Ensemble.Evaluation.RawScore, Is.EqualTo(-4.1).Within(1e-12));
             Assert.That(view.Session.State.Paused, Is.False);
@@ -359,7 +359,7 @@ namespace VRExperienceAGB.Tests
             Assert.That(view.Ensemble.RouteTotal, Is.EqualTo(-4.1).Within(1e-12));
             Assert.That(view.ledgerText.gameObject.activeSelf, Is.True);
             Assert.That(view.ledgerText.text, Does.Contain("Grouped: 2 trees").And.Contain("tree-02").And.Contain("tree-03"));
-            Assert.That(view.ledgerText.text, Does.Contain("sigmoid(raw score)").And.Contain("Click probability"));
+            Assert.That(view.ledgerText.text, Does.Contain("Complete raw score").And.Contain("Propensity comes from calibration"));
             Click(TreeAction.CloseResult); Click(TreeAction.TourDetail);
             Assert.That(view.Ensemble.CompletedCount, Is.EqualTo(1));
             for (int i = 1; i < 3; i++) { Click(TreeAction.NextTree); for(int safety=0; !view.Session.State.AtLeaf && safety<100; safety++) { Click(TreeAction.Step); Arrive(); } }

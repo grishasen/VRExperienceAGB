@@ -6,7 +6,7 @@ The main menu's **Models / profiles** page imports JSON documents and opens save
 
 1. On Quest, open **Models / profiles → From computer / Wi-Fi → Start receiving**. Open the displayed address on a computer on the same Wi-Fi and enter the eight-digit code. Upload the model first, then its profile JSON files. Up to eight received files can wait in order while the headset is off your head; put it on again to validate and open them.
 2. Alternatively, if a document picker is installed, use **Import model JSON** to choose a local document such as a file in Downloads. Select a normalized v1 scoring model or supported nested AGB export. The imported model opens as a forest and remains available under **Saved models**.
-3. For a scoring model, use **Import profile JSON** for each profile file. A file may contain one or several profiles. Compatible saved profile files are combined automatically; files belonging to other models remain saved but are excluded.
+3. For a scoring model, use **Import profile JSON** for each normalized profile or CDH JSON/JSONL file. A file may contain one or several profiles. Compatible saved profile files are combined automatically; files belonging to other models remain saved but are excluded.
 4. Return to the main menu and select **Play a prepared profile** or **Compare profiles A / B**. Cycle the A and B selectors independently. Pause, Calculate whole model, final forest and Table View results work with imported data.
 5. After restarting the application, open the saved model to restore its compatible profile collection. The bundled demonstration remains the startup scene.
 
@@ -46,7 +46,11 @@ A profile file uses this envelope (feature names and values must match the selec
 
 Use `data/examples/demo-profiles.json` with the demonstration model. `artifacts/json-import/example-library.zip` contains the same synthetic model and two separate A/B profile files in their respective directories. Unzip it before importing individual JSON files.
 
-Supported nested `AdaptiveBoostScoringModel` exports open for forest/tree structure exploration. They do **not** gain scoring support merely by importing profiles: production feature policy, baseline/weights and source-score agreement remain subject to the model contract. The UI rejects profile playback on a structure-only model explicitly.
+Ordinary nested `AdaptiveBoostScoringModel` / `GRADIENT_BOOST` exports support complete tree calculation and A/B playback. Keep the original export filename: its model name is used to select matching CDH executions. All reached leaf scores are summed, then sigmoid is applied. The UI labels this **Tree-score probability**; comparison against served CDH propensity is deferred.
+
+Import CDH records directly as `.json` or `.jsonl`: one record, an array, or multiple newline-separated records. Each matching ADM execution supplies a selectable profile with its common inputs, action/treatment parameters and source information. Matching uses model/rule/component names, not modelVersion. Use **Inputs → Profile source** for recorded execution details and propensity; they never replace the calculated result. Select A and B independently, then start playback or calculate the whole model.
+
+An export with only constant leaves needs no predictors and produces equal A/B results. Used empty-string inputs, non-finite numeric values, unresolved references and unsupported conditions are rejected visibly. Explicit null and absent values remain distinguishable; comparison at a missing numeric/category operand fails unless an explicit missing branch handles it. See [the exact contract](model-contract.md) and [current validation record](agb-cdh-import-2026-10-11.md).
 
 ## Developer USB workflow
 

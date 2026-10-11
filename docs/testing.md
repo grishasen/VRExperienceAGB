@@ -1,5 +1,11 @@
 # Validation and acceptance
 
+**October 11 score-only sample:** the default generated bundle now contains the complete 50-tree synthetic demo and three synthetic profiles. All 207 EditMode and 104 PlayMode tests pass (one opt-in video test skipped). Results display score and a calibration notice; earlier references below to 100 trees and sigmoid percentages describe historical builds. See [current build and headset checklist](sample50-score-2026-10-11.md).
+
+**AGB/CDH import — October 11:** ordinary AGB export and CDH JSON/JSONL profile import, complete tree calculation and A/B playback are implemented. **207 EditMode and 104 PlayMode tests pass** (one opt-in video test skipped). The supplied Mobile files produce 27 usable execution profiles. CDH propensity reconciliation and fresh headset acceptance are deferred. See [the import validation record](agb-cdh-import-2026-10-11.md).
+
+**Latest review follow-up — October 11:** use the [current implementation/evidence record](review-follow-up-2026-10-11.md) and [consolidated Quest checklist](quest-acceptance-2026-10-11.md). Test counts in earlier milestone sections are historical. No new headset acceptance or source-platform reconciliation is claimed.
+
 **Current update — 2026-09-30:** M4 ensemble ledger, final result review, staged hypothetical edits, manual consistency diagnostics and equivalent short/detailed tours are implemented on `codex/m4-ensemble`. See the [M4 implementation record](m4-progress-2026-09-30.md) for current automated/build evidence. Quest M4 acceptance, outstanding M1/M3 device checks, actual performance measurements and production AGB verification remain open. Earlier dated records below are historical.
 
 Current fixture revision: 102 EditMode tests and the independent Python checks now pass against the current AGB-like fixtures. See the [moonlit update](design/moonlit-clearing.md) for the current scene verification. Earlier M2/M3 reports remain historical records.

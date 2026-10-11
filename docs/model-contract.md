@@ -1,6 +1,6 @@
 # Model and profile contract
 
-Status: the normalized fictional AGB-like example is implemented. Nested production-shaped AGB structure import and manual preview are implemented; feature-policy and source-scorer reconciliation remain pending under M2-06–M2-08. The scoring and structural requirements below are solution-design decisions, not a claim of production verification.
+Status — October 11: the local library imports ordinary nested AGB exports and CDH execution profiles for complete exported-tree calculation and deterministic A/B playback. CDH source-scorer agreement is unresolved: a subsequent check of 44 supplied Web GradientBoost executions found propensity mismatches despite matching modelVersion. The normalized fictional example and explicit structure-only API remain supported. See [current import evidence](agb-cdh-import-2026-10-11.md).
 
 ## Separate the model from its presentation
 
@@ -25,7 +25,7 @@ The fixture under `data/examples/` uses:
 
 Supported normalized operators are `lt`, `in`, and `is_missing`. Numeric comparison is strictly less-than. Equality follows the false branch. Categorical values use exact, case-sensitive membership. A missing predicate matches an absent value or explicit JSON `null` only for a feature that permits missing values. Missing numeric values do not silently become zero or false.
 
-An evaluator returns the visited node IDs, selected leaf, effective contribution per tree, raw score, probability, and warnings/errors. Unsupported operators, unknown categories, non-finite values, invalid roots/children, cycles, and incompatible feature types produce explicit errors. A malformed tree is not partially evaluated.
+An evaluator returns the visited node IDs, selected leaf, effective contribution per tree, raw score, an internal synthetic sigmoid reference, and warnings/errors. The application presents score only; it never labels this sigmoid reference as CDH propensity. Unsupported operators, unknown categories, non-finite values, invalid roots/children, cycles, and incompatible feature types produce explicit errors. A malformed tree is not partially evaluated.
 
 The normalized evaluator supports an explicit baseline and weights for general testing. The bundled AGB-like example uses baseline zero and unit weights:
 
@@ -35,9 +35,29 @@ probability = sigmoid(rawScore)
 sigmoid(z) = 1 / (1 + exp(-z))
 ```
 
-Use a numerically stable sigmoid implementation and define numeric tolerances. The example is invented and is not a fitted business model. Production support requires the verification gates below.
+Use a numerically stable sigmoid implementation and define numeric tolerances. The example is invented and is not a fitted business model. Agreement with a production scorer requires the verification gates below; local exported-tree calculation is a separately labeled capability.
 
-## Direct nested-export preview
+## Ordinary AGB export calculation
+
+The local library uses `AgbScoringImport` for ordinary `AdaptiveBoostScoringModel` / `GRADIENT_BOOST` exports. Every tree is retained in export order. Numeric `<` is strict, membership is exact and case-sensitive, and `is Missing` is explicit. Unsupported or ambiguous split syntax rejects the whole import. Evaluation uses `sum(reachedLeaf.score)` followed by a stable sigmoid, with baseline zero and unit tree weights. Serialized leaf scores already include their learning-rate effect; no second eta multiplier is applied. The app currently has no calibration-table importer and does not calculate calibrated propensity. Internal scores, gains, counts and recorded CDH propensity never enter this calculation.
+
+The UI displays **Ensemble score** and explains: **Propensity comes from calibration. No calibration table is loaded; only score is shown.** It displays score deltas for A/B, not probability percentages or percentage-point deltas. Internal sigmoid values remain for synthetic numerical regression tests; they are not calibrated CDH outputs. A constant-leaf export is valid, requires no predictors, and gives identical results for all profiles. Its A/B editor disables feature editing.
+
+The parser derives feature kinds from operands. Observed categorical operands are not a closed domain: a supplied unseen category follows the false membership branch. Presence-only features can contain numeric or symbolic values. Explicit null and absent input remain distinct in traces; both match `is Missing`. If either reaches a numeric or membership comparison without a preceding missing route, evaluation fails. Manual consistency remains unverified for these exports because complete feature domains are unavailable.
+
+Source SHA-256 identifies the immutable tree snapshot. Model name comes from the original export filename with the `export_` prefix and timestamp removed; the library preserves it across save/reopen. Export metadata remains bound to that model. Ordinary normalized serialization refuses these imported models rather than discarding their export semantics.
+
+## CDH execution profiles
+
+CDH import accepts one JSON record, a JSON array, or JSONL. Common inputs and execution bodies can be encoded JSON strings or objects. Each matching ADM execution becomes one selectable profile: referenced common inputs plus execution-specific parameter predictors and partition context. References are resolved within their own record. Conflicting common values, unresolved references, duplicate indices/keys, or conflicting explicit parameter/partition values reject the file. Parameters override common inputs; partition fields fill absent context.
+
+Matching uses the export model name against `ruleName` or the last component segment (including its terminal plural `s`). `modelVersion` is recorded, never used as a filter. Recorded technique is retained even if it describes a different served model type. No match is a visible error. Final decision outputs are not used to reconstruct inputs or scores.
+
+Only predictors actually used by the trees are materialized. NUMERIC values must be finite invariant-culture numbers; SYMBOLIC values preserve case. Empty strings in used predictors are rejected as ambiguous, rather than guessed as Missing or zero. Empty unused attributes do not block import. Profiles are evaluated before activation, and rejected imports preserve the active session and saved files.
+
+The profile source page retains action, treatment, rule, component, record/execution index, version, technique, timestamp and recorded propensity for later reconciliation. Recorded output is evidence only. Editing a profile creates hypothetical inputs and detaches the original recorded output.
+
+## Explicit structure-only API
 
 `OneTreeExperience.modelFile` accepts the nested `AdaptiveBoostScoringModel` / `GRADIENT_BOOST` JSON as well as the normalized teaching fixture. A normalized file is an internal runtime representation, not a format the export producer must supply. `AgbStructurePreview.Read` imports every tree and node without a display cap, generates stable tree/path addresses, and retains each original split, node estimate, gain and sample count in companion metadata. `LoadAgbStructure` can replace the active preview from JSON; rejected imports preserve the accepted session.
 

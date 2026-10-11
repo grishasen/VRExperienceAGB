@@ -4,10 +4,11 @@ using UnityEngine.EventSystems;
 namespace VRExperienceAGB.Presentation
 {
     /// <summary>Uses the same pointer events as mouse and Interaction SDK canvas rays.</summary>
-    public sealed class NodeNameHover : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
+    public sealed class NodeNameHover : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler, IPointerClickHandler
     {
         public OneTreeExperience experience;
         public TreeNodeView node;
+        public void OnPointerClick(PointerEventData data) { if(data.button==PointerEventData.InputButton.Left) { OnPointerEnter(data); experience.NameTooltip.TogglePin(); } }
         public void OnPointerEnter(PointerEventData data)
         {
             if (experience.Ready && !experience.Session.State.Overview)

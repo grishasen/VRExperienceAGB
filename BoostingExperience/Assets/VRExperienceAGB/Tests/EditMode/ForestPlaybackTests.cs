@@ -39,5 +39,13 @@ namespace VRExperienceAGB.Tests
             run.Restart();Assert.That(run.TreeIndex,Is.Zero);Assert.That(run.PresentedScore(),Is.EqualTo(a.BaseScore));
             Assert.That(run.A,Is.SameAs(a));Assert.That(run.B,Is.SameAs(b));
         }
+        [Test] public void RemainingAnimationEstimateRespondsToSpeedAndCompletion()
+        {
+            var run=Run();var initial=run.EstimatedRemainingSeconds;
+            Assert.That(initial,Is.GreaterThan(0));run.Speed=2;
+            Assert.That(run.EstimatedRemainingSeconds,Is.EqualTo(initial/2).Within(1e-10));
+            run.Next();Assert.That(run.EstimatedRemainingSeconds,Is.LessThan(initial/2));
+            run.FinishAll();Assert.That(run.EstimatedRemainingSeconds,Is.Zero);
+        }
     }
 }

@@ -54,7 +54,7 @@ namespace VRExperienceAGB.Tests
             sound=new BinaryWriter(File.Create(Path.Combine(folder,"audio.f32")));
             File.WriteAllText(Path.Combine(folder,"audio-rate.txt"),AudioSettings.outputSampleRate.ToString());
             try {
-                director.OpenMenu("home");yield return Frames(45,"01 · Main menu · 100-tree sample");
+                director.OpenMenu("home");yield return Frames(45,"01 · Main menu · 50-tree synthetic sample");
                 director.OpenMenu("position");director.Activate("farther");yield return Frames(30,"02 · Scene placement");director.Activate("recenter");
                 director.Activate("single");yield return Frames(40,"03 · Choose one tree from the forest");
                 view.Garden.Navigation.OpenTree(0);yield return Frames(35,"04 · Manual branch exploration");
@@ -70,18 +70,18 @@ namespace VRExperienceAGB.Tests
                 director.OpenMenu("playback");director.Activate("pause");director.CloseMenu();
                 yield return Frames(70,"07 · Resume stone route",()=>director.AdvanceTour(1f/Fps));
                 yield return FinishRun("08 · Accelerated traversal · every remaining tree evaluated and visited");
-                yield return Frames(60,"09 · Final Score → sigmoid → probability");
+                yield return Frames(60,"09 · Final ensemble score · propensity requires calibration");
                 director.Activate("results-forest");yield return Frames(50,"10 · Complete forest · blue positive / red negative");
-                director.Activate("results-table");camera.transform.localRotation=Quaternion.Euler(10,0,0);yield return Frames(65,"11 · All 100 trees on the table · final probability above");
+                director.Activate("results-table");camera.transform.localRotation=Quaternion.Euler(10,0,0);yield return Frames(65,"11 · All 50 trees on the table · final score above");
                 camera.transform.localRotation=Quaternion.identity;director.OpenMenu("compare");yield return Frames(35,"12 · Compare synthetic profiles A / B");director.Activate("start-ab");
                 yield return Frames(160,"13 · Synchronized A / B · independent moving points",()=>director.AdvanceTour(1f/Fps));
                 yield return FinishRun("14 · Accelerated A / B · every tree, no ensemble truncation");
-                yield return Frames(70,"15 · Two probabilities and difference in percentage points");
+                yield return Frames(70,"15 · Two ensemble scores and their score difference");
                 director.Activate("results-table");camera.transform.localRotation=Quaternion.Euler(10,0,0);yield return Frames(70,"16 · Table results · outer A / inner B rings");
                 string completedResult=director.FinalText;
                 director.OpenMenu("compare");director.Activate("start-ab");director.OpenMenu("playback");
                 yield return Frames(35,"16 · Calculate whole model · skip the animation");director.Activate("calculate-all");
-                Assert.That(director.Playback.CompletedTrees,Is.EqualTo(100));yield return Frames(35,"16 · Immediate complete A / B result");
+                Assert.That(director.Playback.CompletedTrees,Is.EqualTo(view.Model.Trees.Count));yield return Frames(35,"16 · Immediate complete A / B result");
                 director.ShowResults(false);director.StopPlayback(false);camera.transform.localRotation=Quaternion.Euler(-30,0,0);yield return Frames(45,"17 · Winter sky · Orion, Taurus and Pleiades");
                 view.Garden.M5.Atmosphere.Sky.ToggleGuides();yield return Frames(45,"18 · Optional constellation guides");
                 camera.transform.localRotation=Quaternion.Euler(-30,180,0);yield return Frames(45,"19 · Northern sky · Ursa Major, Ursa Minor, Cassiopeia");
@@ -118,7 +118,7 @@ namespace VRExperienceAGB.Tests
                 for(int i=0;i<18&&!director.Playback.Complete;i++)director.AdvanceTour(100);
                 yield return Frames(1,label+" · tree "+(director.Playback.TreeIndex+1));
             }
-            Assert.That(director.Playback.Complete,Is.True);Assert.That(director.Playback.CompletedTrees,Is.EqualTo(100));
+            Assert.That(director.Playback.Complete,Is.True);Assert.That(director.Playback.CompletedTrees,Is.EqualTo(view.Model.Trees.Count));
         }
         private IEnumerator Frames(int count,string label,Action advance=null)
         {

@@ -19,16 +19,16 @@ namespace VRExperienceAGB.Domain
             if (!HasId(model.Id)) Error("InvalidModelId", "A nonempty model ID is required.");
             if (!HasId(model.Provenance)) Error("ProvenanceRequired", "Explicit provenance is required.");
             if (!HasId(model.OutcomeLabel)) Error("OutcomeRequired", "A named outcome is required.");
-            if (model.Objective != "binary_logistic") Error("UnsupportedObjective", "Only the synthetic binary logistic contract is supported.");
+            if (model.Objective != "binary_logistic") Error("UnsupportedObjective", "Only the binary logistic contract is supported.");
             if (!IsFinite(model.BaseScore)) Error("InvalidBaseline", "The raw-score baseline must be finite.");
-            if (model.Features.Count == 0 && !model.StructureOnlyPreview) Error("FeaturesRequired", "At least one feature definition is required.");
+            if (model.Features.Count == 0 && !model.StructureOnlyPreview && model.ExportInfo == null) Error("FeaturesRequired", "At least one feature definition is required.");
             var features = new Dictionary<string, FeatureDefinition>(StringComparer.Ordinal);
             foreach (var f in model.Features)
             {
                 if (f == null || !HasId(f.Id)) { Error("InvalidFeatureId", "Every feature requires a nonempty ID."); continue; }
                 if (features.ContainsKey(f.Id)) { Error("DuplicateFeatureId", "Feature IDs must be unique.", feature: f.Id); continue; }
                 features.Add(f.Id, f);
-                if (!Enum.IsDefined(typeof(FeatureKind), f.Kind) || (f.Kind == FeatureKind.Unknown && !model.StructureOnlyPreview)) Error("InvalidFeatureType", "Unsupported feature type.", feature: f.Id);
+                if (!Enum.IsDefined(typeof(FeatureKind), f.Kind) || (f.Kind == FeatureKind.Unknown && !model.StructureOnlyPreview && model.ExportInfo == null)) Error("InvalidFeatureType", "Unsupported feature type.", feature: f.Id);
                 if (f.Kind == FeatureKind.Number)
                 {
                     if ((f.Minimum.HasValue && !IsFinite(f.Minimum.Value)) || (f.Maximum.HasValue && !IsFinite(f.Maximum.Value)) ||
@@ -167,7 +167,14 @@ namespace VRExperienceAGB.Domain
                     else if ((f.Minimum.HasValue && value.Number < f.Minimum.Value) || (f.Maximum.HasValue && value.Number > f.Maximum.Value))
                         Error("ValueOutOfRange", "The feature value lies outside its declared range.", f.Id);
                 }
-                else if (value.Kind != ValueKind.Category || !f.Categories.Contains(value.Category, StringComparer.Ordinal))
+                else if (f.Kind == FeatureKind.Unknown && model.ExportInfo != null)
+                {
+                    if ((value.Kind != ValueKind.Number && value.Kind != ValueKind.Category) ||
+                        (value.Kind == ValueKind.Number && !IsFinite(value.Number)) || (value.Kind == ValueKind.Category && value.Category == null))
+                        Error("InvalidPresenceValue", "A presence-only predictor requires a finite number or category.", f.Id);
+                }
+                else if (value.Kind != ValueKind.Category || value.Category == null ||
+                    (model.ExportInfo == null && !f.Categories.Contains(value.Category, StringComparer.Ordinal)))
                     Error("InvalidCategoryValue", "The feature requires an exact member of its category domain.", f.Id);
             }
             return Snapshot.List(errors);

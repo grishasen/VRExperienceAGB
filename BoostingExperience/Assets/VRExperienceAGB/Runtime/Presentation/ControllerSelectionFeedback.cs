@@ -8,8 +8,10 @@ namespace VRExperienceAGB.Presentation
     /// <summary>Resolves the actual canvas pointer to its controller; desktop/hand input stays silent.</summary>
     public static class ControllerSelectionFeedback
     {
+        public static bool Enabled { get; set; } = true;
         public static void Pulse(int pointerId)
         {
+            if(!Enabled)return;
             foreach (var ray in Object.FindObjectsByType<RayInteractor>())
             {
                 if (!ray.isActiveAndEnabled || ray.Identifier != pointerId) continue;

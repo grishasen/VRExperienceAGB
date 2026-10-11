@@ -36,7 +36,7 @@ namespace VRExperienceAGB.Domain
     {
         public static ConsistencyReport Check(ModelDefinition model, IEnumerable<ManualConstraint> choices)
         {
-            if (model != null && model.StructureOnlyPreview)
+            if (model != null && (model.StructureOnlyPreview || model.ExportInfo != null))
                 return new ConsistencyReport(RouteConsistency.NotVerified, null, "Consistency not verified: export feature domains and missing policies are unavailable.");
             if (ModelValidator.Validate(model).Count != 0)
                 return new ConsistencyReport(RouteConsistency.NotVerified, null, "Consistency not verified: unsupported model.");

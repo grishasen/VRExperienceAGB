@@ -10,11 +10,13 @@ namespace VRExperienceAGB.Presentation
         public WinterNightSky Sky { get; private set; }
         public HorizonWolves Wildlife { get; private set; }
         private AudioClip breezeClip, selectionClip;
-        private bool active, soundEnabled = true;
+        private bool active, soundEnabled = true, ambienceEnabled = true, cuesEnabled = true;
+        public bool AmbienceEnabled { get => ambienceEnabled; set { ambienceEnabled=value; Wildlife?.SetSoundEnabled(soundEnabled && value); UpdateSound(); } }
+        public bool CuesEnabled { get => cuesEnabled; set { cuesEnabled=value; if(!value && selection!=null)selection.Stop(); } }
         public bool SoundEnabled
         {
             get => soundEnabled;
-            set { soundEnabled = value; Wildlife?.SetSoundEnabled(value); UpdateSound(); }
+            set { soundEnabled = value; Wildlife?.SetSoundEnabled(value && ambienceEnabled); UpdateSound(); }
         }
         public void Configure(ForestGardenView garden)
         {
@@ -47,13 +49,13 @@ namespace VRExperienceAGB.Presentation
         public void SetActive(bool value) { active = value; UpdateSound(); }
         public void SelectAt(Vector3 position)
         {
-            if (!soundEnabled || selection == null) return;
+            if (!soundEnabled || !cuesEnabled || selection == null) return;
             selection.transform.position = position; selection.Play();
         }
         private void UpdateSound()
         {
             if (breeze == null) return;
-            if (active && soundEnabled) { if (!breeze.isPlaying) breeze.Play(); }
+            if (active && soundEnabled && ambienceEnabled) { if (!breeze.isPlaying) breeze.Play(); }
             else { breeze.Stop(); if (!soundEnabled) selection.Stop(); }
         }
         private void OnDestroy()

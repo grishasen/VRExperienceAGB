@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
-"""Prepare local-only sample playback fixtures. Never certifies source scoring."""
+"""Bundle the complete synthetic 50-tree demo and reproducible profiles. No calibration."""
 import hashlib, json, math, re
 from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
-source = ROOT / 'data/examples/export_Mobile_Click_Through_Rate_AGB_sample.json'
+source = ROOT / 'data/examples/export_Mobile_Click_Through_Rate_AGB_demo.json'
 raw = source.read_text()
 export = json.loads(raw)
+assert len(export['model']['booster']['trees']) == 50, 'Expected the complete 50-tree demo; never truncate an ensemble.'
 out = ROOT / 'BoostingExperience/Assets/VRExperienceAGB/Resources/LocalModel'
 out.mkdir(parents=True, exist_ok=True)
 features, trees, thresholds = {}, [], {}
@@ -37,7 +38,7 @@ for tree in trees:
             features.setdefault(node['feature'],dict(type='number',allowMissing=True,displayName=node['feature'].split('.')[-1]))
             features[node['feature']]['allowMissing']=True
 sha=hashlib.sha256(raw.encode()).hexdigest();mid='local-sample-'+sha[:12]
-model=dict(schemaVersion=1,modelId=mid,provenance='Local export reconstruction with synthetic fully supplied profiles. Left=true, zero baseline, unit weights. Source scoring not verified. Observed category sets define fixture values only, not production domains.',objective='binary_logistic',outcomeLabel='Click probability (source scoring unverified)',baseScore=0,features=features,trees=trees)
+model=dict(schemaVersion=1,modelId=mid,provenance='Synthetic 50-tree demo with synthetic fully supplied profiles. Propensity requires a separate calibration mapping, which is not supplied. Left=true, zero baseline, unit weights. Source scoring not verified. Observed category sets define fixture values only, not production domains.',objective='binary_logistic',outcomeLabel='Ensemble score',baseScore=0,features=features,trees=trees)
 profiles=[]
 for index,name in enumerate(['Synthetic baseline','Synthetic alternative','Synthetic boundary case']):
     values={}

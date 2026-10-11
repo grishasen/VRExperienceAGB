@@ -58,6 +58,9 @@ namespace VRExperienceAGB.Presentation
         public bool Ready => Session != null;
         public ModelDefinition Model => model;
         public AgbPreviewResult ExportPreview { get; private set; }
+        public string ExportSourceSha256 { get; private set; }
+        private ForestExplanation displayAnalysis;
+        [Serializable] private sealed class SourceManifest { public string sourceSha256; }
         private string exportName;
         public FullNameTooltip NameTooltip { get; private set; }
         public ForestGardenView Garden { get; private set; }
@@ -86,34 +89,39 @@ namespace VRExperienceAGB.Presentation
             var imported = AgbStructurePreview.Read(json, displayName);
             if (!imported.IsSuccess) return imported;
             if (!Ready && !Initialize()) return Outcome<AgbPreviewResult>.Failure(new[] { new Diagnostic("SceneUnavailable", "The teaching scene is unavailable.") });
-            Director?.StopPlayback(false);LocalSampleActive=false;
-            ClearComparison();
-            model = imported.Value.Model; ExportPreview = imported.Value; exportName = displayName;
-            profiles = new ProfileSet(1, model.Id, Array.Empty<PreparedProfile>());
-            profileIndex = 0; deepExample = false; treeMap = false; showProfileDetails = false;
-            message = "Export structure loaded. Explore branches; profile scoring is unverified.";
-            StartEnsemble(null, true); Refresh(); return imported;
+            var result = OpenImportedModel(new ImportedModel(imported.Value.Model, imported.Value),
+                new ProfileSet(1, imported.Value.Model.Id, Array.Empty<PreparedProfile>()), displayName);
+            return result.IsSuccess ? imported : Outcome<AgbPreviewResult>.Failure(result.Diagnostics);
         }
 
-        public void OpenImportedModel(ImportedModel imported, ProfileSet available, string name)
+        public Outcome<EnsembleSession> OpenImportedModel(ImportedModel imported, ProfileSet available, string name)
         {
-            Director?.StopPlayback(false);ClearComparison();LocalSampleActive=false;
-            model=imported.Model;ExportPreview=imported.Preview;exportName=name;
-            profiles=available;profileIndex=0;deepExample=false;treeMap=false;showProfileDetails=false;
-            StartEnsemble(null,true);Director?.ResetProfileSelection();Garden.Navigation.ShowForest();
+            var candidate = ModelActivation.Prepare(imported.Model, available);
+            if (!candidate.IsSuccess) return candidate;
+            // All fallible model/session preparation happens before retiring accepted state.
+            var explanationModel = new ForestExplanation(imported.Model, imported.Preview);
+            Director?.StopPlayback(false); ClearComparison(); LocalSampleActive = false;
+            model = imported.Model; ExportPreview = ExportMetadataBinding.Matches(model, imported.Preview) ? imported.Preview : null; ExportSourceSha256 = ExportPreview?.Sha256;
+            displayAnalysis = explanationModel; exportName = name; profiles = available;
+            profileIndex = 0; deepExample = false; treeMap = false; showProfileDetails = false;
+            AcceptEnsemble(candidate.Value, true);
+            Director?.ResetProfileSelection(); Garden?.Navigation?.ShowForest();
+            return candidate;
         }
-        public void UseImportedProfiles(ProfileSet available)
+        public Outcome<EnsembleSession> UseImportedProfiles(ProfileSet available)
         {
-            if(available.ModelId!=model.Id)throw new InvalidOperationException("Profiles belong to another model.");
-            Director?.StopPlayback(false);ClearComparison();profiles=available;profileIndex=0;
-            StartEnsemble(null,true);Director?.ResetProfileSelection();Garden.Navigation.ShowForest();
+            var candidate = ModelActivation.Prepare(model, available);
+            if (!candidate.IsSuccess) return candidate;
+            Director?.StopPlayback(false); ClearComparison(); profiles = available; profileIndex = 0;
+            AcceptEnsemble(candidate.Value, true); Director?.ResetProfileSelection(); Garden?.Navigation?.ShowForest();
+            return candidate;
         }
         private void Start() { Initialize(); }
         public bool Initialize()
         {
             if(!useUnifiedInterface && Director!=null){Director.CloseMenu();Director.StopPlayback(false);Director.enabled=false;Destroy(Director);Director=null;}
             ClearComparison();
-            Session = null; ExportPreview = null;
+            Session = null; ExportPreview = null; ExportSourceSha256 = null; displayAnalysis = null;
             var localModel = Resources.Load<TextAsset>("LocalModel/model");
             var localProfiles = Resources.Load<TextAsset>("LocalModel/profiles");
             LocalSampleActive = useLocalSample && localModel != null && localProfiles != null;
@@ -140,7 +148,15 @@ namespace VRExperienceAGB.Presentation
             }
             if (LocalSampleActive) {
                 var export = Resources.Load<TextAsset>("LocalModel/export");
-                if (export != null) ExportPreview = AgbStructurePreview.Read(export.text, "Local sample · source scoring unverified").Value;
+                if (export != null) {
+                    var parsed = AgbStructurePreview.Read(export.text, "Local sample · source scoring unverified");
+                    var manifest = Resources.Load<TextAsset>("LocalModel/expected");
+                    if (manifest != null) {
+                        try { ExportSourceSha256 = JsonUtility.FromJson<SourceManifest>(manifest.text)?.sourceSha256; }
+                        catch (ArgumentException) { ExportSourceSha256 = null; }
+                    }
+                    if (parsed.IsSuccess && ExportMetadataBinding.Matches(model, parsed.Value, ExportSourceSha256)) ExportPreview = parsed.Value;
+                }
             }
             if (nodeViews == null || nodeViews.Any(v => v == null || v.platform == null || v.title == null || v.marker == null || v.dropAnchor == null) ||
                 nodeViews.Length != 7)
@@ -319,9 +335,14 @@ namespace VRExperienceAGB.Presentation
             NameTooltip?.Hide();
             var outcome = EnsembleSession.Create(model, profile);
             if (!outcome.IsSuccess) return Fail(string.Join("; ", outcome.Diagnostics.Select(d => d.Code)));
+            AcceptEnsemble(outcome.Value, overview, treeIndex); return true;
+        }
+        private void AcceptEnsemble(EnsembleSession accepted, bool overview, int treeIndex = 0)
+        {
+            NameTooltip?.Hide();
             if (Ensemble != null) foreach (var retired in Ensemble.Trees) retired.ReturnToOverview();
-            Ensemble = outcome.Value; reviewingResult = false; freeExplorationAcknowledged = false; Ensemble.Select(treeIndex); editingProfile = false; inspectingNodes = false; profilePreview = profile != null; MenuOpen = false;
-            AdoptCurrent(overview); return true;
+            Ensemble = accepted; reviewingResult = false; freeExplorationAcknowledged = false; Ensemble.Select(treeIndex); editingProfile = false; inspectingNodes = false; profilePreview = accepted.Profile != null; MenuOpen = false;
+            AdoptCurrent(overview);
         }
         private void AdoptCurrent(bool overview = false)
         {
@@ -352,7 +373,12 @@ namespace VRExperienceAGB.Presentation
             MenuOpen=false; treeMap=false; Session.EnterTree(); Refresh();
         }
 
-        private string Feature(string id) => model.Features.Single(f => f.Id == id).DisplayName;
+        public string FeatureLabel(string id)
+        {
+            if (displayAnalysis?.Model != model) displayAnalysis = new ForestExplanation(model, ExportPreview, ExportSourceSha256);
+            return displayAnalysis.Label(id);
+        }
+        private string Feature(string id) => FeatureLabel(id);
         public string Condition(SplitNode node, bool branch)
         {
             var f = Feature(node.FeatureId);
@@ -370,7 +396,7 @@ namespace VRExperienceAGB.Presentation
 
         public void Execute(TreeAction action, long revision, string nodeId)
         {
-            if (Director?.PlayingTour==true && action!=TreeAction.Menu)return;
+            if (Director?.PlayingTour==true && action!=TreeAction.Menu && action!=TreeAction.Seated)return;
             if (Session == null || revision != Session.State.Revision || nodeId != Session.State.NodeId) return;
             if ((Garden?.M5?.Comparison?.PanelOpen == true || Garden?.M5?.Extensions?.PanelOpen == true)) return;
             if (Comparison != null && (action == TreeAction.TrueBranch || action == TreeAction.FalseBranch ||
@@ -546,7 +572,7 @@ namespace VRExperienceAGB.Presentation
                     "\n" + Ensemble.CompletedCount + " / " + model.Trees.Count + " leaves reached | Baseline " + Number(model.BaseScore) +
                     "\n" + (model.Trees.Count <= 3 ? string.Join("  +  ", Ensemble.Trees.Select(t => t.State.AtLeaf ? Number(t.State.Contribution) : "pending")) : "Current leaf " + Number(s.Contribution) + " | " + (model.Trees.Count - Ensemble.CompletedCount) + " pending trees | See contribution ledger");
             if (Ensemble.Complete && Ensemble.Mode == ExperienceMode.PreparedProfile)
-                score.text = "Full synthetic prediction: " + Percent(Ensemble.Evaluation.Probability) + "% " + model.OutcomeLabel +
+                score.text = "Complete ensemble score: " + Number(Ensemble.Evaluation.RawScore) + "\n" + ModelInsightText.CalibrationNotice +
                     "\nRaw score " + Number(Ensemble.Evaluation.RawScore) + " = baseline " + Number(model.BaseScore) + " + " + (model.Trees.Count <= 3 ? string.Join(" + ", Ensemble.Evaluation.Trees.Select(t => "(" + Number(t.Contribution) + ")")) : "all " + model.Trees.Count + " tree contributions (see ledger)");
             if (Ensemble.Mode == ExperienceMode.Manual)
                 score.text += "\nRoute score. No profile probability. " + (Ensemble.Consistency.Status == RouteConsistency.Contradictory ? "Conflicting choices" :
@@ -564,7 +590,7 @@ namespace VRExperienceAGB.Presentation
                 var feature = model.Features[featureIndex];
                 explanation.text = "Try a hypothetical change\n" + feature.DisplayName + ": " + Value(Ensemble.Draft.GetValue(feature.Id));
                 feedback.text = "Original: " + Value(Ensemble.OriginalProfile.GetValue(feature.Id)) + " | Apply restarts at Tree 1; Cancel preserves the accepted result.\n" + message;
-                if (Ensemble.Evaluation != null) score.text = "Accepted full synthetic prediction: " + Percent(Ensemble.Evaluation.Probability) + "%\nRaw score " + Number(Ensemble.Evaluation.RawScore) + " | All " + model.Trees.Count + " trees evaluated";
+                if (Ensemble.Evaluation != null) score.text = "Accepted ensemble score: " + Number(Ensemble.Evaluation.RawScore) + " | All " + model.Trees.Count + " trees evaluated\n" + ModelInsightText.CalibrationNotice;
             }
             if (profilePreview && !MenuOpen && Ensemble.Profile != null)
                 feedback.text = "Synthetic profile: " + Ensemble.Profile.DisplayName + "\n" +
@@ -685,7 +711,7 @@ namespace VRExperienceAGB.Presentation
             var grouped = Ensemble.GroupedRows;
             if (grouped.Count > 0) text += "\nGrouped: " + grouped.Count + " trees | contribution " + Number(grouped.Sum(r => r.PresentedContribution)) + " | Every identity is listed on these pages.";
             if (output != null) text += "\nComplete raw score " + Number(output.RawScore) + " = baseline + ALL " + rows.Count + " contributions" +
-                "\nOutput = sigmoid(raw score): " + Percent(output.Probability) + "% " + output.OutcomeLabel +
+                "\n" + ModelInsightText.CalibrationNotice +
                 "\nAlready computed; pending rows have not yet been explained. Synthetic model; source scoring not verified." +
                 (Ensemble.Profile.Id != Ensemble.OriginalProfile.Id ? "\nHypothetical model sensitivity; not a causal promise." : "");
             else

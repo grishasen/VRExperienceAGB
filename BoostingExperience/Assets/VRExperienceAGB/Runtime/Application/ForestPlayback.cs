@@ -22,6 +22,23 @@ namespace VRExperienceAGB.Application
         public double Movement => Phase == PlaybackPhase.Moving ? Math.Min(1, elapsed / Math.Max(.05, MoveSeconds)) : 0;
         public bool Complete => Phase == PlaybackPhase.Complete;
         public int CompletedTrees => Complete ? A.Trees.Count : TreeIndex + (Phase == PlaybackPhase.TreeResult ? 1 : 0);
+        public double EstimatedRemainingSeconds
+        {
+            get {
+                if(Complete)return 0;
+                double seconds=0;
+                for(int i=TreeIndex;i<A.Trees.Count;i++) {
+                    int steps=Math.Max(A.Trees[i].Decisions.Count,B?.Trees[i].Decisions.Count??0);
+                    if(i>TreeIndex)seconds+=steps*(DecisionSeconds+MoveSeconds)+ResultSeconds;
+                    else if(Phase==PlaybackPhase.TreeResult)seconds+=Math.Max(0,ResultSeconds-elapsed);
+                    else {
+                        seconds+=Math.Max(0,steps-StepIndex-1)*(DecisionSeconds+MoveSeconds)+ResultSeconds;
+                        seconds+=Phase==PlaybackPhase.Decision?Math.Max(0,DecisionSeconds-elapsed)+MoveSeconds:Math.Max(0,MoveSeconds-elapsed);
+                    }
+                }
+                return seconds/Math.Max(.1,Math.Min(20,Speed));
+            }
+        }
         public ForestPlayback(EvaluationResult a, EvaluationResult b = null)
         {
             A = a ?? throw new ArgumentNullException(nameof(a)); B = b;

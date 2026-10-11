@@ -12,12 +12,16 @@ using VRExperienceAGB.Domain;
 namespace VRExperienceAGB.Presentation
 {
     /// <summary>One front-facing menu and one full-ensemble demonstration coordinator.</summary>
-    public sealed class ExperienceDirector : MonoBehaviour
+    public sealed partial class ExperienceDirector : MonoBehaviour
     {
         public OneTreeExperience View { get; private set; }
         public JsonLibraryController Library { get; private set; }
+        public ExperiencePerformanceCapture Performance { get; private set; }
         private int libraryPage;
-        public void ResetProfileSelection() { SelectedA=0;SelectedB=View.AvailableProfiles.Profiles.Count>1?1:0;wasPaused=false; }
+        private readonly MenuReadingSpace readingSpace = new MenuReadingSpace();
+        private bool resultPlaced;
+        private NavigationPage resultPage;
+        public void ResetProfileSelection() { SelectedA=0;SelectedB=View.AvailableProfiles.Profiles.Count>1?1:0;wasPaused=false;valuePage=0;ValueSearch="";DifferencesOnly=false; }
         public ForestPlayback Playback { get; private set; }
         public bool PlayingTour { get; private set; }
         public bool ResultsVisible { get; private set; }
@@ -38,6 +42,7 @@ namespace VRExperienceAGB.Presentation
         private PlaybackPhase shownPhase=(PlaybackPhase)(-1);
         private bool completeShown, configured, menuPlaced;
         private string runA, runB;
+        private VRExperienceAGB.Domain.PreparedProfile runProfileA, runProfileB;
         private float startupDelay = .5f;
         private float menuHeight = -.10f;
         private bool wasPaused, recenterButtonHeld;
@@ -50,6 +55,7 @@ namespace VRExperienceAGB.Presentation
             if (configured) return;
             configured = true;
             Library=gameObject.AddComponent<JsonLibraryController>();Library.Configure(this);
+            Performance=gameObject.AddComponent<ExperiencePerformanceCapture>();
             gameObject.AddComponent<FeedbackCapture>().Configure(view);
             foreach(var control in view.controls)if(control.GetComponent<ButtonHint>()==null)control.gameObject.AddComponent<ButtonHint>();
             menu = Garden.M5.Panel("UnifiedExperienceMenu",new Vector2(1100,820),view.transform);
@@ -66,14 +72,14 @@ namespace VRExperienceAGB.Presentation
             Garden.Text(menu.transform,"ControllerShortcuts","A: menu  ·  B: center scene  ·  X (left): screenshot",new Vector2(0,-260),new Vector2(1000,45),23);
             routeRoot = new GameObject("ProfileRoutePresentation").transform; routeRoot.SetParent(view.presentationRoot,false);
             detailCanvas = Garden.M5.Panel("ProfileExplanation",new Vector2(1100,560),routeRoot);
-            detailCanvas.transform.localPosition = new Vector3(-3.2f,1.5f,3.4f);
-            detailCanvas.transform.localScale=Vector3.one*.0015f;
+            detailCanvas.transform.localPosition = new Vector3(0,.6f,2.8f);
+            detailCanvas.transform.localScale=Vector3.one*.0019f;
             detailCanvas.GetComponent<UnityEngine.UI.Image>().raycastTarget=false;
             explanation = Garden.Text(detailCanvas.transform,"Explanation","",Vector2.zero,new Vector2(1020,520),36);
-            explanation.enableAutoSizing=true; explanation.fontSizeMin=28; explanation.fontSizeMax=36;
+            explanation.enableAutoSizing=true; explanation.fontSizeMin=32; explanation.fontSizeMax=40;
             resultCanvas = Garden.CanvasAt("WholeForestResult",Vector3.zero,new Vector2(1300,280),.0014f,view.transform);
-            resultText = Garden.Text(resultCanvas.transform,"FinalProbability","",Vector2.zero,new Vector2(1280,270),36);
-            resultText.enableAutoSizing=true;resultText.fontSizeMin=24;resultText.fontSizeMax=35;
+            resultText = Garden.Text(resultCanvas.transform,"FinalScore","",Vector2.zero,new Vector2(1280,270),36);
+            resultText.richText=false;resultText.enableAutoSizing=true;resultText.fontSizeMin=24;resultText.fontSizeMax=35;
             routeRoot.gameObject.SetActive(false);resultCanvas.gameObject.SetActive(false);
             OpenMenu("home");
         }
@@ -84,7 +90,8 @@ namespace VRExperienceAGB.Presentation
             go.GetComponent<UnityEngine.UI.Image>().color=new Color(.045f,.19f,.25f,.98f);
             go.GetComponent<UnityEngine.UI.Button>().navigation=new UnityEngine.UI.Navigation{mode=UnityEngine.UI.Navigation.Mode.None};
             var target=go.GetComponent<ExperienceMenuTarget>();target.Owner=this;target.Command=command;
-            Garden.Text(go.transform,"Label",text,Vector2.zero,size-new Vector2(22,12),32).richText=false;
+            var label=Garden.Text(go.transform,"Label",text,Vector2.zero,size-new Vector2(22,12),32);
+            label.richText=false;label.enableAutoSizing=true;label.fontSizeMin=20;label.fontSizeMax=32;label.overflowMode=TextOverflowModes.Ellipsis;
             go.AddComponent<ButtonHint>();
         }
         private void Row(string label,string command,int row,int column=0,bool half=false)
@@ -93,11 +100,13 @@ namespace VRExperienceAGB.Presentation
         {
             if(!MenuVisible) { wasPaused=View.Session.State.Paused;View.Session.SetPaused(true); }
             Garden.Navigation?.InvalidatePointerPresses(); View.NameTooltip?.Hide();
+            if(page=="values" && (MenuPage=="profiles" || MenuPage=="compare")) { valuesReturnPage=MenuPage=="compare"?"compare":"profiles";valuePage=0; }
             MenuPage=page;menu.gameObject.SetActive(true);Revision++;BuildMenu();if(!menuPlaced)PlaceMenu(true);
+            readingSpace.Hide(View.transform,menu.transform,Revision);
         }
         public void CloseMenu()
         {
-            menu.gameObject.SetActive(false);View.Session.SetPaused(wasPaused);Revision++;
+            readingSpace.Restore();menu.gameObject.SetActive(false);View.Session.SetPaused(wasPaused);Revision++;
             if(!PlayingTour)View.Refresh();
             Garden.Navigation?.InvalidatePointerPresses();
         }
@@ -105,86 +114,6 @@ namespace VRExperienceAGB.Presentation
         {
             if (Garden.M5.Extensions.PanelOpen) { Garden.M5.Extensions.Close();OpenMenu("tools");return; }
             if(MenuVisible)CloseMenu();else OpenMenu(PlayingTour?"playback":Garden.Navigation.Page==NavigationPage.Tree?"tree":"home");
-        }
-        private void BuildMenu()
-        {
-            foreach(Transform child in content){child.gameObject.SetActive(false);Destroy(child.gameObject);}
-            title.text="MODEL FOREST";subtitle.text=View.Model.Trees.Count+" trees · "+(View.LocalSampleActive?"Local sample · synthetic profiles":"Selected model");
-            switch(MenuPage)
-            {
-                case "home":
-                    Row("One tree · choose in the forest","single",0);Row("Explore the forest","forest",1,0,true);Row("Forest info","forest-info",1,1,true);
-                    Row("Play a prepared profile","profiles",2);Row("Compare profiles A / B","compare",3);
-                    Row(ResultsVisible?"Table View · results":"Table View","table",4,0,true);Row("Models / profiles","library",4,1,true);break;
-                case "library":
-                    title.text="MODELS AND PROFILES";subtitle.text=Library.Status;
-                    Row("Saved models","models",0);Row("Saved profile files","profile-files",1);
-                    Row("Import model JSON","import-model",2);Row("Import profile JSON","import-profile",3);
-                    Row("From computer / Wi-Fi","upload",4,0,true);Row("Formats / folders","library-help",4,1,true);break;
-                case "upload":
-                    title.text="UPLOAD FROM COMPUTER";subtitle.text=Library.Status;
-                    var address=Garden.Text(content,"UploadAddress",Library.UploadAddress==null?"Enable a temporary upload session.\nUse a computer on the same Wi-Fi network.":Library.UploadAddress+"\nAccess code: "+Library.UploadCode+"\nOpen this address in your computer browser.\nChoose Model JSON or Profile JSON.\nKeep this app open; session expires after 15 minutes.",new Vector2(0,70),new Vector2(970,250),30);address.richText=false;
-                    Row(Library.UploadAddress==null?"Start receiving":"Stop receiving",Library.UploadAddress==null?"upload-start":"upload-stop",3);
-                    Row("Models","models",4,0,true);Row("Profile files","profile-files",4,1,true);break;
-                case "library-help":
-                    title.text="IMPORT JSON";subtitle.text="Files stay on this device. Main menu → Compare chooses A and B.";
-                    var help=Garden.Text(content,"ImportHelp","Models: normalized v1 for scoring, or AGB export for structure.\nProfiles: schemaVersion, matching modelId, profiles array.\nEach profile has id, displayName and values.\n\nSaved folders:\n"+Library.Storage.ModelsPath+"\n"+Library.Storage.ProfilesPath+"\n\nImport from Downloads or copy files to these folders and Refresh.\nMaximum file size: 32 MiB. Invalid files keep the current scene.",new Vector2(0,-5),new Vector2(970,445),25);help.richText=false;break;
-                case "models":case "profile-files":
-                    bool profileFiles=MenuPage=="profile-files";
-                    title.text=profileFiles?"PROFILE FILES":"MODEL FILES";subtitle.text=Library.Status;
-                    Library.List(profileFiles);int pages=Math.Max(1,(Library.ListedFiles.Length+2)/3);libraryPage=Math.Min(libraryPage,pages-1);
-                    for(int i=0;i<3;i++){int index=libraryPage*3+i;if(index<Library.ListedFiles.Length)Row(VRExperienceAGB.Import.ModelFileLibrary.DisplayName(Library.ListedFiles[index]).Replace("<","‹"),"library-open:"+index,i);}
-                    if(Library.ListedFiles.Length==0)Garden.Text(content,"EmptyLibrary","No saved files. Import a JSON document.",new Vector2(0,85),new Vector2(950,90),28);
-                    Row("Import JSON",profileFiles?"import-profile":"import-model",3,0,true);Row("Refresh files","library-refresh",3,1,true);
-                    Row("Previous · "+(libraryPage+1)+" / "+pages,"library-prev",4,0,true);Row("Next","library-next",4,1,true);break;
-                case "tree":
-                    title.text="TREE "+(View.Ensemble.Index+1)+" / "+View.Model.Trees.Count;
-                    Row("Previous decision","tree-back",0,0,true);Row("Restart tree","tree-restart",0,1,true);
-                    Row("Back to forest","return-forest",1,0,true);Row("Table View","table",1,1,true);
-                    Row("Current decision","focus-current",2,0,true);Row("Seated / standing","seated",2,1,true);
-                    Row("Continue exploring","close",3);break;
-                case "position":
-                    title.text="POSITION YOUR SCENE";subtitle.text="Place the forest in front of you. Tracking remains active.";
-                    Row("Place in front of me","recenter",0);
-                    Row("Closer","closer",1,0,true);Row("Farther","farther",1,1,true);
-                    Row("Move left","left",2,0,true);Row("Move right","right",2,1,true);
-                    Row("Turn left","turn-left",3,0,true);Row("Turn right","turn-right",3,1,true);
-                    Row("Menu lower","lower",4,0,true);Row("Menu higher","higher",4,1,true);break;
-                case "profiles":case "compare":
-                    title.text=MenuPage=="compare"?"COMPARE TWO PROFILES":"PLAY A PREPARED PROFILE";
-                    subtitle.text=View.AvailableProfiles.Profiles.Count+" profiles · "+View.Model.Trees.Count+" trees · "+View.Model.Id;
-                    if(View.AvailableProfiles.Profiles.Count==0){subtitle.text="No compatible prepared profiles are loaded.";break;}
-                    Row("A: "+View.AvailableProfiles.Profiles[SelectedA].DisplayName,"next-a",0);
-                    if(MenuPage=="compare")Row("B: "+View.AvailableProfiles.Profiles[SelectedB%View.AvailableProfiles.Profiles.Count].DisplayName,"next-b",1);
-                    Row("Review selected profile values","values",2);
-                    Row("Start · visit every tree",MenuPage=="compare"?"start-ab":"start-profile",3);break;
-                case "values":
-                    title.text="PROFILE INPUTS";subtitle.text="Fully supplied values; no missing-value routing is inferred.";
-                    var profile=View.AvailableProfiles.Profiles[SelectedA];
-                    var values=profile.Values.Skip(valuePage*7).Take(7).Select(v=>v.Key+" = "+Value(v.Value));
-                    var label=Garden.Text(content,"Values",string.Join("\n",values),new Vector2(0,20),new Vector2(970,380),23);label.richText=false;
-                    Row("Previous values","values-prev",4,0,true);Row("Next values","values-next",4,1,true);break;
-                case "playback":
-                    title.text="PROFILE PLAYBACK";subtitle.text=Playback==null?"No active run":"Tree "+(Playback.TreeIndex+1)+" / "+View.Model.Trees.Count;
-                    Row(Playback?.Paused==true?"Resume":"Pause","pause",0,0,true);Row("Next step","step",0,1,true);
-                    Row("Previous tree","previous-tree",1,0,true);Row("Speed: "+(Playback?.Speed??1).ToString("0.#")+"x","speed",1,1,true);
-                    Row("Restart all trees","restart",2,0,true);Row("Calculate whole model","calculate-all",2,1,true);Row("Continue viewing","close",3);Row("End playback · forest","stop",4);break;
-                case "result":
-                    title.text="COMPLETE MODEL RESULT";subtitle.text="All "+View.Model.Trees.Count+" trees evaluated · source scoring unverified";
-                    var result=Garden.Text(content,"Result",ResultCopy(),new Vector2(0,75),new Vector2(960,260),32);result.enableAutoSizing=true;result.fontSizeMin=24;result.fontSizeMax=32;
-                    Row("View the whole model with results? · Yes","results-forest",3);
-                    Row("Table View with results","results-table",4);break;
-                case "tools":
-                    title.text="TOOLS AND SETTINGS";
-                    Row("Sound: "+(Garden.M5.Atmosphere.SoundEnabled?"on":"off"),"audio",0,0,true);Row("Constellation guides","stars",0,1,true);
-                    Row("Search predictors","search",1,0,true);Row("Boosting trail","trail",1,1,true);
-                    Row("Recorded reviews","review",2,0,true);Row("Help","help",2,1,true);
-                    Row("Table: smaller","table-smaller",3,0,true);Row("Table: larger","table-larger",3,1,true);
-                    Row("Table: turn left","table-left",4,0,true);Row("Table: turn right","table-right",4,1,true);break;
-                case "help":
-                    title.text="HOW TO EXPLORE";subtitle.text="A / Tab: menu · B / R: center scene · X / F12: screenshot";
-                    Garden.Text(content,"Help","Point and press the trigger to select. Hover for help.\nLeft stick: walk. Right stick: turn.\nX (left) / F12: save a screenshot.\nDownload: Models / profiles → From computer / Wi-Fi.\n\nChoose a tree in the forest for manual branches.\nPlay profiles to see every tree in order.\nGold = A · Purple = B\nBlue result = positive · Red = negative\n\nPosition scene places the forest in front of you.",new Vector2(0,0),new Vector2(970,440),27);break;
-            }
         }
         private int valuePage;
         public void Activate(string command)
@@ -197,56 +126,64 @@ namespace VRExperienceAGB.Presentation
                 return;
             }
             Revision++;
-            switch(command)
+            if(ActivateLearning(command))return;
+            switch(ExperienceCommands.Parse(command))
             {
-                case "home":case "position":case "profiles":case "compare":case "tools":case "help":case "values":case "library":case "models":case "profile-files":case "library-help":case "upload":OpenMenu(command);return;
-                case "import-model":Library.Pick(false);OpenMenu(Library.PickerUnavailable?"upload":"models");return;
-                case "import-profile":Library.Pick(true);OpenMenu(Library.PickerUnavailable?"upload":"profile-files");return;
-                case "upload-start":Library.StartUpload();OpenMenu("upload");return;
-                case "upload-stop":Library.StopUpload();OpenMenu("upload");return;
-                case "library-refresh":BuildMenu();return;
-                case "library-prev":libraryPage=Math.Max(0,libraryPage-1);BuildMenu();return;
-                case "library-next":libraryPage++;BuildMenu();return;
-                case "close":CloseMenu();return;
-                case "forest-info":StopPlayback(true);CloseMenu();Garden.Navigation.ShowForest();Garden.M6.SetStoryOpen(true);return;
-                case "next-a":SelectedA=(SelectedA+1)%View.AvailableProfiles.Profiles.Count;BuildMenu();return;
-                case "next-b":SelectedB=(SelectedB+1)%View.AvailableProfiles.Profiles.Count;BuildMenu();return;
-                case "values-prev":valuePage=Math.Max(0,valuePage-1);BuildMenu();return;
-                case "values-next":valuePage=(valuePage+1)%Math.Max(1,(View.Model.Features.Count+6)/7);BuildMenu();return;
-                case "start-profile":StartPlayback(false);return;
-                case "start-ab":StartPlayback(true);return;
-                case "forest":case "single":StopPlayback(false);View.StartScenarioProfiles(-1);CloseMenu();Garden.Navigation.ShowForest();return;
-                case "table":ShowResults(true);return;
-                case "results-forest":ShowResults(false);return;
-                case "results-table":ShowResults(true);return;
-                case "pause":if(Playback!=null)Playback.Paused=!Playback.Paused;BuildMenu();return;
-                case "step":if(Playback!=null){Playback.Next();RenderPlayback();}return;
-                case "calculate-all":if(Playback!=null){Playback.FinishAll();RenderPlayback();}return;
-                case "previous-tree":Playback?.PreviousTree();builtTree=-1;RenderPlayback();return;
-                case "speed":if(Playback!=null)Playback.Speed=Playback.Speed>=4?.5:Playback.Speed*2;BuildMenu();return;
-                case "restart":Playback?.Restart();completeShown=false;ResultsVisible=false;PlayingTour=true;builtTree=-1;CloseMenu();RenderPlayback();return;
-                case "tree-back":View.Session.Back();View.Refresh();CloseMenu();return;
-                case "tree-restart":View.Session.Restart();View.Refresh();CloseMenu();return;
-                case "return-forest":CloseMenu();Garden.Navigation.ShowForest();return;
-                case "focus-current":View.FocusedView.CurrentFocus();View.Refresh();CloseMenu();return;
-                case "seated":View.Execute(TreeAction.Seated,View.Session.State.Revision,View.Session.State.NodeId);return;
-                case "stop":StopPlayback(false);CloseMenu();Garden.Navigation.ShowForest();return;
-                case "audio":Garden.M5.Atmosphere.SoundEnabled=!Garden.M5.Atmosphere.SoundEnabled;BuildMenu();return;
-                case "stars":Garden.M5.Atmosphere.Sky.ToggleGuides();return;
-                case "recenter":RecenterScene();return;
-                case "closer":Garden.Locomotion.AdjustPlacement(0,-.5f,0);break;
-                case "farther":Garden.Locomotion.AdjustPlacement(0,.5f,0);break;
-                case "left":Garden.Locomotion.AdjustPlacement(-.5f,0,0);break;
-                case "right":Garden.Locomotion.AdjustPlacement(.5f,0,0);break;
-                case "turn-left":Garden.Locomotion.AdjustPlacement(0,0,-15);break;
-                case "turn-right":Garden.Locomotion.AdjustPlacement(0,0,15);break;
-                case "lower":menuHeight=Mathf.Max(-.5f,menuHeight-.1f);break;
-                case "higher":menuHeight=Mathf.Min(.2f,menuHeight+.1f);break;
-                case "table-smaller":Garden.M5.Diorama.ChangeScale(-.1f);return;
-                case "table-larger":Garden.M5.Diorama.ChangeScale(.1f);return;
-                case "table-left":Garden.M5.Diorama.Rotate(-15);return;
-                case "table-right":Garden.M5.Diorama.Rotate(15);return;
-                case "search":case "trail":case "review":
+                case ExperienceCommand.TableTools:case ExperienceCommand.Home:case ExperienceCommand.Position:case ExperienceCommand.Profiles:case ExperienceCommand.Compare:case ExperienceCommand.Tools:case ExperienceCommand.Help:case ExperienceCommand.Values:case ExperienceCommand.Library:case ExperienceCommand.Models:case ExperienceCommand.ProfileFiles:case ExperienceCommand.LibraryHelp:case ExperienceCommand.Upload:OpenMenu(command);return;
+                case ExperienceCommand.ImportModel:Library.Pick(false);OpenMenu(Library.PickerUnavailable?"upload":"models");return;
+                case ExperienceCommand.ImportProfile:Library.Pick(true);OpenMenu(Library.PickerUnavailable?"upload":"profile-files");return;
+                case ExperienceCommand.UploadStart:Library.StartUpload();OpenMenu("upload");return;
+                case ExperienceCommand.UploadStop:Library.StopUpload();OpenMenu("upload");return;
+                case ExperienceCommand.LibraryRefresh:BuildMenu();return;
+                case ExperienceCommand.LibraryPrev:libraryPage=Math.Max(0,libraryPage-1);BuildMenu();return;
+                case ExperienceCommand.LibraryNext:libraryPage++;BuildMenu();return;
+                case ExperienceCommand.Close:CloseMenu();return;
+                case ExperienceCommand.ForestInfo:StopPlayback(true);CloseMenu();Garden.Navigation.ShowForest();Garden.M6.SetStoryOpen(true);return;
+                case ExperienceCommand.NextA:SelectedA=(SelectedA+1)%View.AvailableProfiles.Profiles.Count;BuildMenu();return;
+                case ExperienceCommand.NextB:SelectedB=(SelectedB+1)%View.AvailableProfiles.Profiles.Count;BuildMenu();return;
+                case ExperienceCommand.ValuesPrev:valuePage=Math.Max(0,valuePage-1);BuildMenu();return;
+                case ExperienceCommand.ValuesNext:valuePage++;BuildMenu();return;
+                case ExperienceCommand.ValuesBack:OpenMenu(valuesReturnPage);return;
+                case ExperienceCommand.ValuesDiff:DifferencesOnly=!DifferencesOnly;valuePage=0;BuildMenu();return;
+                case ExperienceCommand.ValuesSearch:SetValueSearch("");return;
+                case ExperienceCommand.StartProfile:StartPlayback(false);return;
+                case ExperienceCommand.StartAb:StartPlayback(true);return;
+                case ExperienceCommand.Forest:StopPlayback(false);CloseMenu();Garden.Navigation.ShowForest();return;
+                case ExperienceCommand.Single:StopPlayback(false);View.StartScenarioProfiles(-1);CloseMenu();Garden.Navigation.ShowForest();Garden.Navigation.OpenTree(0);return;
+                case ExperienceCommand.Table:ShowResults(true);return;
+                case ExperienceCommand.ResultsForest:ShowResults(false);return;
+                case ExperienceCommand.ResultsTable:ShowResults(true);return;
+                case ExperienceCommand.Pause:if(Playback!=null)Playback.Paused=!Playback.Paused;BuildMenu();return;
+                case ExperienceCommand.Step:if(Playback!=null){Playback.Next();RenderPlayback();}return;
+                case ExperienceCommand.CalculateAll:if(Playback!=null){Playback.FinishAll();RenderPlayback();}return;
+                case ExperienceCommand.PreviousTree:Playback?.PreviousTree();builtTree=-1;RenderPlayback();return;
+                case ExperienceCommand.Speed:if(Playback!=null)Playback.Speed=Playback.Speed>=4?.5:Playback.Speed*2;BuildMenu();return;
+                case ExperienceCommand.Restart:Playback?.Restart();SetPace(Pace);completeShown=false;ResultsVisible=false;resultPlaced=false;PlayingTour=true;builtTree=-1;CloseMenu();RenderPlayback();return;
+                case ExperienceCommand.TreeBack:View.Session.Back();View.Refresh();CloseMenu();return;
+                case ExperienceCommand.TreeRestart:View.Session.Restart();View.Refresh();CloseMenu();return;
+                case ExperienceCommand.ReturnForest:CloseMenu();Garden.Navigation.ShowForest();return;
+                case ExperienceCommand.FocusCurrent:View.FocusedView.CurrentFocus();View.Refresh();CloseMenu();return;
+                case ExperienceCommand.Seated:View.Execute(TreeAction.Seated,View.Session.State.Revision,View.Session.State.NodeId);BuildMenu();return;
+                case ExperienceCommand.Stop:StopPlayback(false);CloseMenu();Garden.Navigation.ShowForest();return;
+                case ExperienceCommand.Audio:Garden.M5.Atmosphere.SoundEnabled=!Garden.M5.Atmosphere.SoundEnabled;BuildMenu();return;
+                case ExperienceCommand.Stars:Garden.M5.Atmosphere.Sky.ToggleGuides();return;
+                case ExperienceCommand.Recenter:RecenterScene();return;
+                case ExperienceCommand.Closer:Garden.Locomotion.AdjustPlacement(0,-.5f,0);break;
+                case ExperienceCommand.Farther:Garden.Locomotion.AdjustPlacement(0,.5f,0);break;
+                case ExperienceCommand.Left:Garden.Locomotion.AdjustPlacement(-.5f,0,0);break;
+                case ExperienceCommand.Right:Garden.Locomotion.AdjustPlacement(.5f,0,0);break;
+                case ExperienceCommand.TurnLeft:Garden.Locomotion.AdjustPlacement(0,0,-15);break;
+                case ExperienceCommand.TurnRight:Garden.Locomotion.AdjustPlacement(0,0,15);break;
+                case ExperienceCommand.Lower:menuHeight=Mathf.Max(-.5f,menuHeight-.1f);break;
+                case ExperienceCommand.Higher:menuHeight=Mathf.Min(.2f,menuHeight+.1f);break;
+                case ExperienceCommand.TableGroup:Garden.M5.Diorama.NextGroup();BuildMenu();return;
+                case ExperienceCommand.TableLabels:Garden.M5.Diorama.ShowAllLabels=!Garden.M5.Diorama.ShowAllLabels;Garden.M5.Diorama.Refresh();BuildMenu();return;
+                case ExperienceCommand.TableInspect:CloseMenu();Garden.Navigation.ShowDiorama();Garden.M5.Diorama.Hover(View.Ensemble.Index);return;
+                case ExperienceCommand.TableSmaller:Garden.M5.Diorama.ChangeScale(-.1f);return;
+                case ExperienceCommand.TableLarger:Garden.M5.Diorama.ChangeScale(.1f);return;
+                case ExperienceCommand.TableLeft:Garden.M5.Diorama.Rotate(-15);return;
+                case ExperienceCommand.TableRight:Garden.M5.Diorama.Rotate(15);return;
+                case ExperienceCommand.Search:case ExperienceCommand.Trail:case ExperienceCommand.Review:
                     CloseMenu();Garden.M5.Activate(command=="search"?M5Action.ExtensionSearch:command=="trail"?M5Action.ExtensionTrail:M5Action.ExtensionReview);return;
             }
             PlaceMenu(true);if(PlayingTour)PlaceRoute();
@@ -256,13 +193,14 @@ namespace VRExperienceAGB.Presentation
             if(View.Model.StructureOnlyPreview || View.AvailableProfiles.Profiles.Count==0){OpenMenu("profile-files");return;}
             CloseMenu(); StopPlayback(false);
             View.StartScenarioProfiles(SelectedA,comparison?SelectedB%View.AvailableProfiles.Profiles.Count:-1);
-            Playback=new ForestPlayback(View.Ensemble.Evaluation,comparison?View.Comparison.B.Evaluation:null){DecisionSeconds=.45,MoveSeconds=.3,ResultSeconds=1.2};
+            Playback=new ForestPlayback(View.Ensemble.Evaluation,comparison?View.Comparison.B.Evaluation:null);SetPace(Pace);
+            runProfileA=View.AvailableProfiles.Profiles[SelectedA];runProfileB=comparison?View.AvailableProfiles.Profiles[SelectedB%View.AvailableProfiles.Profiles.Count]:null;
             runA=View.AvailableProfiles.Profiles[SelectedA].DisplayName;runB=comparison?View.AvailableProfiles.Profiles[SelectedB%View.AvailableProfiles.Profiles.Count].DisplayName:null;
-            completeShown=false;ResultsVisible=false;PlayingTour=true;builtTree=-1;
+            completeShown=false;ResultsVisible=false;resultPlaced=false;PlayingTour=true;builtTree=-1;
             Garden.Navigation.ShowForest();Garden.Navigation.OpenTree(0);PlaceRoute();RenderPlayback();
         }
         public void StopPlayback(bool retainResults)
-        { PlayingTour=false;routeRoot.gameObject.SetActive(false);if(!retainResults){ResultsVisible=false;Playback=null;}resultCanvas.gameObject.SetActive(false); }
+        { PlayingTour=false;routeRoot.gameObject.SetActive(false);if(!retainResults){ResultsVisible=false;resultPlaced=false;Playback=null;}resultCanvas.gameObject.SetActive(false); }
         public void ShowResults(bool table)
         {
             StopPlayback(true);ResultsVisible=Playback?.Complete==true;CloseMenu();
@@ -291,7 +229,7 @@ namespace VRExperienceAGB.Presentation
             if(Garden.Navigation.Page==NavigationPage.Diorama)Garden.M5.Diorama.Place();
             if(PlayingTour) { PlaceRoute();RenderPlayback(); }
             else View.Refresh();
-            PlaceMenu(true);Garden.Navigation.InvalidatePointerPresses();
+            PlaceMenu(true);resultPlaced=false;Garden.Navigation.InvalidatePointerPresses();
         }
         private void Update()
         {
@@ -312,8 +250,11 @@ namespace VRExperienceAGB.Presentation
                 View.explanation.gameObject.SetActive(false);View.score.gameObject.SetActive(false);View.feedback.gameObject.SetActive(false);View.status.gameObject.SetActive(false);
             }
             if(MenuVisible || PlayingTour) { foreach(var c in View.controls)c.gameObject.SetActive(false); }
-            if(ResultsVisible && Garden.Navigation.Page!=NavigationPage.Tree)PlaceResult(Garden.Navigation.Page==NavigationPage.Diorama);
-            else resultCanvas.gameObject.SetActive(false);
+            if(MenuVisible) { readingSpace.Hide(View.transform,menu.transform,Revision); resultCanvas.gameObject.SetActive(false); }
+            else if(ResultsVisible && Garden.Navigation.Page!=NavigationPage.Tree) {
+                if(!resultPlaced || resultPage!=Garden.Navigation.Page)PlaceResult(Garden.Navigation.Page==NavigationPage.Diorama);
+                resultCanvas.gameObject.SetActive(true);
+            } else resultCanvas.gameObject.SetActive(false);
         }
         private void PlaceMenu(bool immediate)
         {
@@ -331,8 +272,9 @@ namespace VRExperienceAGB.Presentation
         }
         private void PlaceResult(bool table)
         {
-            resultCanvas.gameObject.SetActive(ResultsVisible);if(!ResultsVisible)return;
-            resultText.text="A: "+Percent(Playback.A.Probability)+" · Score "+Number(Playback.A.RawScore)+(Playback.B==null?"":"\nB: "+Percent(Playback.B.Probability)+" · Score "+Number(Playback.B.RawScore))+"\nAll "+Playback.A.Trees.Count+" trees · blue positive / red negative\nProbability = sigmoid(Score)";var head=Garden.Locomotion.Head;
+            resultCanvas.gameObject.SetActive(ResultsVisible && !MenuVisible);if(!ResultsVisible)return;
+            resultPlaced=true;resultPage=Garden.Navigation.Page;
+            resultText.text=ResultSummary();var head=Garden.Locomotion.Head;
             if(table) resultCanvas.transform.position=Garden.M5.Diorama.ModelRoot.position+Vector3.up*.85f;
             else {var f=Vector3.ProjectOnPlane(head.forward,Vector3.up).normalized;resultCanvas.transform.position=head.position+f*2.7f+Vector3.up*.55f;}
             resultCanvas.transform.rotation=Quaternion.LookRotation(resultCanvas.transform.position-head.position);
@@ -364,8 +306,8 @@ namespace VRExperienceAGB.Presentation
             }
             if(!changed)return;
             shownPhase=Playback.Phase;
-            string heading="TREE "+(builtTree+1)+" / "+View.Model.Trees.Count+" · "+Playback.Speed.ToString("0.#")+"x · A / Tab: menu\n";
-            if(Playback.Phase==PlaybackPhase.TreeResult)explanation.text=heading+TreeCopy(Playback.A,"A")+(Playback.B==null?"":"\n"+TreeCopy(Playback.B,"B"))+"\nNext tree follows automatically.";
+            string heading="TREE "+(builtTree+1)+" / "+View.Model.Trees.Count+" · decision "+(Playback.StepIndex+1)+" · "+Pace+"\n"+Playback.CompletedTrees+" complete · animation estimate "+TimeSpan.FromSeconds(Playback.EstimatedRemainingSeconds).ToString(@"hh\:mm\:ss")+(Playback.Paused?" after resume":" remaining")+"\n";
+            if(Playback.Phase==PlaybackPhase.TreeResult)explanation.text=heading+TreeCopy(Playback.A,"A")+(Playback.B==null?"":"\n"+TreeCopy(Playback.B,"B"))+(Playback.Paused?"\nPaused · Next step continues.":"\nNext tree follows automatically.");
             else explanation.text=heading+DecisionCopy(Playback.A,"A")+(Playback.B==null?"":"\n\n"+DecisionCopy(Playback.B,"B"));
         }
         private string TreeCopy(EvaluationResult result,string prefix)
@@ -377,12 +319,22 @@ namespace VRExperienceAGB.Presentation
             var d=tree.Decisions[step];var split=(SplitNode)View.Model.Trees[Playback.TreeIndex].Nodes.First(n=>n.Id==d.NodeId);
             return prefix+": "+View.Condition(split,true)+"\nValue: "+Value(d.ObservedValue)+" → "+(d.Matched?"TRUE / left":"FALSE / right");
         }
+        private string ResultSummary()
+        {
+            if(Playback==null)return "No completed profile result.";
+            return "ENSEMBLE SCORE\nA · "+runA+": "+Number(Playback.A.RawScore)+
+                (Playback.B==null?"":"\nB · "+runB+": "+Number(Playback.B.RawScore)+"\nScore difference B − A: "+Signed(Playback.B.RawScore-Playback.A.RawScore))+
+                "\nAll "+Playback.A.Trees.Count+" trees evaluated\n"+VRExperienceAGB.Import.ModelInsightText.CalibrationNotice;
+        }
         private string ResultCopy()
         {
             if(Playback==null)return "";
-            string text="A · "+runA+"\nProbability "+Percent(Playback.A.Probability)+" · Score "+Number(Playback.A.RawScore);
-            if(Playback.B!=null)text+="\nB · "+runB+"\nProbability "+Percent(Playback.B.Probability)+" · Score "+Number(Playback.B.RawScore)+"\nDifference B − A: "+Signed((Playback.B.Probability-Playback.A.Probability)*100)+" percentage points";
-            return text+"\nProbability = 1 / (1 + exp(−Score))\nAll "+Playback.A.Trees.Count+" trees · source scoring unverified";
+            string text="ENSEMBLE SCORE\nA · "+runA+"\nScore "+Number(Playback.A.RawScore);
+            if(Playback.B!=null)text+="\nB · "+runB+"\nScore "+Number(Playback.B.RawScore)+"\nScore difference B − A: "+Signed(Playback.B.RawScore-Playback.A.RawScore);
+            return text+"\nScore = baseline + sum of reached leaf contributions\nAll "+Playback.A.Trees.Count+" trees evaluated\n"+
+                VRExperienceAGB.Import.ModelInsightText.CalibrationNotice+
+                (runProfileA?.Source==null?"":"\n\nA · "+VRExperienceAGB.Import.CdhSourceText.Describe(runProfileA))+
+                (runProfileB?.Source==null?"":"\n\nB · "+VRExperienceAGB.Import.CdhSourceText.Describe(runProfileB));
         }
         private void CommitResultSessions()
         {
@@ -408,19 +360,19 @@ namespace VRExperienceAGB.Presentation
         private Material Material(Color color)
         { var mat=new Material(View.activeMaterial);mat.color=color;mat.EnableKeyword("_EMISSION");mat.SetColor("_EmissionColor",color);materials.Add(mat);return mat; }
         private GameObject Sphere(string name,Vector3 position,float size,Color color)
-        {var go=GameObject.CreatePrimitive(PrimitiveType.Sphere);go.name=name;go.transform.SetParent(routeRoot,false);go.transform.localPosition=position;go.transform.localScale=Vector3.one*size;go.GetComponent<Renderer>().sharedMaterial=Material(color);Destroy(go.GetComponent<Collider>());return go;}
+        {var go=GameObject.CreatePrimitive(name=="ProfileB"?PrimitiveType.Cube:PrimitiveType.Sphere);go.name=name;go.transform.SetParent(routeRoot,false);go.transform.localPosition=position;go.transform.localScale=Vector3.one*size;go.GetComponent<Renderer>().sharedMaterial=Material(color);Destroy(go.GetComponent<Collider>());return go;}
         private static string Number(double v)=>v.ToString("0.######",CultureInfo.InvariantCulture);
         private static string Signed(double v)=>v.ToString("+0.######;-0.######;0",CultureInfo.InvariantCulture);
         private static string Percent(double v)=>(v*100).ToString("0.0000",CultureInfo.InvariantCulture)+"%";
-        private static string Value(ProfileValue v)=>v.Kind==ValueKind.Number?Number(v.Number):v.Kind==ValueKind.Category?v.Category:"Missing";
-        private void OnDestroy(){foreach(var mat in materials)if(mat!=null)Destroy(mat);if(menu!=null)Destroy(menu.gameObject);if(routeRoot!=null)Destroy(routeRoot.gameObject);if(resultCanvas!=null)Destroy(resultCanvas.gameObject);}
+        private static string Value(ProfileValue v)=>v.Kind==ValueKind.Number?Number(v.Number):v.Kind==ValueKind.Category?v.Category:v.Kind==ValueKind.NotSupplied?"Not supplied":"Missing";
+        private void OnDestroy(){readingSpace.Restore();foreach(var mat in materials)if(mat!=null)Destroy(mat);if(menu!=null)Destroy(menu.gameObject);if(routeRoot!=null)Destroy(routeRoot.gameObject);if(resultCanvas!=null)Destroy(resultCanvas.gameObject);}
     }
     public sealed class ExperienceMenuTarget : MonoBehaviour, IPointerDownHandler, IPointerClickHandler, IPointerExitHandler
     {
         public ExperienceDirector Owner;public string Command;
         private long revision=-1;private int pointer;
         public void OnPointerDown(PointerEventData e){if(e.button==PointerEventData.InputButton.Left){revision=Owner.Revision;pointer=e.pointerId;}}
-        public void OnPointerClick(PointerEventData e){if(revision==Owner.Revision&&pointer==e.pointerId&&e.button==PointerEventData.InputButton.Left&&gameObject.activeInHierarchy){revision=-1;Owner.Activate(Command);}}
+        public void OnPointerClick(PointerEventData e){if(revision==Owner.Revision&&pointer==e.pointerId&&e.button==PointerEventData.InputButton.Left&&gameObject.activeInHierarchy){revision=-1;ControllerSelectionFeedback.Pulse(pointer);Owner.Activate(Command);}}
         public void OnPointerExit(PointerEventData e){revision=-1;}
     }
 }

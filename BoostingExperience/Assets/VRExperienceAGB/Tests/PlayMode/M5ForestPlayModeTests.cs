@@ -79,6 +79,7 @@ namespace VRExperienceAGB.Tests
             Garden.Navigation.ShowForest(); var movement = Garden.Locomotion;
             var head = movement.Head; var position = head.localPosition; var rotation = head.localRotation;
             var origin = movement.Origin.position; var revision = view.Session.State.Revision;
+            movement.WalkEnabled=true;
             movement.Move(new Vector2(.1f, .1f), .1f); Assert.That(movement.Origin.position, Is.EqualTo(origin));
             movement.Move(Vector2.up, .1f); Assert.That(Vector3.Distance(origin, movement.Origin.position), Is.EqualTo(.135f).Within(.001f));
             for (int i = 0; i < 800; i++) movement.Move(Vector2.right, .1f);

@@ -28,7 +28,7 @@ namespace VRExperienceAGB.Import
         public string[] Files(bool profiles)
         {
             string folder=profiles?ProfilesPath:ModelsPath;
-            return Directory.Exists(folder)?Directory.GetFiles(folder).Where(p=>string.Equals(Path.GetExtension(p),".json",StringComparison.OrdinalIgnoreCase)).OrderBy(Path.GetFileName,StringComparer.OrdinalIgnoreCase).ToArray():Array.Empty<string>();
+            return Directory.Exists(folder)?Directory.GetFiles(folder).Where(p=>(string.Equals(Path.GetExtension(p),".json",StringComparison.OrdinalIgnoreCase) || (profiles && string.Equals(Path.GetExtension(p),".jsonl",StringComparison.OrdinalIgnoreCase)))).OrderBy(Path.GetFileName,StringComparer.OrdinalIgnoreCase).ToArray():Array.Empty<string>();
         }
         public static string Read(string path)
         {
@@ -41,25 +41,27 @@ namespace VRExperienceAGB.Import
         {
             var normalized=NormalizedModelJson.ReadModel(json);
             if(normalized.IsSuccess)return new ImportedModel(normalized.Value);
-            var nested=AgbStructurePreview.Read(json,name);
+            var nested=AgbScoringImport.Read(json,name);
             if(nested.IsSuccess)return new ImportedModel(nested.Value.Model,nested.Value);
             throw new InvalidDataException("Unsupported or invalid model. "+Errors(normalized.Diagnostics)+" / "+Errors(nested.Diagnostics));
         }
         public static ProfileSet ParseProfiles(string json,ModelDefinition model)
         {
             if(model.StructureOnlyPreview)throw new InvalidDataException("This model supports structure viewing only. Profile playback requires a normalized scoring model.");
-            var result=NormalizedModelJson.ReadProfiles(json,model);
+            var result=json != null && json.Contains("\"pxCommonInputs\"") && json.Contains("\"pxModelExecutionResults\"")
+                ? CdhProfileJson.Read(json,model) : NormalizedModelJson.ReadProfiles(json,model);
             if(!result.IsSuccess)throw new InvalidDataException(Errors(result.Diagnostics));
             return result.Value;
         }
-        private static string Errors(IEnumerable<Diagnostic> errors) => string.Join("; ",errors.Take(3).Select(d=>d.Code+": "+d.Message));
+        private static string Errors(IEnumerable<Diagnostic> errors) => string.Join("; ",errors.Take(3).Select(d=>d.Code+": "+d.Message+(string.IsNullOrEmpty(d.Location)?"":" ("+d.Location+")")));
         public string Save(bool profiles,string name,string json)
         {
             var bytes=Encoding.UTF8.GetBytes(json);
             if(bytes.Length>MaximumBytes)throw new InvalidDataException("JSON exceeds the 32 MiB import limit.");
             var stem=Path.GetFileNameWithoutExtension(name??"import");
-            stem=new string(stem.Where(c=>char.IsLetterOrDigit(c)||c=='-'||c=='_').Take(60).ToArray());
+            stem=new string(stem.Where(c=>char.IsLetterOrDigit(c)||c=='-'||c=='_'||c=='.').ToArray());
             if(string.IsNullOrEmpty(stem))stem="import";
+            if(Encoding.UTF8.GetByteCount(stem)>220)throw new InvalidDataException("The filename is too long to preserve model identity. Use a shorter model name.");
             string hash;using(var sha=SHA256.Create())hash=BitConverter.ToString(sha.ComputeHash(bytes)).Replace("-","").Substring(0,16).ToLowerInvariant();
             var path=Path.Combine(profiles?ProfilesPath:ModelsPath,stem+"-"+hash+".json");
             if(File.Exists(path))return path;
@@ -77,8 +79,10 @@ namespace VRExperienceAGB.Import
         {
             skipped=0;var items=new List<PreparedProfile>();
             foreach(var file in Files(true))try {
-                var set=ParseProfiles(Read(file),model);string key=Path.GetFileNameWithoutExtension(file);
-                foreach(var p in set.Profiles)items.Add(new PreparedProfile(1,model.Id,key+":"+p.Id,DisplayName(file)+" / "+p.DisplayName,p.Values));
+                var set=ParseProfiles(Read(file),model);
+                if(set.Profiles.Any(p=>!ModelEvaluator.Evaluate(model,p).IsSuccess)){skipped++;continue;}
+                string key=Path.GetFileNameWithoutExtension(file);
+                foreach(var p in set.Profiles)items.Add(new PreparedProfile(1,model.Id,key+":"+p.Id,DisplayName(file)+" / "+p.DisplayName,p.Values,p.Source));
             }catch(Exception e)when(e is InvalidDataException || e is IOException || e is UnauthorizedAccessException){skipped++;}
             return new ProfileSet(1,model.Id,items);
         }

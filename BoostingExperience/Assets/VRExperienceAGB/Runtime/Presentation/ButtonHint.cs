@@ -12,6 +12,7 @@ namespace VRExperienceAGB.Presentation
         private GameObject hint;
         private UnityEngine.UI.Outline outline;
         private static ButtonHint active;
+        public string HintText => hint==null?"":hint.GetComponentInChildren<TMP_Text>().text;
         public bool Visible => hint!=null && hint.activeSelf;
         public void OnPointerEnter(PointerEventData data)
         {
@@ -30,7 +31,7 @@ namespace VRExperienceAGB.Presentation
                 canvas.sortingOrder=60;hint=canvas.gameObject;
             }
             outline.enabled=true;hint.SetActive(true);
-            var source=GetComponentInParent<Canvas>();var corners=new Vector3[4];
+            var source=GetComponentInParent<Canvas>();if(GetComponent<ExperienceMenuTarget>()!=null)hint.transform.SetParent(source.transform,true);var corners=new Vector3[4];
             var anchor=GetComponent<ExperienceMenuTarget>()!=null?(RectTransform)source.transform:(RectTransform)transform;
             anchor.GetWorldCorners(corners);
             var head=view.Garden.Locomotion.Head;
@@ -45,6 +46,7 @@ namespace VRExperienceAGB.Presentation
         private void OnDestroy(){if(hint!=null)Destroy(hint);if(active==this)active=null;}
         public static string Description(string command,string label)
         {
+            if(command?.StartsWith("input-detail:")==true)return "Read the complete identifier and exact A/B values.";
             switch(command) {
                 case "close":return "Close this menu and return to the scene. A / Tab also toggles it.";
                 case "single":return "Choose a tree in the forest, then explore its branches yourself.";

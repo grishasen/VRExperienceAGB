@@ -58,14 +58,14 @@ namespace VRExperienceAGB.Tests
         }
         [UnityTest] public IEnumerator SampleProfilesMatchIndependentReferenceForEveryLeaf()
         {
-            Assert.That(view.Model.Trees.Count,Is.EqualTo(100));
+            Assert.That(view.Model.Trees.Count,Is.EqualTo(50));
             var expected=JsonUtility.FromJson<ReferenceFile>(Resources.Load<TextAsset>("LocalModel/expected").text);
             for(int p=0;p<3;p++) {
                 view.StartScenarioProfiles(p);
                 var result=view.Ensemble.Evaluation;var reference=expected.results[p];
                 Assert.That(result.RawScore,Is.EqualTo(reference.score).Within(1e-10));
                 Assert.That(result.Probability,Is.EqualTo(reference.probability).Within(1e-12));
-                for(int i=0;i<100;i++)Assert.That(result.Trees[i].LeafId,Is.EqualTo(reference.trees[i].leaf));
+                for(int i=0;i<view.Model.Trees.Count;i++)Assert.That(result.Trees[i].LeafId,Is.EqualTo(reference.trees[i].leaf));
             }
             yield return null;
         }
@@ -76,11 +76,13 @@ namespace VRExperienceAGB.Tests
                 if(last!=d.Playback.TreeIndex){visited++;last=d.Playback.TreeIndex;}
                 d.AdvanceTour(100);if(guard%80==0)yield return null;
             }
-            Assert.That(d.Playback.Complete,Is.True);Assert.That(visited,Is.EqualTo(100));
+            Assert.That(d.Playback.Complete,Is.True);Assert.That(visited,Is.EqualTo(view.Model.Trees.Count));
+            Assert.That(d.FinalText, Does.Contain("ENSEMBLE SCORE").And.Contain("Score difference B − A").And.Contain("Propensity comes from calibration"));
+            Assert.That(d.FinalText, Does.Not.Contain("Probability").And.Not.Contain("sigmoid").And.Not.Contain("percentage points"));
             Assert.That(d.MenuPage,Is.EqualTo("result"));Assert.That(view.Comparison.A.Complete&&view.Comparison.B.Complete,Is.True);
             var a=d.Playback.A.RawScore;var b=d.Playback.B.RawScore;
-            d.Activate("results-table");Assert.That(view.Garden.M5.Diorama.ModelRoot.GetComponentsInChildren<MeshFilter>().Count(m=>m.name=="Pine"),Is.EqualTo(100));
-            Assert.That(d.TryContribution(99,true,out _),Is.True);
+            d.Activate("results-table");Assert.That(view.Garden.M5.Diorama.ModelRoot.GetComponentsInChildren<MeshFilter>().Count(m=>m.name=="Pine"),Is.EqualTo(view.Model.Trees.Count));
+            Assert.That(d.TryContribution(view.Model.Trees.Count-1,true,out _),Is.True);
             d.ShowResults(false);view.Garden.Navigation.OpenTree(0);view.Garden.Navigation.ReturnFromTree();
             Assert.That(d.Playback.A.RawScore,Is.EqualTo(a));Assert.That(d.Playback.B.RawScore,Is.EqualTo(b));
             var saved=d.FinalText;d.OpenMenu("compare");d.Activate("next-a");Assert.That(d.FinalText,Is.EqualTo(saved));
@@ -123,7 +125,7 @@ namespace VRExperienceAGB.Tests
         }
         [UnityTest] public IEnumerator StonePlaybackMovesAlongActualBranchAndPausesWithoutChangingScore()
         {
-            var d=view.Director;d.StartPlayback(false);d.SendMessage("LateUpdate");
+            var d=view.Director;d.SetPace(PlaybackPace.Fast);d.StartPlayback(false);d.SendMessage("LateUpdate");
             Assert.That(view.presentationRoot.gameObject.activeInHierarchy,Is.True);
             var dot=view.presentationRoot.Find("ProfileRoutePresentation/ProfileA");
             var route=d.Playback.A.Trees[0];
@@ -180,12 +182,14 @@ namespace VRExperienceAGB.Tests
                 d.StartPlayback(pair);d.AdvanceTour(.1f);d.OpenMenu("playback");d.Activate("pause");
                 var a=d.Playback.A.RawScore;var b=d.Playback.B?.RawScore;
                 d.Activate("calculate-all");
-                Assert.That(d.Playback.Complete,Is.True);Assert.That(d.Playback.CompletedTrees,Is.EqualTo(100));
-                Assert.That(d.PlayingTour,Is.False);Assert.That(d.MenuPage,Is.EqualTo("result"));
+                Assert.That(d.Playback.Complete,Is.True);Assert.That(d.Playback.CompletedTrees,Is.EqualTo(view.Model.Trees.Count));
+                Assert.That(d.PlayingTour,Is.False);Assert.That(d.FinalText, Does.Contain("ENSEMBLE SCORE").And.Contain("Propensity comes from calibration"));
+            Assert.That(d.FinalText, Does.Not.Contain("Probability").And.Not.Contain("sigmoid").And.Not.Contain("percentage points"));
+            Assert.That(d.MenuPage,Is.EqualTo("result"));
                 Assert.That(d.Playback.A.RawScore,Is.EqualTo(a));Assert.That(view.Ensemble.Complete,Is.True);
                 if(pair){Assert.That(d.Playback.B.RawScore,Is.EqualTo(b));Assert.That(view.Comparison.B.Complete,Is.True);}
-                d.Activate("results-table");Assert.That(d.TryContribution(99,false,out var value),Is.True);
-                Assert.That(value,Is.EqualTo(d.Playback.A.Trees[99].Contribution));
+                d.Activate("results-table");Assert.That(d.TryContribution(view.Model.Trees.Count-1,false,out var value),Is.True);
+                Assert.That(value,Is.EqualTo(d.Playback.A.Trees[view.Model.Trees.Count-1].Contribution));
                 yield return null;
             }
         }
@@ -274,15 +278,17 @@ namespace VRExperienceAGB.Tests
         }
         [UnityTest] public IEnumerator ButtonHintsExplainCommandsWithoutInterceptingClicks()
         {
+            Object.FindAnyObjectByType<DesktopTreePreview>().enabled=false;
             view.Director.OpenMenu("home");yield return null;
             var button=view.GetComponentsInChildren<ExperienceMenuTarget>().First(b=>b.Command=="profiles");
             var pointer=new PointerEventData(EventSystem.current){pointerId=92,button=PointerEventData.InputButton.Left};
             ExecuteEvents.Execute(button.gameObject,pointer,ExecuteEvents.pointerEnterHandler);yield return null;
             var hint=button.GetComponent<ButtonHint>();Assert.That(hint.Visible,Is.True);
-            var canvas=view.transform.Find("ButtonHint");
+            var canvas=button.GetComponentInParent<Canvas>().transform.Find("ButtonHint");
             Assert.That(canvas.GetComponentInChildren<TMPro.TMP_Text>().text,Does.Contain("every tree"));
             Assert.That(canvas.GetComponentsInChildren<UnityEngine.UI.Graphic>().All(g=>!g.raycastTarget),Is.True);
-            Assert.That(button.transform.Find("HoverArrow").gameObject.activeSelf,Is.True);
+            Assert.That(button.GetComponent<UnityEngine.UI.Outline>().enabled,Is.True);
+            Assert.That(button.transform.Find("HoverArrow"),Is.Null);
             ExecuteEvents.Execute(button.gameObject,pointer,ExecuteEvents.pointerDownHandler);
             ExecuteEvents.Execute(button.gameObject,pointer,ExecuteEvents.pointerClickHandler);
             Assert.That(view.Director.MenuPage,Is.EqualTo("profiles"));yield return null;

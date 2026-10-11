@@ -21,6 +21,11 @@ namespace VRExperienceAGB.Presentation
         private Coroutine fading;
         private bool stickReleased = true;
         private OneTreeExperience experience;
+        public bool WalkEnabled { get; set; }
+        public bool ComfortFadeEnabled { get; set; } = true;
+        public bool InputBlocked => experience == null || experience.ApplicationSuspended || experience.Director?.MenuVisible == true ||
+            experience.NameTooltip?.Pinned == true || experience.Garden?.M5?.HelpOpen == true ||
+            experience.Garden?.M5?.Comparison.PanelOpen == true || experience.Garden?.M5?.Extensions.PanelOpen == true || experience.Garden?.M6?.StoryOpen == true;
         public float WalkSpeed { get; set; } = 1.35f;
         public void Configure(OneTreeExperience view)
         {
@@ -95,7 +100,7 @@ namespace VRExperienceAGB.Presentation
         }
         public void Teleport(Vector3 standingPoint)
         {
-            if (!InGarden) return;
+            if (!InGarden || InputBlocked) return;
             var offset = standingPoint - Head.position; offset.y = 0;
             Origin.position += offset; gardenPosition = Origin.position; FadeFromBlack();
         }
@@ -106,13 +111,13 @@ namespace VRExperienceAGB.Presentation
         }
         public void SnapTurn(float degrees)
         {
-            if (!InGarden || (degrees != -30 && degrees != 30)) return;
+            if (!InGarden || InputBlocked || (degrees != -30 && degrees != 30)) return;
             Origin.RotateAround(Head.position, Vector3.up, degrees);
             gardenPosition = Origin.position; FadeFromBlack();
         }
         private void Update()
         {
-            if (!InGarden || experience.Director?.MenuVisible == true) return;
+            if (!InGarden || InputBlocked) return;
             var left = InputDevices.GetDeviceAtXRNode(XRNode.LeftHand);
             if (left.TryGetFeatureValue(CommonUsages.primary2DAxis, out var walkAxis)) Move(walkAxis, Mathf.Min(Time.unscaledDeltaTime, .05f));
             var right = InputDevices.GetDeviceAtXRNode(XRNode.RightHand);
@@ -123,7 +128,7 @@ namespace VRExperienceAGB.Presentation
         public void Move(Vector2 axis, float seconds)
         {
             var garden = experience.Garden;
-            if (!InGarden || experience.Director?.MenuVisible == true || garden == null || garden.M5.HelpOpen || garden.M5.Comparison.PanelOpen || garden.M5.Extensions.PanelOpen ||
+            if (!WalkEnabled || !InGarden || InputBlocked || garden == null || garden.M5.HelpOpen || garden.M5.Comparison.PanelOpen || garden.M5.Extensions.PanelOpen ||
                 (garden.simplifiedNavigation && garden.Navigation?.Page != NavigationPage.Forest) || seconds <= 0 ||
                 !float.IsFinite(seconds) || !float.IsFinite(axis.x) || !float.IsFinite(axis.y) || !float.IsFinite(WalkSpeed)) return;
             float magnitude = Mathf.Clamp01(axis.magnitude);
@@ -142,7 +147,7 @@ namespace VRExperienceAGB.Presentation
         }
         private void FadeFromBlack()
         {
-            if (fade == null) return;
+            if (fade == null || !ComfortFadeEnabled) return;
             if (fading != null) StopCoroutine(fading);
             fading = StartCoroutine(FadeOut());
         }

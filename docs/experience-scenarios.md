@@ -1,5 +1,10 @@
 # Experience scenarios
 
+**October 11 score presentation:** completed and intermediate results show score only. Propensity requires a separate calibration mapping, which is not loaded. No sigmoid percentage or probability delta is presented.
+
+
+**Current behavior — October 11:** Learn provides four guided steps. Resume retains the current route; manual entry and explicit restart are separate actions. Prepared playback supports Learn, Present, Fast and Step paces, complete calculation, progress and remaining-animation estimates. A/B input review has names, differences/search and exact-value detail pages. Comfort starts with teleport-only movement and separate walking, fade, sound and haptic controls. Table groups limit visible trees only. About model provides paginated passport, structure, dictionary, glossary and evidence pages with dynamic identifier namespaces. See the [follow-up record](review-follow-up-2026-10-11.md) and [device checklist](quest-acceptance-2026-10-11.md). Current sample content is deliberately unchanged.
+
 Status: October 8 feedback revision implemented; final automated/build evidence is recorded in testing.md. Quest acceptance remains pending. Older milestone records describe their historical revisions.
 
 ## Product intent
@@ -51,9 +56,9 @@ The first scene should contain a small polished clearing rather than a large unf
 2. At each split, show the condition, the profile's value, and the evaluation result. Example: “Previous responses: 2. Condition: less than 5. Result: true.”
 3. The matching branch lights up and the drop advances. The same profile is evaluated independently in every tree.
 4. Each reached leaf contributes to the accumulated raw score. The presentation distinguishes the baseline from tree contributions.
-5. After the last tree, display sigmoid(Score), then ask “View the whole model with results?” Offer the complete forest and Table View. Both preserve every tree's contribution: blue positive, red negative. Above the table display the final probability; selecting a tree preserves the completed result. The local reconstructed sample explicitly labels source scoring as unverified.
+5. After the last tree, display the complete ensemble score, then ask “View the whole model with results?” Offer the complete forest and Table View. Both preserve every tree's contribution: blue positive, red negative. Above the table display the final score and a calibration notice; selecting a tree preserves the completed result. The local reconstructed sample explicitly labels source scoring as unverified.
 
-**Playback:** step, play, pause, resume, replay, and return to the previous decision. The main playback visits every tree and decision in canonical order. It presents each leaf contribution and running Score before the next tree. Trees change in front of the observer without a scripted camera journey. Opening the menu pauses progression. **Calculate whole model** skips the remaining animation and immediately shows the complete Score and sigmoid probability; A/B shows both complete results and their difference. Playback uses the same stone scene as manual inspection. The optional recorded review remains a separate saved-stop tool.
+**Playback:** step, play, pause, resume, replay, and return to the previous decision. The main playback visits every tree and decision in canonical order. It presents each leaf contribution and running Score before the next tree. Trees change in front of the observer without a scripted camera journey. Opening the menu pauses progression. **Calculate whole model** skips the remaining animation and immediately shows the complete score; A/B shows both complete results and their difference. Playback uses the same stone scene as manual inspection. The optional recorded review remains a separate saved-stop tool.
 
 **Take over:** “Try a change” duplicates the original profile. Editing a feature recalculates all affected routes and the complete result. The original profile remains available for comparison. Choosing an arbitrary branch instead enters manual exploration with a clear mode label.
 
@@ -65,7 +70,7 @@ The first scene should contain a small polished clearing rather than a large unf
 
 **Purpose:** understand the ensemble as an ordered collection of contributions.
 
-Trees stand along a trail in boosting order. The user can jump to an iteration, inspect a tree, and return to the same forest position. An iteration control reveals trees progressively and shows the selected profile's intermediate raw score and probability.
+Trees stand along a trail in boosting order. The user can jump to an iteration, inspect a tree, and return to the same forest position. An iteration control reveals trees progressively and shows the selected profile's intermediate raw score and the separate complete score.
 
 Use total gain as a possible size encoding, with a legend and a bounded visual scale. Profile-specific contribution is shown separately by a signed marker or halo. A tree has no universal positive or negative contribution independent of the profile.
 
@@ -79,9 +84,9 @@ The actual values determine the landscape. Later trees need not be smaller than 
 
 Startup centers the scene and opens one menu ahead of the observer: One tree, Explore the whole forest, Play a prepared profile, Compare A / B, and Table View. A / desktop Tab or X closes the menu. Reopening places it ahead; Position scene provides recenter, distance, horizontal offset, yaw and menu height controls. Navigation changes the observer origin, never the tracked head/controller local poses.
 
-The local default is the complete 100-tree `export_Mobile_Click_Through_Rate_AGB_sample` reconstruction with three fully supplied synthetic profiles. Run `python3 scripts/prepare-local-sample.py` to prepare ignored local Resources before opening/building. The original local source and generated model resources are excluded from Git. A checkout without them retains the previous 50-tree structure-only preview. No real customer profiles are bundled. General model import remains a later main-menu scenario.
+The local default is the complete 50-tree `export_Mobile_Click_Through_Rate_AGB_demo.json` with three fully supplied synthetic profiles. Run `python3 scripts/prepare-local-sample.py` to prepare ignored local Resources before opening/building. The synthetic demo source is tracked; generated model resources are excluded from Git. A checkout without them retains the previous 50-tree structure-only preview. No real customer profiles are bundled. Ordinary AGB and CDH profile import remains available in Models / profiles.
 
-Crown selection enters a tree from either the forest or Table View. All 100 trees appear in both overviews. Existing walking, deliberate path-marker teleports, snap turns, subtree inspection, predictor search, boosting trail and recorded review remain available.
+Crown selection enters a tree from either the forest or Table View. All 50 trees appear in both overviews. Existing walking, deliberate path-marker teleports, snap turns, subtree inspection, predictor search, boosting trail and recorded review remain available.
 
 For dense trees, show a bounded neighborhood around the selected node. Collapsed branches retain their identity and a count of hidden nodes. Selecting a branch can place an enlarged subtree on an inspection table, with a marker connecting it to its original location.
 
@@ -123,11 +128,11 @@ Start with a single-user recorded route. Live multi-user review, avatars, shared
 
 ## S08 — Two profiles, two paths
 
-**Implementation update — October 7:** the main A/B scenario advances gold A and purple B points simultaneously. A shorter route waits at its leaf until both finish; both contributions and subtotals appear before the next tree. After every tree, show both sigmoid probabilities and their difference in percentage points. Forest and Table View use outer A / inner B contribution rings. The [earlier record](profile-comparison-2026-10-03.md) describes the original single-active-profile tools. Quest acceptance remains pending.
+**Implementation update — October 7:** the main A/B scenario advances gold A and purple B points simultaneously. A shorter route waits at its leaf until both finish; both contributions and subtotals appear before the next tree. After every tree, show both complete scores and their difference in score units. Forest and Table View use outer A / inner B contribution rings. The [earlier record](profile-comparison-2026-10-03.md) describes the original single-active-profile tools. Quest acceptance remains pending.
 
 **Purpose:** explain how a model prediction changes under a hypothetical feature edit.
 
-Duplicate a profile and change one permitted feature. Two colored drops share common route segments and diverge where an evaluated condition differs. Highlight the first divergence in each tree and show the difference between final raw scores and probabilities.
+Duplicate a profile and change one permitted feature. Two colored drops share common route segments and diverge where an evaluated condition differs. Highlight the first divergence in each tree and show the difference between final raw scores.
 
 This is a model sensitivity demonstration, not a claim about the causal effect of changing a person's behavior. Do not silently change dependent features; either specify their relationship or keep the comparison explicitly hypothetical.
 
@@ -149,7 +154,7 @@ Provide a stable score panel as an alternative to a wrist display. Use readable 
 | 15–30 s | Enter one tree and read a split | Values determine branches |
 | 30–45 s | Advance to a leaf | A leaf adds a signed contribution |
 | 45–60 s | Watch more trees; summarize the remaining ensemble | Contributions accumulate |
-| 60–75 s | View the output gate and explanation | The raw score becomes an output probability |
+| 60–75 s | View the output gate and explanation | The trees produce score; propensity requires calibration |
 | 75–90 s | Return to a fork and try a feature change | A changed input can change the route and result |
 
 Timing is an editorial target, not a guarantee. Detailed playback remains available.

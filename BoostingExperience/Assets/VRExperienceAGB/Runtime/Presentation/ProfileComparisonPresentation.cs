@@ -80,7 +80,7 @@ namespace VRExperienceAGB.Presentation
                 UnityEngine.Object.Destroy(sphere.GetComponent<Collider>());
                 sphere.transform.SetParent(marker.transform, false); sphere.transform.localScale = Vector3.one * .15f;
                 dropMaterials[i] = new Material(View.activeMaterial) { name = i == 0 ? "ProfileA_Violet" : "ProfileB_Blue" };
-                var color = i == 0 ? new Color(.85f, .35f, 1f) : new Color(.30f, .50f, 1f);
+                var color = i == 0 ? new Color(1f,.78f,.18f) : new Color(.85f,.35f,1f);
                 dropMaterials[i].color = color; dropMaterials[i].EnableKeyword("_EMISSION"); dropMaterials[i].SetColor("_EmissionColor", color);
                 sphere.GetComponent<Renderer>().sharedMaterial = dropMaterials[i];
                 var label = owner.Garden.CanvasAt("Identity", Vector3.up * .17f, new Vector2(90, 60), .003f, marker.transform);
@@ -173,7 +173,9 @@ namespace VRExperienceAGB.Presentation
                     Close(); View.ShowComparisonProfile(pair.ShowingB, tree);
                     if (owner.Garden.Navigation.Page != NavigationPage.Tree) owner.Garden.Navigation.OpenTree(tree);
                     View.FocusedView.Inspect(divergence.NodeId); View.Refresh(); return;
-                case M5Action.CompareEdit: pair.BeginEdit(); feature = 0; detailPage = 1; break;
+                case M5Action.CompareEdit:
+                    if (View.Model.Features.Count == 0) { message = "This export contains constant leaves; there are no editable predictors."; break; }
+                    pair.BeginEdit(); feature = 0; detailPage = 1; break;
                 case M5Action.CompareApply: Accept(pair.ApplyEdit()); break;
                 case M5Action.CompareCancel: pair.CancelEdit(); detailPage = 1; break;
                 case M5Action.ComparePreviousFeature: feature = (feature + View.Model.Features.Count - 1) % View.Model.Features.Count; detailPage = 1; break;
@@ -229,15 +231,14 @@ namespace VRExperienceAGB.Presentation
             panel.gameObject.SetActive(PanelOpen);
             if (!PanelOpen) return;
             tree = Math.Min(tree, Pair.Trees.Count - 1);
-            heading.text = Editing ? "EDIT PROFILE B · DRAFT" : "COMPARE PROFILES · SYNTHETIC MODEL";
+            heading.text = Editing ? "EDIT PROFILE B · DRAFT" : View.Model.ExportInfo != null ? "COMPARE PROFILES · EXPORTED TREES" : "COMPARE PROFILES · SUPPLIED MODEL";
             totals.text = "A · " + Pair.A.Profile.DisplayName + "    |    B · " + Pair.B.Profile.DisplayName +
                 "\nRaw score: A " + Number(Pair.A.Evaluation.RawScore) + "    B " + Number(Pair.B.Evaluation.RawScore) + "    Δ B − A " + Signed(Pair.RawDelta) +
-                "\nProbability: A " + Number(Pair.A.Evaluation.Probability * 100) + "%    B " + Number(Pair.B.Evaluation.Probability * 100) + "%" +
-                "\nΔ " + Signed(Pair.ProbabilityPointDelta) + " percentage points · all " + Pair.Trees.Count + " trees evaluated";
+                "\nAll " + Pair.Trees.Count + " trees evaluated\n" + VRExperienceAGB.Import.ModelInsightText.CalibrationNotice;
             if (Editing)
             {
                 var f = View.Model.Features[feature];
-                detail.text = "Feature " + (feature + 1) + " / " + View.Model.Features.Count + " · " + f.DisplayName + "\n" + f.Id +
+                detail.text = "Feature " + (feature + 1) + " / " + View.Model.Features.Count + " · " + View.FeatureLabel(f.Id) + "\n" + f.Id +
                     "\nA: " + Value(Pair.A.Profile.GetValue(f.Id)) + "\nAccepted B: " + Value(Pair.B.Profile.GetValue(f.Id)) +
                     "\nDraft B: " + Value(Pair.Draft.GetValue(f.Id)) + "\nApply recomputes every tree and resets B's route. A is preserved.";
             }
@@ -259,6 +260,9 @@ namespace VRExperienceAGB.Presentation
                 text.AppendLine("B path: " + string.Join(" → ", row.B.VisitedNodeIds));
                 text.AppendLine("Changed features (" + Pair.ChangedFeatures.Count + "):");
                 foreach (string id in Pair.ChangedFeatures) text.AppendLine(id + ": " + Value(Pair.A.Profile.GetValue(id)) + " → " + Value(Pair.B.Profile.GetValue(id)));
+                text.AppendLine("Largest contribution changes (B - A):");
+                foreach(var ranked in Pair.Trees.Select((t,i)=>new { Row=t, Index=i }).OrderByDescending(t=>Math.Abs(t.Row.ContributionDelta)).Take(5))
+                    text.AppendLine("Tree "+(ranked.Index+1)+": "+Signed(ranked.Row.ContributionDelta));
                 detail.text = text.ToString();
             }
             detail.pageToDisplay = detailPage;
@@ -274,7 +278,8 @@ namespace VRExperienceAGB.Presentation
             Enable(M5Action.CompareNextTree, tree + 1 < Pair.Trees.Count);
             Enable(M5Action.CompareNextDifference, Pair.Trees.Any(t => t.PathsDiffer));
             Enable(M5Action.CompareInspect, Pair.Trees[tree].PathsDiffer);
-            Enable(M5Action.CompareMissing, View.Model.Features[feature].AllowMissing);
+            Enable(M5Action.CompareEdit, View.Model.Features.Count > 0);
+            Enable(M5Action.CompareMissing, View.Model.Features.Count > 0 && View.Model.Features[feature].AllowMissing);
             Enable(M5Action.CompareNextDetail, detail.textInfo.pageCount > 1);
         }
         private void Enable(M5Action action, bool value) => buttons[action].GetComponent<UnityEngine.UI.Button>().interactable = value;
