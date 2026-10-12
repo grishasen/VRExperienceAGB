@@ -48,6 +48,7 @@ namespace VRExperienceAGB.Presentation
                 readingCanvas=view.Garden.CanvasAt("NodeReadingPanel",Vector3.zero,new Vector2(1000,600),.0016f,transform);
                 readingCanvas.overrideSorting=true;readingCanvas.sortingOrder=1000;
                 panel.transform.SetParent(readingCanvas.transform,false);
+                readingCanvas.gameObject.SetActive(Visible);
             }
             var rect=(RectTransform)panel.transform;
             rect.anchoredPosition3D=Vector3.zero;rect.sizeDelta=new Vector2(1000,600);
@@ -68,6 +69,7 @@ namespace VRExperienceAGB.Presentation
                 if(forward.sqrMagnitude<.01f)forward=Vector3.forward;
                 readingCanvas.transform.SetPositionAndRotation(head.position+forward*2.2f+Vector3.up*.1f,Quaternion.LookRotation(forward));
             }
+            if(readingCanvas!=null)readingCanvas.gameObject.SetActive(true);
             panel.SetActive(true);
             Canvas.ForceUpdateCanvases();
             Text.rectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical,
@@ -75,7 +77,13 @@ namespace VRExperienceAGB.Presentation
             scroll.StopMovement();scroll.verticalNormalizedPosition=1;
         }
         public void Leave(object owner) { if (!Pinned && source == owner) hideAt=Time.unscaledTime+.7f; }
-        public void Hide() { Pinned=false;source=null; overPanel=false; hideAt=float.PositiveInfinity; if(panel!=null)panel.SetActive(false); }
+        public void Hide()
+        {
+            Pinned=false;source=null;overPanel=false;hideAt=float.PositiveInfinity;
+            if(panel!=null)panel.SetActive(false);
+            // Meta ray selection uses the canvas surface even when its graphic children are hidden.
+            if(readingCanvas!=null)readingCanvas.gameObject.SetActive(false);
+        }
         public void OnPointerEnter(PointerEventData data) { overPanel=true; }
         public void OnPointerExit(PointerEventData data) { overPanel=false; hideAt=Time.unscaledTime+.7f; }
         private void Update() { if(!Pinned && !overPanel && Time.unscaledTime>=hideAt) Hide(); }

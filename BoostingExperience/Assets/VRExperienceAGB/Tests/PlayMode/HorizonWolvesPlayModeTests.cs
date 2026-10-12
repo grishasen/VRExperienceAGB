@@ -37,11 +37,27 @@ namespace VRExperienceAGB.Tests
             Assert.That(wildlife.LastCaller, Is.GreaterThanOrEqualTo(0));
             var root = view.transform.Find("HorizonWildlife");
             Assert.That(root.GetComponentsInChildren<Collider>().Length, Is.Zero);
-            Assert.That(wildlife.Wolves.All(w => Mathf.Abs(w.position.x) > 20 && w.position.z >= 50), Is.True);
+            Assert.That(wildlife.Wolves[0].localPosition.x,Is.EqualTo(0));
+            Assert.That(wildlife.Wolves.Skip(1).All(w => Mathf.Abs(w.position.x) > 20), Is.True);
+            Assert.That(wildlife.Wolves.All(w => w.position.z >= 50), Is.True);
+            Assert.That(root.Find("CentralRidge"),Is.Not.Null);
             Assert.That(wildlife.Wolves.Select(w => w.GetComponent<MeshFilter>().sharedMesh).Distinct().Count(), Is.EqualTo(1));
             Assert.That(view.Session, Is.SameAs(session)); Assert.That(view.Model, Is.SameAs(model));
             Assert.That(head.localPosition, Is.EqualTo(position)); Assert.That(head.localRotation, Is.EqualTo(rotation));
             view.Garden.Navigation.OpenTree(0); Assert.That(root.gameObject.activeInHierarchy, Is.True);
+            yield return null;
+        }
+        [UnityTest]
+        public IEnumerator ExplicitHowlAlwaysShowsTheCentralWolf()
+        {
+            wildlife.RequestHowl();
+            Assert.That(wildlife.LastCaller,Is.EqualTo(0));
+            Assert.That(wildlife.Wolves[0].gameObject.activeInHierarchy,Is.True);
+            wildlife.AdvanceAmbience(60);
+            wildlife.RequestHowl();
+            Assert.That(wildlife.LastCaller,Is.EqualTo(0));
+            Assert.That(wildlife.Wolves[0].gameObject.activeInHierarchy,Is.True);
+            Assert.That(wildlife.Wolves.Skip(1).All(w=>!w.gameObject.activeSelf),Is.True);
             yield return null;
         }
         [UnityTest]

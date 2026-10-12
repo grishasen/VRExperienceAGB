@@ -18,6 +18,11 @@ namespace VRExperienceAGB.Presentation
                 if (!r.transform.IsChildOf(menu)) { if (!renderers.ContainsKey(r)) renderers.Add(r, r.enabled); r.enabled = false; }
             foreach (var c in scene.GetComponentsInChildren<Canvas>(true))
                 if (!c.transform.IsChildOf(menu)) { if (!surfaces.ContainsKey(c)) surfaces.Add(c, c.enabled); c.enabled = false; }
+            // Canvas.enabled only hides graphics; Meta ray surfaces remain selectable independently.
+            foreach (var c in scene.GetComponentsInChildren<Oculus.Interaction.RayInteractable>(true))
+                if (!c.transform.IsChildOf(menu)) { if (!surfaces.ContainsKey(c)) surfaces.Add(c, c.enabled); c.enabled = false; }
+            foreach (var c in scene.GetComponentsInChildren<UnityEngine.UI.GraphicRaycaster>(true))
+                if (!c.transform.IsChildOf(menu)) { if (!surfaces.ContainsKey(c)) surfaces.Add(c, c.enabled); c.enabled = false; }
             foreach (var c in scene.GetComponentsInChildren<Collider>(true))
                 if (!c.transform.IsChildOf(menu)) { if (!colliders.ContainsKey(c)) colliders.Add(c, c.enabled); c.enabled = false; }
             }

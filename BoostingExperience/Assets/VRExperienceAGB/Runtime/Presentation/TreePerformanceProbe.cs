@@ -28,6 +28,8 @@ namespace VRExperienceAGB.Presentation
         [Serializable] private class LibraryReport {
             public string status,address,code,modelId;public int trees,profiles;
             public double scoreA,scoreB,probabilityA,probabilityB;public bool complete;
+            public string modelName,page,menuPage;public bool focused,suspended,walkEnabled,inputBlocked,sessionPaused,howlAllowed,howlPlaying,ambience;
+            public int audioListeners,treeIndex,stepIndex,backdropRenderers,visibleBackdropRenderers,branchButtons,decisions;public string mode,node;public bool pendingDecision;public float howlIn;public string origin;
         }
         private void LibraryCommand(string path)
         {
@@ -35,7 +37,20 @@ namespace VRExperienceAGB.Presentation
             string command=File.ReadAllText(path).Trim();File.Delete(path);var d=view.Director;
             if(command=="start"){d.Library.StartUpload();d.OpenMenu("upload");}
             if(command=="forest")d.Activate("forest");
+            if(command.StartsWith("ui:"))d.Activate(command.Substring(3));
+            if(command.StartsWith("open-model:")){
+                var file=d.Library.Storage.Files(false).FirstOrDefault(f=>Path.GetFileName(f)==command.Substring(11));
+                if(file!=null)d.Library.ImportPath(file,false,false);
+            }
             if(command=="screenshot")view.GetComponent<FeedbackCapture>().Request();
+            if(command=="branch-left" || command=="branch-right") {
+                var action=command=="branch-left"?TreeAction.TrueBranch:TreeAction.FalseBranch;
+                var button=view.controls.FirstOrDefault(c=>c.action==action && c.gameObject.activeInHierarchy);
+                if(button!=null) {
+                    var input=new UnityEngine.EventSystems.PointerEventData(UnityEngine.EventSystems.EventSystem.current){pointerId=987,button=UnityEngine.EventSystems.PointerEventData.InputButton.Left};
+                    button.OnPointerDown(input);button.OnPointerClick(input);
+                }
+            }
             if(command=="playback" || command=="ab") {
                 d.StartPlayback(command=="ab");
                 if(d.Playback!=null)d.Playback.Paused=true;
@@ -46,8 +61,16 @@ namespace VRExperienceAGB.Presentation
                 if(file!=null)d.Library.ImportPath(file,false,false);
             }
             if(command=="stop")d.Library.StopUpload();
+            var backdrop=view.transform.Find("ModelPineGarden");
+            var scenery=backdrop==null?Array.Empty<Renderer>():backdrop.Cast<Transform>().Where(t=>t.name=="GardenBackdrop-PineTree").SelectMany(t=>t.GetComponentsInChildren<Renderer>(true)).ToArray();
             File.WriteAllText(Path.Combine(UnityEngine.Application.persistentDataPath,"json-library-report.json"),JsonUtility.ToJson(new LibraryReport{
                 status=d.Library.Status,address=d.Library.UploadAddress,code=d.Library.UploadCode,modelId=view.Model.Id,trees=view.Model.Trees.Count,profiles=view.AvailableProfiles.Profiles.Count,
+                modelName=view.ActiveModelName,page=view.Garden.Navigation.Page.ToString(),menuPage=d.MenuVisible?d.MenuPage:"closed",
+                focused=UnityEngine.Application.isFocused,suspended=view.ApplicationSuspended,walkEnabled=view.Garden.Locomotion.WalkEnabled,inputBlocked=view.Garden.Locomotion.InputBlocked,sessionPaused=view.Session.State.Paused,
+                howlAllowed=view.Garden.M5.Atmosphere.Wildlife.CanPlay,howlPlaying=view.Garden.M5.Atmosphere.Wildlife.Voices.Any(v=>v.isPlaying),howlIn=view.Garden.M5.Atmosphere.Wildlife.SecondsUntilHowl,ambience=view.Garden.M5.Atmosphere.AmbienceEnabled,
+                mode=view.Session.State.Mode.ToString(),node=view.Session.State.NodeId,decisions=view.Session.State.Decisions.Count,pendingDecision=view.Session.State.PendingDecision!=null,
+                backdropRenderers=scenery.Length,visibleBackdropRenderers=scenery.Count(r=>r.enabled && r.gameObject.activeInHierarchy),branchButtons=view.controls.Count(c=>(c.action==TreeAction.TrueBranch||c.action==TreeAction.FalseBranch) && c.gameObject.activeInHierarchy && c.GetComponent<UnityEngine.UI.Button>().IsInteractable()),
+                audioListeners=FindObjectsByType<AudioListener>().Count(a=>a.enabled),origin=view.Garden.Locomotion.Origin.position.ToString(),treeIndex=d.Playback?.TreeIndex??view.Ensemble.Index,stepIndex=d.Playback?.StepIndex??0,
                 complete=d.Playback?.Complete==true,scoreA=d.Playback?.A.RawScore??0,scoreB=d.Playback?.B?.RawScore??0,probabilityA=d.Playback?.A.Probability??0,probabilityB=d.Playback?.B?.Probability??0
             },true));
         }

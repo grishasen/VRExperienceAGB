@@ -1,6 +1,8 @@
 # Synthetic 50-tree score demo — October 11, 2026
 
-Status: implementation, Unity verification and Android Development build complete. Headset acceptance is pending.
+Historical record: superseded by the [100-tree default model](default-sample100-2026-10-12.md). The preparation script now bundles that larger sample.
+
+Status: implementation, Unity verification and Android Development build complete. October 12: installed on Quest 3; full A/B calculation matched the reference, and a device capture shows playback at tree 2/50. Full headset acceptance remains pending.
 
 ## Behavior
 
@@ -23,7 +25,7 @@ Status: implementation, Unity verification and Android Development build complet
 - Evidence: ignored `artifacts/sample50-score/` (test reports, live scene JSON, screenshot and build report).
 - Android Development APK: `artifacts/builds/VRExperienceAGB-sample50-score.apk`; succeeded with 0 errors and 6 warnings in 33.419 seconds. APK file size: 102,870,172 bytes.
 - SHA-256: `fcfca5a786ca4aa2dccaffe58de5cd92d09f95c6c6d1807a58e32bec1dac5d46`.
-- This APK has not been installed or tested on a headset.
+- October 12: this exact APK was installed with `adb install -r` on Quest 3 and launched. See the device check below.
 
 ## Headset checks
 
@@ -34,3 +36,15 @@ Status: implementation, Unity verification and Android Development build complet
 5. Select the boundary profile and expect score -3.4563. Inspect leaf contributions and intermediate totals.
 6. Enter a tree manually, choose branches, undo and return; manual route totals must remain separate from prepared-profile results.
 7. Check controller targets, seated/standing placement, recentering and sustained device performance. Editor results do not establish headset acceptance.
+
+## Quest 3 check — October 12, 2026
+
+The APK SHA-256 above was rechecked before installation. Installation succeeded without clearing application data. The startup report confirmed model `local-sample-ac5fcb27e992`, 50 trees and three synthetic profiles.
+
+The on-device development command `compare` evaluated the complete A/B pair using the application's Calculate whole model path. It returned `complete: true`, A score 2.1433 and B score 3.2505999999999995; both match the independent reference within 1e-10. The difference is 1.1073. Diagnostic JSON retains internal sigmoid reference fields; these are not displayed as calibrated propensity.
+
+The `ab` command opened paused playback. A subsequent application-rendered device screenshot shows both profile markers, their condition values, tree 2/50, one completed tree and the Learn playback estimate. This establishes visible progression beyond the first tree on the device; it does not establish animated completion of all 50 trees or stereo readability/comfort acceptance. Playback was left available to the user.
+
+Startup logs include OpenXR `xrDiscoverSpacesMETA` lookup warnings, an optional Play AssetPackManager class lookup failure, and an OVRMetricsTool initialization failure (`0-stub`). Calculation and captured rendering succeeded despite these messages. No sustained performance acceptance is claimed. The application process restarted once during the initial check; the cause was not established from this check.
+
+Local evidence: `artifacts/quest-sample50-2026-10-12/` contains startup and A/B reports, device logs and `ab-headset.png`. Full animated traversal, pause/resume/controller acceptance, stereo readability and sustained performance remain pending user confirmation or further device checks.

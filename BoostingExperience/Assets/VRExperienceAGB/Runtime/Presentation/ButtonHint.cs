@@ -16,6 +16,8 @@ namespace VRExperienceAGB.Presentation
         public bool Visible => hint!=null && hint.activeSelf;
         public void OnPointerEnter(PointerEventData data)
         {
+            var branch=GetComponent<TreeActionButton>();
+            if(branch!=null && (branch.action==TreeAction.TrueBranch || branch.action==TreeAction.FalseBranch))return;
             var button=GetComponent<UnityEngine.UI.Button>();
             if(button==null || !button.IsInteractable())return;
             var view=GetComponentInParent<OneTreeExperience>();if(view==null)return;
@@ -38,7 +40,7 @@ namespace VRExperienceAGB.Presentation
             var position=(corners[1]+corners[2])*.5f+source.transform.up*.16f-source.transform.forward*.015f;
             hint.transform.SetPositionAndRotation(position,Quaternion.LookRotation(position-head.position));
             string labelText=GetComponentInChildren<TMP_Text>().text;
-            hint.GetComponentInChildren<TMP_Text>().text=Description(GetComponent<ExperienceMenuTarget>()?.Command,labelText)+"\nTrigger to select";
+            hint.GetComponentInChildren<TMP_Text>().text=Description(GetComponent<ExperienceMenuTarget>()?.Command,labelText);
         }
         public void OnPointerExit(PointerEventData data){pointers.Remove(data.pointerId);if(pointers.Count==0)Hide();}
         private void Hide(){pointers.Clear();if(hint!=null)hint.SetActive(false);if(outline!=null)outline.enabled=false;if(active==this)active=null;}

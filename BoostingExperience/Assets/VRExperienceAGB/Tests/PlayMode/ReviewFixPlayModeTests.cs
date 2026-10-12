@@ -83,6 +83,154 @@ namespace VRExperienceAGB.Tests
             movement.Move(Vector2.up,.1f);movement.SnapTurn(30);Assert.That(movement.Origin.position,Is.EqualTo(origin));Assert.That(movement.Origin.rotation,Is.EqualTo(orientation));
             Assert.That(movement.Head.localPosition,Is.EqualTo(local));Assert.That(movement.Head.localRotation,Is.EqualTo(rotation));yield return null;
         }
+        [UnityTest] public IEnumerator ImportWhileMenuIsOpenRestoresLargeForestTrees()
+        {
+            var d=view.Director;
+            for(int round=0;round<2;round++) {
+                d.OpenMenu("models");d.SendMessage("LateUpdate");
+                var original=view.Model;
+                var model=new ModelDefinition(1,"replacement-"+round,"synthetic","binary_logistic","response",0,original.Features,original.Trees);
+                Assert.That(view.OpenImportedModel(new ImportedModel(model),new ProfileSet(1,model.Id,Array.Empty<PreparedProfile>()),"Replacement").IsSuccess,Is.True);
+                yield return null;
+                var scenery=view.transform.Find("ModelPineGarden").Cast<Transform>().Where(t=>t.name=="GardenBackdrop-PineTree")
+                    .SelectMany(t=>t.GetComponentsInChildren<Renderer>(true)).ToArray();
+                Assert.That(scenery.Length,Is.GreaterThan(0));
+                d.SendMessage("LateUpdate");Assert.That(scenery.All(r=>!r.enabled),Is.True,"The open menu still suppresses background geometry.");
+                d.Activate("forest");
+                Assert.That(scenery.All(r=>r.enabled && r.gameObject.activeInHierarchy),Is.True,"Cloned trees must not inherit the temporary hidden state.");
+                d.OpenMenu("home");d.CloseMenu();
+                Assert.That(scenery.All(r=>r.enabled),Is.True);
+            }
+        }
+        [UnityTest] public IEnumerator EndingPlaybackRestoresBothManualBranchButtons()
+        {
+            var d=view.Director;
+            foreach(string exit in new[]{"stop","forest"}) {
+                d.StartPlayback(true);d.Activate(exit);view.Garden.Navigation.OpenTree(0);
+                Assert.That(view.Comparison,Is.Null);Assert.That(view.Session.State.Mode,Is.EqualTo(VRExperienceAGB.Application.ExperienceMode.Manual));
+                foreach(var action in new[]{TreeAction.TrueBranch,TreeAction.FalseBranch}) {
+                    d.Activate("tree-restart");
+                    var control=view.controls.Single(c=>c.action==action);
+                    Assert.That(control.gameObject.activeInHierarchy,Is.True);
+                    var input=new UnityEngine.EventSystems.PointerEventData(UnityEngine.EventSystems.EventSystem.current){pointerId=75,button=UnityEngine.EventSystems.PointerEventData.InputButton.Left};
+                    control.OnPointerDown(input);control.OnPointerClick(input);
+                    Assert.That(view.Session.State.PendingDecision,Is.Not.Null,action.ToString());
+                    view.Advance(2);
+                    Assert.That(view.Session.State.Decisions.Last().Matched,Is.EqualTo(action==TreeAction.TrueBranch));
+                }
+            }
+            yield return null;
+        }
+        [UnityTest] public IEnumerator DictionaryFooterWinsRaysOverHiddenSceneAndRestoresInput()
+        {
+            view.Director.Activate("single");
+            var menu=view.transform.Find("UnifiedExperienceMenu");
+            var sceneRays=view.GetComponentsInChildren<Oculus.Interaction.RayInteractable>(true)
+                .Where(r=>!r.transform.IsChildOf(menu)).ToArray();
+            var unused=sceneRays.First(r=>r.GetComponent<Oculus.Interaction.PointableCanvas>()?.Canvas?.name!="LearningConsole");
+            unused.enabled=false;
+            var saved=sceneRays.ToDictionary(r=>r,r=>r.enabled);
+            foreach(string command in new[]{"home","position","tools"}) {
+                view.Director.OpenMenu("dictionary");
+                // Place the anchored menu behind the now-invisible learning console.
+                menu.SetPositionAndRotation(new Vector3(0,1.65f,4),Quaternion.identity);
+                yield return null;
+                Assert.That(sceneRays.All(r=>!r.enabled),Is.True,"Hidden scene interactables must leave Meta ray selection.");
+                var button=menu.GetComponentsInChildren<ExperienceMenuTarget>().Single(b=>b.Command==command);
+                var head=view.Garden.Locomotion.Head;
+                foreach(float x in new[]{-.25f,.25f}) {
+                    var origin=head.position+new Vector3(x,-.4f,.2f);var ray=new Ray(origin,button.transform.position-origin);
+                    var hits=Object.FindObjectsByType<Oculus.Interaction.RayInteractable>(FindObjectsSortMode.None)
+                        .Where(r=>r.isActiveAndEnabled && r.Surface.Raycast(ray,out _))
+                        .OrderBy(r=>{r.Surface.Raycast(ray,out var hit);return hit.Distance;}).ToArray();
+                    Assert.That(hits,Is.Not.Empty);
+                    Assert.That(hits[0].transform.IsChildOf(menu),Is.True,command);
+                }
+                var input=new UnityEngine.EventSystems.PointerEventData(UnityEngine.EventSystems.EventSystem.current) {
+                    pointerId=77,button=UnityEngine.EventSystems.PointerEventData.InputButton.Left,
+                    position=head.GetComponent<Camera>().WorldToScreenPoint(button.transform.position)
+                };
+                var graphics=new System.Collections.Generic.List<UnityEngine.EventSystems.RaycastResult>();
+                UnityEngine.EventSystems.EventSystem.current.RaycastAll(input,graphics);
+                Assert.That(graphics,Is.Not.Empty);
+                Assert.That(graphics[0].gameObject.GetComponentInParent<ExperienceMenuTarget>(),Is.SameAs(button));
+                UnityEngine.EventSystems.ExecuteEvents.Execute(graphics[0].gameObject,input,UnityEngine.EventSystems.ExecuteEvents.pointerDownHandler);
+                UnityEngine.EventSystems.ExecuteEvents.Execute(graphics[0].gameObject,input,UnityEngine.EventSystems.ExecuteEvents.pointerClickHandler);
+                Assert.That(view.Director.MenuPage,Is.EqualTo(command));
+                view.Director.CloseMenu();
+                foreach(var item in saved)Assert.That(item.Key.enabled,Is.EqualTo(item.Value),item.Key.name);
+            }
+        }
+        [UnityTest] public IEnumerator ClosedNodeDetailsDoNotInterceptEitherBranchRay()
+        {
+            view.Director.Activate("single");
+            var head=view.Garden.Locomotion.Head;
+            var position=head.position;var rotation=head.rotation;
+            foreach(var action in new[]{TreeAction.TrueBranch,TreeAction.FalseBranch}) {
+                view.Director.Activate("tree-restart");
+                var control=view.controls.Single(c=>c.action==action);
+                head.position=position-Vector3.up*.3f;
+                head.rotation=Quaternion.Euler(0,action==TreeAction.TrueBranch?-20:20,0);
+                view.NameTooltip.Show(this,"Synthetic node evidence");
+                head.SetPositionAndRotation(position,rotation);
+                yield return null;
+                Assert.That(view.NameTooltip.Visible,Is.True);
+                var reading=view.transform.Find("NodeReadingPanel");
+                Assert.That(reading.gameObject.activeInHierarchy,Is.True);
+                view.NameTooltip.Hide();
+                yield return null;
+                foreach(float handX in new[]{-.25f,.25f}) {
+                    var origin=position+new Vector3(handX,-.4f,.2f);
+                    var ray=new Ray(origin,control.transform.position-origin);
+                    var surfaces=Object.FindObjectsByType<Oculus.Interaction.RayInteractable>(FindObjectsSortMode.None)
+                        .Where(r=>r.isActiveAndEnabled && r.Surface.Raycast(ray,out _))
+                        .OrderBy(r=>{r.Surface.Raycast(ray,out var hit);return hit.Distance;}).ToArray();
+                    Assert.That(surfaces,Is.Not.Empty);
+                    Assert.That(surfaces[0].GetComponent<Oculus.Interaction.PointableCanvas>().Canvas,
+                        Is.SameAs(control.GetComponentInParent<Canvas>()),"A closed evidence panel must not win controller ray selection.");
+                }
+                var input=new UnityEngine.EventSystems.PointerEventData(UnityEngine.EventSystems.EventSystem.current) {
+                    pointerId=75,button=UnityEngine.EventSystems.PointerEventData.InputButton.Left,
+                    position=head.GetComponent<Camera>().WorldToScreenPoint(control.transform.position)
+                };
+                var graphics=new System.Collections.Generic.List<UnityEngine.EventSystems.RaycastResult>();
+                UnityEngine.EventSystems.EventSystem.current.RaycastAll(input,graphics);
+                Assert.That(graphics,Is.Not.Empty);
+                Assert.That(graphics[0].gameObject.GetComponentInParent<TreeActionButton>(),Is.SameAs(control));
+                var hint=control.GetComponent<ButtonHint>();hint.OnPointerEnter(input);
+                Assert.That(hint.Visible,Is.False,"Branch buttons must not show the redundant hover tooltip.");
+                UnityEngine.EventSystems.ExecuteEvents.Execute(graphics[0].gameObject,input,UnityEngine.EventSystems.ExecuteEvents.pointerDownHandler);
+                UnityEngine.EventSystems.ExecuteEvents.Execute(graphics[0].gameObject,input,UnityEngine.EventSystems.ExecuteEvents.pointerClickHandler);
+                Assert.That(view.Session.State.PendingDecision,Is.Not.Null,action.ToString());
+                view.Advance(2);
+                Assert.That(view.Session.State.Decisions.Last().Matched,Is.EqualTo(action==TreeAction.TrueBranch));
+            }
+        }
+        [UnityTest] public IEnumerator ResultTreeCanExplicitlySwitchToManualBranches()
+        {
+            var d=view.Director;d.StartPlayback(true);d.Activate("calculate-all");d.Activate("results-forest");
+            view.Garden.Navigation.OpenTree(1);d.OpenMenu("tree");d.Activate("manual-tree");
+            Assert.That(view.Ensemble.Index,Is.EqualTo(1));Assert.That(view.Comparison,Is.Null);
+            Assert.That(view.Session.State.Mode,Is.EqualTo(VRExperienceAGB.Application.ExperienceMode.Manual));
+            Assert.That(d.PlayingTour,Is.False);Assert.That(d.MenuVisible,Is.False);
+            Assert.That(view.Session.State.AtLeaf,Is.False);Assert.That(view.controls.Where(c=>c.action==TreeAction.TrueBranch||c.action==TreeAction.FalseBranch).All(c=>c.gameObject.activeInHierarchy),Is.True);
+            yield return null;
+        }
+        [UnityTest] public IEnumerator DefaultForestWalkingAndHowlAreAvailableThroughNormalMenu()
+        {
+            var d=view.Director;d.Activate("forest");var movement=view.Garden.Locomotion;
+            Assert.That(movement.WalkEnabled,Is.True);
+            var before=movement.Origin.position;movement.Move(Vector2.up,.1f);
+            Assert.That(movement.Origin.position,Is.Not.EqualTo(before));
+            var wildlife=view.Garden.M5.Atmosphere.Wildlife;
+            wildlife.SendMessage("OnApplicationFocus",true);wildlife.SendMessage("OnApplicationPause",false);
+            d.OpenMenu("comfort");d.Activate("hear-wolves");
+            Assert.That(d.MenuVisible,Is.False);Assert.That(view.Garden.Navigation.Page,Is.EqualTo(NavigationPage.Forest));
+            Assert.That(wildlife.CanPlay,Is.True);Assert.That(wildlife.Voices.Any(v=>v.isPlaying),Is.True);
+            d.OpenMenu("home");
+            Assert.That(view.GetComponentsInChildren<TMPro.TMP_Text>().Any(t=>t.text.Contains("Synthetic fixture")&&t.text.Contains("trees")),Is.True);
+            yield return null;
+        }
         [UnityTest] public IEnumerator StepAndFastPacesProduceTheSameCompletePair()
         {
             var d=view.Director;d.SetPace(PlaybackPace.Step);d.StartPlayback(true);var tree=d.Playback.TreeIndex;var step=d.Playback.StepIndex;

@@ -104,6 +104,7 @@ namespace VRExperienceAGB.Presentation
             MenuPage=page;menu.gameObject.SetActive(true);Revision++;BuildMenu();if(!menuPlaced)PlaceMenu(true);
             readingSpace.Hide(View.transform,menu.transform,Revision);
         }
+        internal void PrepareSceneRebuild() => readingSpace.Restore();
         public void CloseMenu()
         {
             readingSpace.Restore();menu.gameObject.SetActive(false);View.Session.SetPaused(wasPaused);Revision++;
@@ -148,8 +149,9 @@ namespace VRExperienceAGB.Presentation
                 case ExperienceCommand.ValuesSearch:SetValueSearch("");return;
                 case ExperienceCommand.StartProfile:StartPlayback(false);return;
                 case ExperienceCommand.StartAb:StartPlayback(true);return;
-                case ExperienceCommand.Forest:StopPlayback(false);CloseMenu();Garden.Navigation.ShowForest();return;
-                case ExperienceCommand.Single:StopPlayback(false);View.StartScenarioProfiles(-1);CloseMenu();Garden.Navigation.ShowForest();Garden.Navigation.OpenTree(0);return;
+                case ExperienceCommand.Forest:EnterManualForest();return;
+                case ExperienceCommand.Single:OpenManualTree(0);return;
+                case ExperienceCommand.ManualTree:OpenManualTree(View.Ensemble.Index);return;
                 case ExperienceCommand.Table:ShowResults(true);return;
                 case ExperienceCommand.ResultsForest:ShowResults(false);return;
                 case ExperienceCommand.ResultsTable:ShowResults(true);return;
@@ -164,7 +166,7 @@ namespace VRExperienceAGB.Presentation
                 case ExperienceCommand.ReturnForest:CloseMenu();Garden.Navigation.ShowForest();return;
                 case ExperienceCommand.FocusCurrent:View.FocusedView.CurrentFocus();View.Refresh();CloseMenu();return;
                 case ExperienceCommand.Seated:View.Execute(TreeAction.Seated,View.Session.State.Revision,View.Session.State.NodeId);BuildMenu();return;
-                case ExperienceCommand.Stop:StopPlayback(false);CloseMenu();Garden.Navigation.ShowForest();return;
+                case ExperienceCommand.Stop:EnterManualForest();return;
                 case ExperienceCommand.Audio:Garden.M5.Atmosphere.SoundEnabled=!Garden.M5.Atmosphere.SoundEnabled;BuildMenu();return;
                 case ExperienceCommand.Stars:Garden.M5.Atmosphere.Sky.ToggleGuides();return;
                 case ExperienceCommand.Recenter:RecenterScene();return;
@@ -187,6 +189,17 @@ namespace VRExperienceAGB.Presentation
                     CloseMenu();Garden.M5.Activate(command=="search"?M5Action.ExtensionSearch:command=="trail"?M5Action.ExtensionTrail:M5Action.ExtensionReview);return;
             }
             PlaceMenu(true);if(PlayingTour)PlaceRoute();
+        }
+        private void EnterManualForest()
+        {
+            StopPlayback(false);
+            if(View.Comparison!=null || View.Ensemble.Mode!=ExperienceMode.Manual)View.StartScenarioProfiles(-1);
+            CloseMenu();Garden.Navigation.ShowForest();
+        }
+        private void OpenManualTree(int index)
+        {
+            StopPlayback(false);View.StartScenarioProfiles(-1);CloseMenu();
+            Garden.Navigation.ShowForest();Garden.Navigation.OpenTree(index);
         }
         public void StartPlayback(bool comparison)
         {

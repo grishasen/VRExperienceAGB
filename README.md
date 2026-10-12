@@ -1,5 +1,17 @@
 # VRExperienceAGB
 
+**Central wolf — October 12:** one wolf now appears on a hill at the end of the main aisle. The first automatic howl and the manual howl command use this central wolf. **111 PlayMode tests pass**; the 100-tree entrance view was inspected. See [verification](docs/quest-central-wolf-2026-10-12.md).
+
+**Menu ray fix — October 12:** modal menus now disable hidden scene ray interactables and restore their prior state on close. **110 PlayMode tests pass**, including the Dictionary footer with an overlapping hidden console. See [menu input evidence](docs/quest-menu-rays-2026-10-12.md).
+
+**Branch ray fix — October 12:** closing node details now disables their Meta ray surface, preventing an invisible panel from blocking branch buttons. Branch hover hints are removed. **109 PlayMode tests pass**, including surface and UI ray selection on both sides. See [reproduction and validation](docs/quest-branch-rays-2026-10-12.md).
+
+**Default model — October 12:** `scripts/prepare-local-sample.py` now bundles the complete `export_Mobile_Click_Through_Rate_AGB_sample.json`: **100 trees, 200 predictors and two synthetic A/B profiles**. This supersedes the earlier 50-tree startup demo. The original sample and generated resources remain ignored; preparation requires the local sample file and never falls back to a smaller model. See [default-model verification](docs/default-sample100-2026-10-12.md).
+
+**Forest/control fixes — October 12:** restored large backdrop pines after imports from the menu and manual branch selection after ending A/B. Added an explicit manual-entry action for result trees. **108 PlayMode tests pass**, with one opt-in video test skipped. See [regression evidence](docs/quest-forest-controls-2026-10-12.md).
+
+**Quest sample library — October 12:** default stick walking restored, active model filename/counts shown on the main menu, and an immediate wolf-audio check added to Comfort. The exact 100-tree sample and two matching synthetic profile files are saved on Quest. **105 PlayMode tests pass** (one opt-in video test skipped); complete scores and all A/B reached leaves agree with an independent reference. See [device evidence and full-feature walkthrough](docs/quest-sample-library-2026-10-12.md).
+
 **50-tree score demo — October 11:** the complete synthetic 50-tree demo and three synthetic profiles are selected by `python3 scripts/prepare-local-sample.py`. Results, A/B comparisons and the boosting trail show score, with a notice that propensity comes from calibration. No calibration table is loaded. **207 EditMode and 104 PlayMode tests pass** (one opt-in video test skipped). See [build and verification status](docs/sample50-score-2026-10-11.md). Earlier dated entries below describe historical behavior.
 
 **AGB/CDH import — October 11:** ordinary AGB export and CDH JSON/JSONL profile import, complete tree calculation and A/B playback are implemented. **207 EditMode and 104 PlayMode tests pass** (one opt-in video test skipped). The supplied Mobile files produce 27 usable execution profiles. A subsequent check imported 210 Web executions and exercised both branches in Unity; the 44 GradientBoost executions do not match recorded CDH propensity despite matching modelVersion. Source-scorer agreement remains unresolved; fresh headset acceptance is pending. See [the import validation record](docs/agb-cdh-import-2026-10-11.md).

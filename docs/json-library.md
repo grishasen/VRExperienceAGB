@@ -46,7 +46,7 @@ A profile file uses this envelope (feature names and values must match the selec
 
 Use `data/examples/demo-profiles.json` with the demonstration model. `artifacts/json-import/example-library.zip` contains the same synthetic model and two separate A/B profile files in their respective directories. Unzip it before importing individual JSON files.
 
-Ordinary nested `AdaptiveBoostScoringModel` / `GRADIENT_BOOST` exports support complete tree calculation and A/B playback. Keep the original export filename: its model name is used to select matching CDH executions. All reached leaf scores are summed, then sigmoid is applied. The UI labels this **Tree-score probability**; comparison against served CDH propensity is deferred.
+Ordinary nested `AdaptiveBoostScoringModel` / `GRADIENT_BOOST` exports support complete tree calculation and A/B playback. Keep the original export filename: its model name is used to select matching CDH executions. All reached leaf scores are summed. The UI shows the **raw score** and explains that propensity comes from a separate calibration mapping, which is not loaded. Comparison against served CDH propensity is deferred.
 
 Import CDH records directly as `.json` or `.jsonl`: one record, an array, or multiple newline-separated records. Each matching ADM execution supplies a selectable profile with its common inputs, action/treatment parameters and source information. Matching uses model/rule/component names, not modelVersion. Use **Inputs → Profile source** for recorded execution details and propensity; they never replace the calculated result. Select A and B independently, then start playback or calculate the whole model.
 

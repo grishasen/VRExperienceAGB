@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
-"""Bundle the complete synthetic 50-tree demo and reproducible profiles. No calibration."""
+"""Bundle the complete 100-tree sample and reproducible profiles. No calibration."""
 import hashlib, json, math, re
 from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
-source = ROOT / 'data/examples/export_Mobile_Click_Through_Rate_AGB_demo.json'
+source = ROOT / 'data/examples/export_Mobile_Click_Through_Rate_AGB_sample.json'
 raw = source.read_text()
 export = json.loads(raw)
-assert len(export['model']['booster']['trees']) == 50, 'Expected the complete 50-tree demo; never truncate an ensemble.'
+assert len(export['model']['booster']['trees']) == 100, 'Expected the complete 100-tree sample; never truncate an ensemble.'
 out = ROOT / 'BoostingExperience/Assets/VRExperienceAGB/Resources/LocalModel'
 out.mkdir(parents=True, exist_ok=True)
 features, trees, thresholds = {}, [], {}
@@ -37,17 +37,17 @@ for tree in trees:
         if node.get('operator')=='is_missing':
             features.setdefault(node['feature'],dict(type='number',allowMissing=True,displayName=node['feature'].split('.')[-1]))
             features[node['feature']]['allowMissing']=True
-sha=hashlib.sha256(raw.encode()).hexdigest();mid='local-sample-'+sha[:12]
-model=dict(schemaVersion=1,modelId=mid,provenance='Synthetic 50-tree demo with synthetic fully supplied profiles. Propensity requires a separate calibration mapping, which is not supplied. Left=true, zero baseline, unit weights. Source scoring not verified. Observed category sets define fixture values only, not production domains.',objective='binary_logistic',outcomeLabel='Ensemble score',baseScore=0,features=features,trees=trees)
+sha=hashlib.sha256(raw.encode()).hexdigest();mid='agb-trees-'+sha
+model=dict(schemaVersion=1,modelId=mid,provenance='Complete 100-tree sample with two synthetic fully supplied profiles. Propensity requires a separate calibration mapping, which is not supplied. Left=true, zero baseline, unit weights. Source scoring not verified. Observed category sets define fixture values only, not production domains.',objective='binary_logistic',outcomeLabel='Ensemble score',baseScore=0,features=features,trees=trees)
 profiles=[]
-for index,name in enumerate(['Synthetic baseline','Synthetic alternative','Synthetic boundary case']):
+for index,name in enumerate(['Synthetic A','Synthetic B']):
     values={}
     for f,spec in features.items():
-        if spec['type']=='category':values[f]=spec['values'][min(index,len(spec['values'])-1)]
+        if spec['type']=='category':values[f]=spec['values'][0 if index==0 else -1]
         elif f in thresholds:
-            ts=sorted(set(thresholds[f]));values[f]=ts[len(ts)//2] if index==0 else ts[-1]+max(1,abs(ts[-1])*.1) if index==1 else ts[0]-max(1,abs(ts[0])*.1)
+            ts=sorted(set(thresholds[f]));values[f]=ts[len(ts)//2] if index==0 else ts[-1]+max(1,abs(ts[-1])*.1)
         else:values[f]=1
-    profiles.append(dict(id=f'sample-{index}',displayName=name,values=values))
+    profiles.append(dict(id='synthetic-'+('a' if index==0 else 'b'),displayName=name,values=values))
 expected=[]
 for profile in profiles:
     leaves=[]
@@ -60,8 +60,8 @@ for profile in profiles:
         leaves.append(dict(leaf=path,contribution=n['score']))
     score=math.fsum(x['contribution'] for x in leaves);p=1/(1+math.exp(-score)) if score>=0 else math.exp(score)/(1+math.exp(score))
     expected.append(dict(profile=profile['id'],score=score,probability=p,trees=leaves))
-for filename,value in [('model',model),('profiles',dict(schemaVersion=1,modelId=mid,profiles=profiles)),('expected',dict(sourceSha256=sha,results=expected))]:
+for filename,value in [('model',model),('profiles',dict(schemaVersion=1,modelId=mid,profiles=profiles)),('expected',dict(sourceSha256=sha,sourceName=source.name,results=expected))]:
     (out/(filename+'.json')).write_text(json.dumps(value,indent=2)+'\n')
 (out/'export.json').write_text(raw)
 print(f'Prepared {len(trees)} trees, {len(features)} predictors and {len(profiles)} synthetic profiles in ignored LocalModel resources.')
-print([(v['profile'],v['score'],v['probability']) for v in expected])
+print([(v['profile'],v['score']) for v in expected])

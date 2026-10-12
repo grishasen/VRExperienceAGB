@@ -6,6 +6,7 @@ namespace VRExperienceAGB.Presentation
     public enum ExperienceCommand
     {
         Unknown,
+        ManualTree,
         Result,
         ResultDetails,
         ProfileSource,

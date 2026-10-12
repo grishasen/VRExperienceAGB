@@ -36,7 +36,7 @@ namespace VRExperienceAGB.Presentation
                     Row("Walk speed: "+Garden.Locomotion.WalkSpeed.ToString("0.00"),"walk-speed",1,0,true);Row(View.IsSeated?"Layout: seated":"Layout: standing","seated",1,1,true);
                     Row("Transition fade: "+(Garden.Locomotion.ComfortFadeEnabled?"on":"off"),"comfort-fade",2,0,true);Row("Haptics: "+(ControllerSelectionFeedback.Enabled?"on":"off"),"haptics",2,1,true);
                     Row("Ambience: "+(Garden.M5.Atmosphere.AmbienceEnabled?"on":"off"),"ambience",3,0,true);Row("Selection sound: "+(Garden.M5.Atmosphere.CuesEnabled?"on":"off"),"cues",3,1,true);
-                    Row("Center scene","recenter",4);break;
+                    Row("Center scene","recenter",4,0,true);Row("Hear wolves in forest","hear-wolves",4,1,true);break;
                 case "learn":
                     title.text="LEARN THE FOREST · "+(lessonPage+1)+" / 4";subtitle.text="Read a step, try it, then reopen Learn to continue.";
                     string[] lessons={
@@ -89,6 +89,10 @@ namespace VRExperienceAGB.Presentation
         }
         private bool ActivateLearning(string command)
         {
+            if(command=="hear-wolves") {
+                Activate("forest");Garden.M5.Atmosphere.SoundEnabled=true;Garden.M5.Atmosphere.AmbienceEnabled=true;
+                Garden.M5.Atmosphere.Wildlife.RequestHowl();return true;
+            }
             if(command.StartsWith("input-detail:")) {
                 if(int.TryParse(command.Substring(13),out int index)&&index>=0&&index<View.Model.Features.Count) { inputDetailIndex=index;readingPage=1;OpenMenu("input-detail"); }
                 return true;

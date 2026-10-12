@@ -11,7 +11,7 @@ namespace VRExperienceAGB.Presentation
         private void BuildMenu()
         {
             foreach(Transform child in content){child.gameObject.SetActive(false);Destroy(child.gameObject);}
-            title.text="MODEL FOREST";subtitle.text=View.Model.Trees.Count+" trees · "+(View.LocalSampleActive?"Local sample · synthetic profiles":"Selected model");
+            title.text="MODEL FOREST";subtitle.text=View.ActiveModelName+"\n"+View.Model.Trees.Count+" trees · "+View.AvailableProfiles.Profiles.Count+" profiles";
             switch(MenuPage)
             {
                 case "home":
@@ -45,7 +45,7 @@ namespace VRExperienceAGB.Presentation
                     Row("Previous decision","tree-back",0,0,true);Row("Restart tree","tree-restart",0,1,true);
                     Row("Back to forest","return-forest",1,0,true);Row("Table View","table",1,1,true);
                     Row("Current decision","focus-current",2,0,true);Row("Seated / standing","seated",2,1,true);
-                    Row("Continue exploring","close",3,0,true);Row("Go to tree","tree-jump",3,1,true);Row("Learn · first steps","learn",4);break;
+                    Row("Continue exploring","close",3,0,true);Row("Go to tree","tree-jump",3,1,true);Row("Learn · first steps","learn",4,0,true);Row("Explore branches manually","manual-tree",4,1,true);break;
                 case "position":
                     title.text="POSITION YOUR SCENE";subtitle.text="Place the forest in front of you. Tracking remains active.";
                     Row("Place in front of me","recenter",0);
@@ -87,7 +87,7 @@ namespace VRExperienceAGB.Presentation
                     Row(Garden.M5.Diorama.GroupDescription+" · change group","table-group",3);Row("Inspect selected tree","table-inspect",4,0,true);Row("Go to tree","tree-jump",4,1,true);break;
                 case "help":
                     title.text="HOW TO EXPLORE";subtitle.text="A / Tab: menu · B / R: center scene · X / F12: screenshot";
-                    Garden.Text(content,"Help","Point and press the trigger to select. Hover for help.\nLeft stick: optional walk (Comfort). Right stick: snap turn.\nX (left) / F12: save a screenshot.\nDownload: Models / profiles → From computer / Wi-Fi.\n\nChoose a tree in the forest for manual branches.\nPlay profiles to see every tree in order.\nGold = A · Purple = B\nBlue result = positive · Red = negative\n\nPosition scene places the forest in front of you.\nClick a node label to pin its details.",new Vector2(0,0),new Vector2(970,440),27);break;
+                    Garden.Text(content,"Help","Point and press the trigger to select. Hover for help.\nLeft stick: walk (toggle in Comfort). Right stick: snap turn.\nX (left) / F12: save a screenshot.\nDownload: Models / profiles → From computer / Wi-Fi.\n\nChoose a tree in the forest for manual branches.\nPlay profiles to see every tree in order.\nGold = A · Purple = B\nBlue result = positive · Red = negative\n\nPosition scene places the forest in front of you.\nClick a node label to pin its details.",new Vector2(0,0),new Vector2(970,440),27);break;
                 default:BuildLearningMenu();break;
             }
         }

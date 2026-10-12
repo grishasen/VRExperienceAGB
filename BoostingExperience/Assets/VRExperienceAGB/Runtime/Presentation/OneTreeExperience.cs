@@ -60,8 +60,9 @@ namespace VRExperienceAGB.Presentation
         public AgbPreviewResult ExportPreview { get; private set; }
         public string ExportSourceSha256 { get; private set; }
         private ForestExplanation displayAnalysis;
-        [Serializable] private sealed class SourceManifest { public string sourceSha256; }
+        [Serializable] private sealed class SourceManifest { public string sourceSha256, sourceName; }
         private string exportName;
+        public string ActiveModelName => string.IsNullOrEmpty(exportName) ? Model?.Id ?? "No model" : exportName;
         public FullNameTooltip NameTooltip { get; private set; }
         public ForestGardenView Garden { get; private set; }
         public bool DeepExampleActive => deepExample;
@@ -128,6 +129,7 @@ namespace VRExperienceAGB.Presentation
             var selectedModel = LocalSampleActive ? localModel : modelFile;
             var selectedProfiles = LocalSampleActive ? localProfiles : profilesFile;
             if (selectedModel == null) return Fail("The model file is missing.");
+            exportName = LocalSampleActive ? "Bundled model" : selectedModel.name;
             var input = NormalizedModelJson.ReadModel(selectedModel.text);
             if (input.IsSuccess)
             {
@@ -152,7 +154,11 @@ namespace VRExperienceAGB.Presentation
                     var parsed = AgbStructurePreview.Read(export.text, "Local sample · source scoring unverified");
                     var manifest = Resources.Load<TextAsset>("LocalModel/expected");
                     if (manifest != null) {
-                        try { ExportSourceSha256 = JsonUtility.FromJson<SourceManifest>(manifest.text)?.sourceSha256; }
+                        try {
+                            var source = JsonUtility.FromJson<SourceManifest>(manifest.text);
+                            ExportSourceSha256 = source?.sourceSha256;
+                            if(!string.IsNullOrEmpty(source?.sourceName)) exportName = source.sourceName;
+                        }
                         catch (ArgumentException) { ExportSourceSha256 = null; }
                     }
                     if (parsed.IsSuccess && ExportMetadataBinding.Matches(model, parsed.Value, ExportSourceSha256)) ExportPreview = parsed.Value;

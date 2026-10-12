@@ -14,7 +14,7 @@ namespace VRExperienceAGB.Presentation
         private readonly List<Transform> heads = new List<Transform>();
         private readonly List<AudioSource> voices = new List<AudioSource>();
         private readonly List<Mesh> meshes = new List<Mesh>();
-        private Material fur, rock;
+        private Material fur, centralFur, rock;
         private AudioClip howl;
         private readonly List<Vector3> restingPositions = new List<Vector3>();
         private readonly List<Quaternion> restingRotations = new List<Quaternion>();
@@ -48,25 +48,32 @@ namespace VRExperienceAGB.Presentation
             furTexture.SetPixels(pixels);furTexture.Apply();fur.mainTexture=furTexture;
             fur.SetFloat("_Smoothness",.05f);
             fur.EnableKeyword("_EMISSION"); fur.SetColor("_EmissionColor", new Color(.035f, .045f, .065f));
+            centralFur = new Material(fur) { name = "CentralWolfSilverFur" };
+            centralFur.color = new Color(.92f, .95f, 1f);
+            centralFur.SetColor("_EmissionColor", new Color(.22f, .26f, .32f));
             rock = new Material(owner.stoneMaterial) { name = "OriginalWolfRidge", enableInstancing = true };
             rock.color = new Color(.12f, .17f, .23f);
             rock.DisableKeyword("_EMISSION");
             var ridge = new Shape();
             ridge.Ridge();
             var ridgeMesh = Keep(ridge.Mesh("WolfHorizonRidge"));
+            var centralRidge = MeshObject("CentralRidge", root, ridgeMesh, rock).transform;
+            centralRidge.localPosition = new Vector3(0, 0, 51);
+            centralRidge.localScale = new Vector3(1, .5f, 1);
             MeshObject("WesternRidge", root, ridgeMesh, rock).transform.localPosition = new Vector3(-25, 0, 51);
             MeshObject("EasternRidge", root, ridgeMesh, rock).transform.localPosition = new Vector3(28, .5f, 59);
             var body = Keep(Body()); var head = Keep(Head());
-            var points = new[] { new Vector3(-25, 7.7f, 51), new Vector3(-29, 7.7f, 52), new Vector3(28, 8.2f, 59) };
+            var points = new[] { new Vector3(0, 3.85f, 51), new Vector3(-29, 7.7f, 52), new Vector3(28, 8.2f, 59) };
             for (int i = 0; i < points.Length; i++)
             {
-                var wolf = MeshObject("HorizonWolf-" + (i + 1), root, body, fur).transform;
-                wolf.localPosition = points[i]; wolf.localScale = Vector3.one * (i == 0 ? 1.15f : 1.0f);
+                var wolfFur = i == 0 ? centralFur : fur;
+                var wolf = MeshObject("HorizonWolf-" + (i + 1), root, body, wolfFur).transform;
+                wolf.localPosition = points[i]; wolf.localScale = Vector3.one * (i == 0 ? 1.8f : 1.0f);
                 wolf.localRotation = Quaternion.Euler(0, i == 2 ? 155 : -15 + i * 25, 0);
                 wolves.Add(wolf);restingPositions.Add(wolf.localPosition);restingRotations.Add(wolf.localRotation);
                 var tail=new GameObject("AnimatedTail").transform;tail.SetParent(wolf,false);tail.localPosition=new Vector3(-.69f,1.05f,0);
                 var tailShape=new Shape();tailShape.Bone(Vector3.zero,new Vector3(-.42f,-.25f,0),.14f,.18f);tailShape.Bone(new Vector3(-.42f,-.25f,0),new Vector3(-.61f,-.76f,0),.18f,.02f);
-                MeshObject("BushyTail",tail,Keep(tailShape.Mesh("WolfTail")),fur);tails.Add(tail);
+                MeshObject("BushyTail",tail,Keep(tailShape.Mesh("WolfTail")),wolfFur);tails.Add(tail);
                 var tufts=new Shape();var rng=new System.Random(203+i);
                 for(int t=0;t<160;t++){
                     float x=-.70f+(float)rng.NextDouble()*1.35f, angle=(float)rng.NextDouble()*Mathf.PI*2;
@@ -74,11 +81,11 @@ namespace VRExperienceAGB.Presentation
                     var normal=new Vector3(-.4f,Mathf.Sin(angle),Mathf.Cos(angle)).normalized;
                     tufts.Tetrahedron(surface+Vector3.right*.04f,surface+Vector3.up*.035f,surface-Vector3.up*.035f,surface+normal*(.09f+(float)rng.NextDouble()*.09f));
                 }
-                MeshObject("FurTufts",wolf,Keep(tufts.Mesh("WolfFurTufts")),fur);
+                MeshObject("FurTufts",wolf,Keep(tufts.Mesh("WolfFurTufts")),wolfFur);
                 wolf.gameObject.SetActive(false);
                 var neck = new GameObject("HowlingHead").transform; neck.SetParent(wolf, false);
                 neck.localPosition = new Vector3(.60f, 1.18f, 0); heads.Add(neck);
-                MeshObject("HeadAndEars", neck, head, fur);
+                MeshObject("HeadAndEars", neck, head, wolfFur);
                 var mouth = new GameObject("DistantHowl"); mouth.transform.SetParent(neck, false);
                 mouth.transform.localPosition = new Vector3(.42f, .73f, 0);
                 var source = mouth.AddComponent<AudioSource>(); source.playOnAwake = false; source.loop = false;
@@ -107,6 +114,8 @@ namespace VRExperienceAGB.Presentation
             foreach (var voice in voices) voice.mute = !value;
             Silence(); remaining = 12f; wasAllowed = false;
         }
+        public bool CanPlay => Allowed;
+        public void RequestHowl() { if (Allowed) { AdvanceAmbience(0); BeginHowl(0); } }
         private bool Allowed => howl != null && garden != null && garden.Experience.Ready && soundEnabled && !paused && !unfocused &&
             !garden.M5.HelpOpen && garden.M5.Comparison?.PanelOpen != true && garden.M5.Extensions?.PanelOpen != true && !garden.Experience.Session.State.Paused;
         private void Update() { AdvanceAmbience(Time.unscaledDeltaTime); }
@@ -141,8 +150,12 @@ namespace VRExperienceAGB.Presentation
             }
             remaining -= seconds;
             if (remaining > 0) return;
-            int next = (lastCaller + 1 + random.Next(2)) % voices.Count;
+            int next = lastCaller < 0 ? 0 : (lastCaller + 1 + random.Next(2)) % voices.Count;
             if (next == lastCaller) next = (next + 1) % voices.Count;
+            BeginHowl(next);
+        }
+        private void BeginHowl(int next)
+        {
             Silence(); calling = lastCaller = next; callingTime = 0;
             wolves[next].gameObject.SetActive(true);
             voices[next].Play(); remaining = 32 + (float)random.NextDouble() * 22;
@@ -161,6 +174,7 @@ namespace VRExperienceAGB.Presentation
         {
             if (root != null) Destroy(root.gameObject);
             if (fur != null) Destroy(fur);
+            if (centralFur != null) Destroy(centralFur);
             if (furTexture != null) Destroy(furTexture);
             if (rock != null) Destroy(rock);
             foreach (var mesh in meshes) if (mesh != null) Destroy(mesh);

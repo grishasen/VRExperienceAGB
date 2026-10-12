@@ -21,7 +21,7 @@ namespace VRExperienceAGB.Presentation
         private Coroutine fading;
         private bool stickReleased = true;
         private OneTreeExperience experience;
-        public bool WalkEnabled { get; set; }
+        public bool WalkEnabled { get; set; } = true;
         public bool ComfortFadeEnabled { get; set; } = true;
         public bool InputBlocked => experience == null || experience.ApplicationSuspended || experience.Director?.MenuVisible == true ||
             experience.NameTooltip?.Pinned == true || experience.Garden?.M5?.HelpOpen == true ||

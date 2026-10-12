@@ -58,9 +58,11 @@ namespace VRExperienceAGB.Tests
         }
         [UnityTest] public IEnumerator SampleProfilesMatchIndependentReferenceForEveryLeaf()
         {
-            Assert.That(view.Model.Trees.Count,Is.EqualTo(50));
+            Assert.That(view.Model.Trees.Count,Is.EqualTo(100));
             var expected=JsonUtility.FromJson<ReferenceFile>(Resources.Load<TextAsset>("LocalModel/expected").text);
-            for(int p=0;p<3;p++) {
+            Assert.That(view.AvailableProfiles.Profiles.Count,Is.EqualTo(2));
+            Assert.That(view.ActiveModelName,Is.EqualTo("export_Mobile_Click_Through_Rate_AGB_sample.json"));
+            for(int p=0;p<2;p++) {
                 view.StartScenarioProfiles(p);
                 var result=view.Ensemble.Evaluation;var reference=expected.results[p];
                 Assert.That(result.RawScore,Is.EqualTo(reference.score).Within(1e-10));
@@ -284,8 +286,8 @@ namespace VRExperienceAGB.Tests
             var pointer=new PointerEventData(EventSystem.current){pointerId=92,button=PointerEventData.InputButton.Left};
             ExecuteEvents.Execute(button.gameObject,pointer,ExecuteEvents.pointerEnterHandler);yield return null;
             var hint=button.GetComponent<ButtonHint>();Assert.That(hint.Visible,Is.True);
-            var canvas=button.GetComponentInParent<Canvas>().transform.Find("ButtonHint");
-            Assert.That(canvas.GetComponentInChildren<TMPro.TMP_Text>().text,Does.Contain("every tree"));
+            var canvas=button.GetComponentInParent<Canvas>().transform.Cast<Transform>().Single(t=>t.name=="ButtonHint" && t.gameObject.activeInHierarchy);
+            Assert.That(hint.HintText,Does.Contain("every tree"));
             Assert.That(canvas.GetComponentsInChildren<UnityEngine.UI.Graphic>().All(g=>!g.raycastTarget),Is.True);
             Assert.That(button.GetComponent<UnityEngine.UI.Outline>().enabled,Is.True);
             Assert.That(button.transform.Find("HoverArrow"),Is.Null);

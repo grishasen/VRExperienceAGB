@@ -114,6 +114,8 @@ namespace VRExperienceAGB.Presentation
         public Vector3 StandingPoint(int index) => PlotPosition(index) + new Vector3(0,0,-2.1f);
         private void Build()
         {
+            // Clone authored scenery before temporary menu suppression is applied to the rebuilt scene.
+            Experience.Director?.PrepareSceneRebuild();
             if(root!=null){root.SetActive(false);Destroy(root);}
             plots.Clear();waypoints.Clear();numberButtons.Clear();hovered=-1;shownBed=-1;
             builtModel=Experience.Model;metrics=builtModel.Trees.Select(t=>new GardenTreeMetrics(t)).ToArray();
