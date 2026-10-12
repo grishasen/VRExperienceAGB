@@ -19,7 +19,8 @@ namespace VRExperienceAGB.Presentation
         private int textPurpose;
         public string ReviewMessage => reviewMessage;
         private string textDraft = "";
-        private Canvas keyboard, transport;
+        private RectTransform keyboard;
+        private Canvas transport;
         private TMP_Text caption;
         private float reviewElapsed;
         public bool ReviewRunning { get; private set; }
@@ -40,12 +41,15 @@ namespace VRExperienceAGB.Presentation
             var labels = new[] { "Capture stop", "Previous stop", "Next stop", "Edit explanation", "Move earlier", "Move later",
                 "Delete stop", "Save locally", "Load saved", "Replay", "Pause / Resume", "End review" };
             for (int i = 0; i < actions.Length; i++) Add(labels[i], -370 + (i % 3) * 370, -50 - (i / 3) * 60, actions[i]);
-            keyboard = owner.Panel("ReviewExplanationKeyboard", new Vector2(1160, 410), panel.transform);
-            keyboard.transform.localScale = Vector3.one; keyboard.transform.localPosition = new Vector3(0, -160, -1);
+            // Keep keyboard graphics on the root canvas: Meta routes pointer hits by rootCanvas identity.
+            keyboard = new GameObject("ReviewExplanationKeyboard", typeof(RectTransform), typeof(UnityEngine.UI.Image)).GetComponent<RectTransform>();
+            keyboard.SetParent(panel.transform, false); keyboard.sizeDelta = new Vector2(1160, 410);
+            keyboard.localPosition = new Vector3(0, -160, -1);
+            keyboard.GetComponent<UnityEngine.UI.Image>().color = new Color(.025f, .065f, .085f, .97f);
             for (int i = 0; i < Keys.Length; i++)
-                owner.Button(keyboard, Keys[i] == ' ' ? "Space" : Keys[i].ToString(), new Vector2(-500 + (i % 10) * 111, 150 - (i / 10) * 64), new Vector2(103, 56), M5Action.ReviewKey, i, 24);
-            owner.Button(keyboard, "Backspace", new Vector2(-230, -145), new Vector2(370, 60), M5Action.ReviewBackspace);
-            owner.Button(keyboard, "Done", new Vector2(230, -145), new Vector2(370, 60), M5Action.ReviewTextDone);
+                AddKeyboardButton(Keys[i] == ' ' ? "Space" : Keys[i].ToString(), new Vector2(-500 + (i % 10) * 111, 150 - (i / 10) * 64), new Vector2(103, 56), M5Action.ReviewKey, i, 24);
+            AddKeyboardButton("Backspace", new Vector2(-230, -145), new Vector2(370, 60), M5Action.ReviewBackspace);
+            AddKeyboardButton("Done", new Vector2(230, -145), new Vector2(370, 60), M5Action.ReviewTextDone);
             keyboard.gameObject.SetActive(false);
             transport = owner.Panel("GuidedReviewTransport", new Vector2(1050, 280), panel.transform.parent);
             caption = Garden.Text(transport.transform, "Explanation", "", new Vector2(0, 35), new Vector2(1000, 160), 25);
@@ -54,6 +58,11 @@ namespace VRExperienceAGB.Presentation
             owner.Button(transport, "Next stop", new Vector2(0, -96), new Vector2(320, 56), M5Action.ReviewNext);
             owner.Button(transport, "End review", new Vector2(340, -96), new Vector2(320, 56), M5Action.ReviewStop);
             transport.gameObject.SetActive(false);
+        }
+        private void AddKeyboardButton(string label, Vector2 position, Vector2 size, M5Action action, int index = 0, int fontSize = 25)
+        {
+            var button = owner.Button(panel, label, position, size, action, index, fontSize);
+            button.transform.SetParent(keyboard, false);
         }
         private void BeginTextEntry(int purpose, string text) { textPurpose = purpose; textDraft = text; editingText = true; }
         public void TypeCharacter(int index)

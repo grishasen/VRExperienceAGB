@@ -16,7 +16,7 @@ namespace VRExperienceAGB.Presentation
             {
                 case "home":
                     Row("Learn · first steps","learn",0,0,true);Row("Resume scene","close",0,1,true);
-                    Row("Explore the forest","forest",1,0,true);Row("About this model","model-info",1,1,true);
+                    Row("Explore the forest","forest",1,0,true);Row("Search predictors","search",1,1,true);
                     Row("Play a prepared profile","profiles",2);Row("Compare profiles A / B","compare",3);
                     Row(ResultsVisible?"Table View · results":"Table View","table",4,0,true);Row("Models / profiles","library",4,1,true);break;
                 case "library":
@@ -75,7 +75,7 @@ namespace VRExperienceAGB.Presentation
                 case "tools":
                     title.text="TOOLS AND SETTINGS";
                     Row("Comfort and feedback","comfort",0,0,true);Row("Performance capture","performance",0,1,true);
-                    Row("Search predictors","search",1,0,true);Row("Boosting trail","trail",1,1,true);
+                    Row("Boosting trail","trail",1);
                     Row("Recorded reviews","review",2,0,true);Row("Help","help",2,1,true);
                     Row("Table display","table-tools",3,0,true);Row("Go to tree","tree-jump",3,1,true);
                     Row("About model","model-info",4,0,true);Row("Constellation guides","stars",4,1,true);break;

@@ -215,7 +215,7 @@ namespace VRExperienceAGB.Tests
                 var plaque=root.Find("TreePlaque-"+(i+1));var label=plaque.Find("PlanterName-"+(i+1));
                 Assert.That(label.position.y,Is.InRange(.12f,.3f));
                 Assert.That(((RectTransform)label).rect.width*label.lossyScale.x,Is.LessThan(1f));
-                Assert.That(label.GetComponent<UnityEngine.UI.Image>().color.a,Is.Zero);
+                Assert.That(label.GetComponent<UnityEngine.UI.Image>().color.a,Is.GreaterThan(.9f),"Names need a solid contrast backing against snow and foliage.");
                 Assert.That(plaque.Find("HoverBacking").gameObject.activeSelf,Is.False);
             }
             Assert.That(heights.Max()-heights.Min(),Is.GreaterThan(.7f));
@@ -254,9 +254,10 @@ namespace VRExperienceAGB.Tests
             Garden.ToggleGuide();
             Assert.That(Garden.Navigation.TreeMenuOpen,Is.True);Assert.That(view.Session.State.Paused,Is.True);
             view.Advance(2);Assert.That(view.Session.State.PendingDecision,Is.EqualTo(pending));
-            var standing=view.presentationRoot.localPosition;
+            Assert.That(view.IsSeated,Is.False);
+            var standingPosition=view.presentationRoot.localPosition;
             Click(view.controls.Single(c=>c.action==TreeAction.Seated).gameObject);
-            Assert.That(view.IsSeated,Is.True);Assert.That(view.presentationRoot.localPosition.y,Is.EqualTo(standing.y-.4f).Within(.001f));
+            Assert.That(view.IsSeated,Is.True);Assert.That(view.presentationRoot.localPosition.y,Is.EqualTo(standingPosition.y-.4f).Within(.001f));
             Assert.That(head.localPosition,Is.EqualTo(local));Assert.That(head.localRotation,Is.EqualTo(rotation));
             Assert.That(view.presentationRoot.Find("ConsoleStone").GetComponent<Renderer>().bounds.min.y,Is.GreaterThanOrEqualTo(0));
             Click(view.controls.Single(c=>c.action==TreeAction.Seated).gameObject);Assert.That(view.IsSeated,Is.False);
@@ -271,7 +272,7 @@ namespace VRExperienceAGB.Tests
             var camera=Garden.Locomotion.Head.GetComponent<Camera>();
             foreach(bool seated in new[]{false,true})
             {
-                if(seated) { Action(TreeAction.Menu);Action(TreeAction.Seated);Action(TreeAction.Menu); }
+                if(view.IsSeated!=seated) { Action(TreeAction.Menu);Action(TreeAction.Seated);Action(TreeAction.Menu); }
                 foreach(bool menu in new[]{false,true})
                 {
                     if(menu)Action(TreeAction.Menu);

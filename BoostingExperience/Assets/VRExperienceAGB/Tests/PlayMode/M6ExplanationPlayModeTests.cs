@@ -31,7 +31,7 @@ namespace VRExperienceAGB.Tests
             Assert.That(view.NameTooltip.Text.text,Does.Contain("Stored gain"));
             Assert.That(view.NameTooltip.Text.text,Does.Contain(node.FeatureId));
             Assert.That(view.Session.State.Revision,Is.EqualTo(revision));Assert.That(view.Ensemble.RouteTotal,Is.EqualTo(total));
-            view.Garden.Navigation.ShowForest();Assert.That(M6.StoryText.text,Does.Contain("LINKED:"));
+            view.Garden.Navigation.ShowForest();Assert.That(M6.StoryText.text,Does.Contain("Selected predictor:"));
             Assert.That(view.transform.Find("ModelPineGarden").GetComponentsInChildren<Canvas>(true).Count(c=>c.name=="PredictorComposition"),Is.EqualTo(view.Model.Trees.Count));
         }
         [UnityTest] public IEnumerator BranchCardsAndPortraitFollowActualNodesIncludingFocus()

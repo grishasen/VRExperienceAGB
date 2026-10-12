@@ -27,6 +27,158 @@ namespace VRExperienceAGB.Tests
             view.SendMessage("OnApplicationFocus",true);view.SendMessage("OnApplicationPause",false);
             view.Director.CloseMenu();
         }
+        [UnityTest] public IEnumerator MenuAndFocusPauseRestoreIndependently()
+        {
+            view.Garden.Navigation.ShowForest();view.Garden.Navigation.OpenTree(8);
+            Assert.That(view.IsSeated,Is.True);
+            foreach(bool menuFirst in new[]{true,false})foreach(bool focusFirst in new[]{true,false}) {
+                if(menuFirst)view.Director.OpenMenu("tree");
+                view.SendMessage("OnApplicationFocus",false);
+                if(!menuFirst)view.Director.OpenMenu("tree");
+                if(focusFirst)view.SendMessage("OnApplicationFocus",true);
+                view.Director.CloseMenu();
+                if(!focusFirst) {
+                    Assert.That(view.Session.State.Paused,Is.True,"Focus loss still suspends movement.");
+                    view.SendMessage("OnApplicationFocus",true);
+                }
+                Assert.That(view.Session.State.CanAdvance,Is.True,"Menu pause must not survive focus recovery.");
+                foreach(var branch in new[]{TreeAction.TrueBranch,TreeAction.FalseBranch}) {
+                    var button=view.controls.Single(c=>c.action==branch);
+                    Assert.That(button.GetComponent<UnityEngine.UI.Button>().interactable,Is.True);
+                    var input=new PointerEventData(EventSystem.current){pointerId=77,button=PointerEventData.InputButton.Left};
+                    button.OnPointerDown(input);button.OnPointerClick(input);view.Advance(2);
+                    Assert.That(view.Session.State.Decisions.Count,Is.EqualTo(1));
+                    view.Execute(TreeAction.Back,view.Session.State.Revision,view.Session.State.NodeId);
+                }
+            }
+            view.Session.SetPaused(true);view.Director.OpenMenu("tree");
+            view.SendMessage("OnApplicationFocus",false);view.Director.CloseMenu();view.SendMessage("OnApplicationFocus",true);
+            Assert.That(view.Session.State.Paused,Is.True,"Preserve an explicit preexisting pause.");
+            view.Session.SetPaused(false);view.Director.CloseMenu();
+            Assert.That(view.Session.State.Paused,Is.False,"Closing an already closed menu must not restore a stale pause.");
+            yield return null;
+        }
+        [UnityTest] public IEnumerator SelectedPredictorMarksExactlyMatchingTrees()
+        {
+            view.Director.Activate("forest");
+            var feature=view.Model.Trees[0].Nodes.OfType<VRExperienceAGB.Domain.SplitNode>().First().FeatureId;
+            view.Garden.M6.LinkFeature(feature);yield return null;
+            var matches=view.Garden.M6.Analysis.MatchingTrees(feature);
+            var root=view.transform.Find("ModelPineGarden");
+            for(int i=0;i<view.Garden.PlotCount;i++) {
+                var plot=root.Find("ModelTree-"+(i+1));var marker=plot.Find("SelectedPredictorMarker");
+                Assert.That(marker.gameObject.activeInHierarchy,Is.EqualTo(matches.Contains(i)));
+                Assert.That(marker.GetComponent<Collider>(),Is.Null);
+                if(matches.Contains(i))Assert.That(plot.Find("PredictorMatch").GetComponentInChildren<TMPro.TMP_Text>(true).text,Does.StartWith("Selected predictor: "));
+            }
+            view.Garden.M6.LinkFeature("__no_matching_predictor__");
+            Assert.That(root.GetComponentsInChildren<MeshRenderer>().Count(r=>r.name=="SelectedPredictorMarker"),Is.Zero);
+        }
+        [UnityTest] public IEnumerator TablePredictorMarkersFollowSelectionAndGrouping()
+        {
+            view.Garden.Navigation.ShowDiorama();
+            var table=view.Garden.M5.Diorama;
+            var feature=view.Model.Trees[0].Nodes.OfType<VRExperienceAGB.Domain.SplitNode>().First().FeatureId;
+            for(int group=0;group<3;group++) {
+                view.Garden.M6.LinkFeature(feature);yield return null;
+                foreach(Transform plot in table.ModelRoot) {
+                    if(!plot.name.StartsWith("DioramaTree-") || !plot.gameObject.activeSelf)continue;
+                    int index=int.Parse(plot.name.Substring("DioramaTree-".Length))-1;
+                    var marker=plot.Find("SelectedPredictorMarker");
+                    Assert.That(marker.gameObject.activeSelf,Is.EqualTo(view.Garden.M6.Analysis.MatchingTrees(feature).Contains(index)));
+                    Assert.That(marker.GetComponent<Collider>(),Is.Null);
+                }
+                view.Garden.M6.LinkFeature(null);
+                Assert.That(table.ModelRoot.GetComponentsInChildren<MeshRenderer>().Count(r=>r.name=="SelectedPredictorMarker"),Is.Zero);
+                table.NextGroup();
+            }
+        }
+        [UnityTest] public IEnumerator MainMenuSearchOpensClosedPanelAndKeepsTableSelection()
+        {
+            view.Garden.Navigation.ShowDiorama();view.Director.OpenMenu("home");yield return null;
+            var target=view.GetComponentsInChildren<ExperienceMenuTarget>().Single(t=>t.Command=="search");
+            var pointer=new PointerEventData(EventSystem.current){pointerId=903,button=PointerEventData.InputButton.Left};
+            ExecuteEvents.Execute(target.gameObject,pointer,ExecuteEvents.pointerDownHandler);
+            ExecuteEvents.Execute(target.gameObject,pointer,ExecuteEvents.pointerClickHandler);yield return null;
+            var extension=view.Garden.M5.Extensions;
+            Assert.That(view.Director.MenuVisible,Is.False);Assert.That(extension.PanelOpen,Is.True);
+            var panel=view.GetComponentsInChildren<Canvas>().Single(c=>c.name=="ExplorationExtensions");
+            Assert.That(panel.enabled,Is.True);
+            Assert.That(panel.GetComponentInChildren<Oculus.Interaction.RayInteractable>().enabled,Is.True);
+            var feature=view.Model.Trees[0].Nodes.OfType<VRExperienceAGB.Domain.SplitNode>().First().FeatureId;
+            extension.FilterFeatures(feature);extension.Close();
+            Assert.That(view.Garden.Navigation.Page,Is.EqualTo(NavigationPage.Diorama));
+            Assert.That(extension.Feature,Is.EqualTo(feature));Assert.That(extension.SearchActive,Is.True);
+            Assert.That(view.Garden.M5.Diorama.ModelRoot.GetComponentsInChildren<MeshRenderer>().Count(r=>r.name=="SelectedPredictorMarker"),Is.GreaterThan(0));
+            foreach(var command in new[]{"search","trail","review"}) {
+                view.Director.OpenMenu("home");view.Director.Activate(command);
+                Assert.That(extension.PanelOpen,Is.True,command);extension.Close();
+            }
+        }
+        [UnityTest] public IEnumerator SearchKeyboardOwnsRaysAndTypesWithoutFollowingHead()
+        {
+            view.Director.Activate("search");view.Garden.M5.Activate(M5Action.SearchFilter);yield return null;
+            var panel=view.GetComponentsInChildren<Canvas>().Single(c=>c.name=="ExplorationExtensions");
+            var position=panel.transform.position;var rotation=panel.transform.rotation;
+            var head=view.Garden.Locomotion.Head;head.position+=Vector3.right*.15f;head.rotation*=Quaternion.Euler(0,8,0);
+            view.Garden.M5.Extensions.Refresh();
+            Assert.That(panel.transform.position,Is.EqualTo(position));Assert.That(panel.transform.rotation,Is.EqualTo(rotation));
+            var keys=view.GetComponentsInChildren<M5PointerTarget>().Where(t=>t.action==M5Action.ReviewKey || t.action==M5Action.ReviewBackspace || t.action==M5Action.ReviewTextDone).ToArray();
+            Canvas.ForceUpdateCanvases();
+            foreach(var key in keys) {
+                var hits=new System.Collections.Generic.List<RaycastResult>();
+                EventSystem.current.RaycastAll(new PointerEventData(EventSystem.current){position=head.GetComponent<Camera>().WorldToScreenPoint(key.transform.position)},hits);
+                Assert.That(hits.Count,Is.GreaterThan(0),key.name);
+                Assert.That(ExecuteEvents.GetEventHandler<IPointerClickHandler>(hits[0].gameObject),Is.EqualTo(key.gameObject),key.name);
+                var canvas=key.GetComponentInParent<Canvas>();
+                var surface=canvas.GetComponentInChildren<Oculus.Interaction.PointableCanvas>();
+                var filter=typeof(Oculus.Interaction.PointableCanvasModule).GetMethod("FindFirstRaycastWithinCanvas",System.Reflection.BindingFlags.Static|System.Reflection.BindingFlags.NonPublic);
+                var routed=(RaycastResult)filter.Invoke(null,new object[]{hits,surface.Canvas});
+                Assert.That(routed.gameObject,Is.Not.Null,"Meta canvas routing rejected "+key.name);
+                Assert.That(ExecuteEvents.GetEventHandler<IPointerClickHandler>(routed.gameObject),Is.EqualTo(key.gameObject),key.name);
+            }
+            foreach(var key in keys)foreach(float side in new[]{-.3f,.3f}) {
+                var origin=head.position+new Vector3(side,-.45f,0);var ray=new Ray(origin,key.transform.position-origin);
+                var hit=Object.FindObjectsByType<Oculus.Interaction.RayInteractable>(FindObjectsSortMode.None).Where(r=>r.enabled)
+                    .Select(r=>new {r,d=r.Raycast(ray,out var h,20,false)?h.Distance:float.PositiveInfinity}).OrderBy(x=>x.d).First();
+                Assert.That(hit.r.GetComponent<Oculus.Interaction.PointableCanvas>().Canvas,Is.EqualTo(key.GetComponentInParent<Canvas>()),key.name);
+            }
+            var input=new PointerEventData(EventSystem.current){pointerId=904,button=PointerEventData.InputButton.Left};
+            foreach(var key in new[]{keys.First(t=>t.action==M5Action.ReviewKey),keys.First(t=>t.action==M5Action.ReviewBackspace),keys.First(t=>t.action==M5Action.ReviewTextDone)}) {
+                ExecuteEvents.Execute(key.gameObject,input,ExecuteEvents.pointerDownHandler);ExecuteEvents.Execute(key.gameObject,input,ExecuteEvents.pointerClickHandler);
+                if(key.action==M5Action.ReviewKey)Assert.That(view.Garden.M5.Extensions.BodyText,Does.Contain("1 / 240"));
+                if(key.action==M5Action.ReviewBackspace)Assert.That(view.Garden.M5.Extensions.BodyText,Does.Contain("0 / 240"));
+            }
+            Assert.That(panel.GetComponent<UnityEngine.UI.GraphicRaycaster>().enabled,Is.True);
+            Assert.That(view.GetComponentsInChildren<RectTransform>().Any(c=>c.name=="ReviewExplanationKeyboard"),Is.False);
+        }
+        [UnityTest] public IEnumerator DistantDetailsCullWithoutRemovingTreesAndRestoreNearViewer()
+        {
+            view.Director.Activate("forest");yield return null;
+            var garden=view.transform.Find("ModelPineGarden");
+            var compositions=garden.GetComponentsInChildren<Canvas>(true).Where(c=>c.name=="PredictorComposition").ToArray();
+            Assert.That(compositions.Length,Is.EqualTo(100));
+            Assert.That(compositions.Count(c=>c.gameObject.activeInHierarchy),Is.LessThan(20));
+            Assert.That(compositions.All(c=>c.GetComponent<UnityEngine.UI.GraphicRaycaster>()==null && c.GetComponentInChildren<Oculus.Interaction.RayInteractable>(true)==null),Is.True);
+            Assert.That(view.Garden.VisiblePlotCount,Is.EqualTo(100));
+            var last=compositions.Last();view.Garden.Locomotion.Head.position=last.transform.position+new Vector3(0,1.5f,-2);
+            view.Garden.SendMessage("RefreshNearbyPlaques");
+            Assert.That(last.gameObject.activeInHierarchy,Is.True);
+            Assert.That(view.Garden.VisiblePlotCount,Is.EqualTo(100));
+            var first=garden.Find("ModelTree-1");
+            view.Garden.Locomotion.Head.position=first.position+new Vector3(0,1.5f,-10);
+            view.Garden.Hover(0);
+            Assert.That(garden.Find("TreePlaque-1/HoverBacking").gameObject.activeInHierarchy,Is.True,"Distant crown selection must still show its readable card.");
+            view.Garden.ClearHover(0);yield return null;
+            Assert.That(garden.Find("TreePlaque-1").gameObject.activeSelf,Is.False);
+            var scenery=garden.GetComponent<ForestPerimeterScenery>();Assert.That(scenery,Is.Not.Null);
+            foreach(var name in new[]{"DistantSideAndRearMountains","SideShrubs","RearSlateBoulder","RearGroundFern"}) {
+                var item=garden.Find(name);Assert.That(item,Is.Not.Null);
+                Assert.That(item.GetComponent<Collider>(),Is.Null);
+                Assert.That(item.GetComponent<MeshFilter>().sharedMesh.vertexCount,Is.InRange(1,59999));
+                Assert.That(item.GetComponent<MeshFilter>().sharedMesh.bounds.size.sqrMagnitude,Is.GreaterThan(1));
+            }
+        }
         [UnityTest] public IEnumerator NodeDetailsStayReadableAndStableWithoutSidePanels()
         {
             view.Garden.Navigation.ShowForest();view.Garden.Navigation.OpenTree(10);

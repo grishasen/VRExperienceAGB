@@ -117,10 +117,10 @@ namespace VRExperienceAGB.Presentation
         {
             if (editingText && action != M5Action.ReviewBackspace && action != M5Action.ReviewTextDone) return;
             if (action == M5Action.Extensions) { Open(); return; }
-            if (!PanelOpen) { if (ReviewRunning && action >= M5Action.ReviewCapture) ActivateReview(action); return; }
             if (action == M5Action.ExtensionSearch) { Open(0); return; }
             if (action == M5Action.ExtensionTrail) { Open(1); return; }
             if (action == M5Action.ExtensionReview) { Open(2); return; }
+            if (!PanelOpen) { if (ReviewRunning && action >= M5Action.ReviewCapture) ActivateReview(action); return; }
             if (action >= M5Action.ReviewCapture) { ActivateReview(action); Refresh(); return; }
             switch (action)
             {
@@ -172,7 +172,6 @@ namespace VRExperienceAGB.Presentation
             if (SearchActive || evaluationId != View.Ensemble.EvaluationId) UpdateMatches();
             panel.gameObject.SetActive(PanelOpen);
             if (!PanelOpen) return;
-            if(View.Director!=null)Place();
             foreach (var item in buttons)
             {
                 bool searchButton = item.Key >= M5Action.SearchPreviousFeature && item.Key <= M5Action.SearchInspect;

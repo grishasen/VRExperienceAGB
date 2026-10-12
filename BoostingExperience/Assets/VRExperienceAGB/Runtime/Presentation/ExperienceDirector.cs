@@ -98,7 +98,7 @@ namespace VRExperienceAGB.Presentation
         { AddButton(content,label,new Vector2(half?(column==0?-245:245):0,175-row*82),new Vector2(half?460:940,68),command); }
         public void OpenMenu(string page="home")
         {
-            if(!MenuVisible) { wasPaused=View.Session.State.Paused;View.Session.SetPaused(true); }
+            if(!MenuVisible) { wasPaused=View.SessionPausedWithoutSuspension;View.SetSessionPaused(true); }
             Garden.Navigation?.InvalidatePointerPresses(); View.NameTooltip?.Hide();
             if(page=="values" && (MenuPage=="profiles" || MenuPage=="compare")) { valuesReturnPage=MenuPage=="compare"?"compare":"profiles";valuePage=0; }
             MenuPage=page;menu.gameObject.SetActive(true);Revision++;BuildMenu();if(!menuPlaced)PlaceMenu(true);
@@ -107,7 +107,8 @@ namespace VRExperienceAGB.Presentation
         internal void PrepareSceneRebuild() => readingSpace.Restore();
         public void CloseMenu()
         {
-            readingSpace.Restore();menu.gameObject.SetActive(false);View.Session.SetPaused(wasPaused);Revision++;
+            if(!MenuVisible)return;
+            readingSpace.Restore();menu.gameObject.SetActive(false);View.SetSessionPaused(wasPaused);Revision++;
             if(!PlayingTour)View.Refresh();
             Garden.Navigation?.InvalidatePointerPresses();
         }

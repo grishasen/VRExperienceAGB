@@ -1,5 +1,13 @@
 # VRExperienceAGB
 
+**Predictor search and keyboard — October 12:** Search predictors is on the main menu; matching trees show green markers in forest and Table View. The keyboard now shares its panel's root Canvas, fixing Meta SDK rejection of nested-canvas pointer hits. The SDK-routing regression and eight extension tests pass. The latest Android APK was built and installed; physical controller acceptance remains pending. See [verification](docs/quest-menu-focus-pause-2026-10-12.md).
+
+**Menu/focus pause fix — October 12:** branch input logs showed clicks reaching disabled controls while the session remained paused. Menu pause now composes with application suspension without restoring stale pause state. **113 PlayMode tests pass** (one optional video test skipped). Remaining `LINKED` labels use explicit predictor wording. See [evidence and verification](docs/quest-menu-focus-pause-2026-10-12.md).
+
+**Rear clearing revision — October 12:** rear shrubs now reuse the one-tree scene's rocks and fern sprouts. Seated layout is the startup default. The unsupported diamond marker is removed and `LINK` is renamed to `Predictor:`. See [revision and validation](docs/forest-revision-2026-10-12.md).
+
+**Forest optimization — October 12:** distance-aware details reduce active entrance canvases from 141 to 37 and enabled ray surfaces from 140 to 34 while retaining all 100 trees. Added side/rear shrubs and mountains, larger contrast-backed tree names and closer hover cards. All 112 enabled PlayMode cases passed across the full run and focused reruns (one optional video test skipped). Quest FPS and text acceptance remain pending. See [verification and headset checks](docs/forest-optimization-2026-10-12.md).
+
 **Central wolf — October 12:** one wolf now appears on a hill at the end of the main aisle. The first automatic howl and the manual howl command use this central wolf. **111 PlayMode tests pass**; the 100-tree entrance view was inspected. See [verification](docs/quest-central-wolf-2026-10-12.md).
 
 **Menu ray fix — October 12:** modal menus now disable hidden scene ray interactables and restore their prior state on close. **110 PlayMode tests pass**, including the Dictionary footer with an overlapping hidden console. See [menu input evidence](docs/quest-menu-rays-2026-10-12.md).

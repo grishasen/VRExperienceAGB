@@ -79,6 +79,7 @@ namespace VRExperienceAGB.Presentation
         private float dwell;
         private long displayedRevision = -1;
         private bool seated;
+        private bool postureInitialized;
         public bool IsSeated => seated;
         public void RefreshNavigationTree() => Refresh();
         private bool showProfileDetails;
@@ -170,6 +171,8 @@ namespace VRExperienceAGB.Presentation
             if (drop == null || status == null || explanation == null || score == null || feedback == null || controls == null ||
                 idleMaterial == null || visitedMaterial == null || activeMaterial == null || presentationRoot == null)
                 return Fail("The teaching scene is missing a required reference.");
+            if (!postureInitialized) { seated = useUnifiedInterface; postureInitialized = true; }
+            presentationRoot.localPosition = new Vector3(presentationRoot.localPosition.x, seated ? -.4f : 0, presentationRoot.localPosition.z);
             if (focusedView == null) focusedView = new FocusedTreeView(this);
             deepExample = false; treeMap = false; profileIndex = 0;
             // The fixed teaching layout serializes branch canvases in split order, true then false.
@@ -754,6 +757,12 @@ namespace VRExperienceAGB.Presentation
             Refresh();
         }
         private bool applicationPaused, applicationUnfocused, lifecycleSuspended, pausedBeforeSuspension;
+        public bool SessionPausedWithoutSuspension => lifecycleSuspended ? pausedBeforeSuspension : Session.State.Paused;
+        public void SetSessionPaused(bool paused)
+        {
+            if(lifecycleSuspended)pausedBeforeSuspension=paused;
+            Session.SetPaused(lifecycleSuspended || paused);
+        }
         private void OnApplicationPause(bool paused) { applicationPaused=paused; RefreshApplicationSuspension(); }
         private void OnApplicationFocus(bool focus) { applicationUnfocused=!focus; RefreshApplicationSuspension(); }
         private void RefreshApplicationSuspension()

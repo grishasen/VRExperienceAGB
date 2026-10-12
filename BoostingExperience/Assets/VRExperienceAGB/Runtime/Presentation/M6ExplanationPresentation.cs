@@ -128,7 +128,7 @@ namespace VRExperienceAGB.Presentation
         public void Leave(object owner) { if(ReferenceEquals(hoverOwner,owner)) { hoverOwner=null;inspected=null;pendingFeature=null;Refresh(); } }
         public void LinkFeature(string feature)
         {
-            EnsureModel(); LinkedFeature=Analysis.Occurrences(feature)>0?feature:null;
+            EnsureModel(); LinkedFeature=feature!=null && Analysis.Occurrences(feature)>0?feature:null;
             garden.RefreshExplanationLinks(); Refresh();
         }
         public int ContentRefreshCount { get; private set; }
@@ -152,7 +152,7 @@ namespace VRExperienceAGB.Presentation
             // Evidence and segment remain available in the single hover detail panel.
             segment.gameObject.SetActive(false); evidence.gameObject.SetActive(false); story.gameObject.SetActive(forest && StoryOpen);
             storyHandle.gameObject.SetActive(forest);storyHandleLabel.text=StoryOpen?"Hide forest info":"Forest info";
-            StoryText.text=Analysis.ModelStory()+(LinkedFeature==null?"":"\nLINKED: "+Analysis.Label(LinkedFeature)+" · "+Analysis.Occurrences(LinkedFeature)+" splits / "+Analysis.MatchingTrees(LinkedFeature).Length+" trees");
+            StoryText.text=Analysis.ModelStory()+(LinkedFeature==null?"":"\nSelected predictor: "+Analysis.Label(LinkedFeature)+" · "+Analysis.Occurrences(LinkedFeature)+" splits / "+Analysis.MatchingTrees(LinkedFeature).Length+" trees");
             if(!tree) foreach(var edge in edges)edge.transform.parent.gameObject.SetActive(false);
             if(!tree) { inspected=null;pendingFeature=null;return; }
             int index=View.Ensemble.Index;var modelTree=Analysis.Trees[index];
@@ -192,7 +192,7 @@ namespace VRExperienceAGB.Presentation
                 if(source is SplitNode question) slot.title.text=source.Id==(View.FocusedView.FocusRoot??View.Session.State.NodeId)?Analysis.Question(question):"Next question · point for details";
                 int si=Array.IndexOf(View.nodeViews,slot);
                 bool linked=garden.M5.Extensions.SearchActive ? garden.M5.Extensions.Matches(index, source.Id) : source is SplitNode match&&match.FeatureId==LinkedFeature;
-                badges[si].text=(source is SplitNode missing&&missing.Condition.Operator==DecisionOperator.IsMissing?"[MISSING] ":"")+(linked?"LINKED":"");
+                badges[si].text=(source is SplitNode missing&&missing.Condition.Operator==DecisionOperator.IsMissing?"[MISSING] ":"")+(linked?"Same predictor":"");
                 if(!(source is SplitNode parent) || source.Id!=(View.FocusedView.FocusRoot??View.Session.State.NodeId))continue;
                 foreach(bool matched in new[]{true,false}) {
                     string child=matched?parent.TrueChild:parent.FalseChild;
@@ -250,7 +250,7 @@ namespace VRExperienceAGB.Presentation
         }
         public void AddComposition(Transform parent,int index,Vector3 position,float scale)
         {
-            EnsureModel();var canvas=garden.CanvasAt("PredictorComposition",position,new Vector2(600,56),scale,parent);
+            EnsureModel();var canvas=garden.CanvasAt("PredictorComposition",position,new Vector2(600,56),scale,parent,false);
             var gains=Analysis.Trees[index];float left=-300;
             if(!gains.Gain.HasValue||gains.Gain<=0){garden.Text(canvas.transform,"Unavailable",gains.Gain==0?"No split gain":"Gain composition unavailable",Vector2.zero,new Vector2(600,56),21);return;}
             for(int i=0;i<Analysis.Families.Count;i++){

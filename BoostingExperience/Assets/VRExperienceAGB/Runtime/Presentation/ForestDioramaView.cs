@@ -18,6 +18,7 @@ namespace VRExperienceAGB.Presentation
         public int HoveredIndex { get; private set; } = -1;
         private readonly TMP_Text details;
         private readonly GameObject previousPage, nextPage;
+        private readonly List<GameObject> predictorMarkers = new List<GameObject>();
         private readonly List<Renderer> ringsB = new List<Renderer>();
         private readonly List<Renderer> rings = new List<Renderer>();
         private readonly List<UnityEngine.UI.Image> targets = new List<UnityEngine.UI.Image>();
@@ -106,6 +107,7 @@ namespace VRExperienceAGB.Presentation
             for (int i = 0; i < rings.Count; i++)
             {
                 int index = Mathf.Max(0,builtPage) * TreesPerPage + i;
+                predictorMarkers[i].SetActive(owner.Garden.IsPredictorMatch(index));
                 bool reached = ledger[index].Progress != VRExperienceAGB.Application.ContributionProgress.Pending;
                 double contribution=ledger[index].PresentedContribution;
                 if(owner.View.Director != null && owner.View.Director.TryContribution(index,false,out var finalValue)){reached=true;contribution=finalValue;}
@@ -127,7 +129,7 @@ namespace VRExperienceAGB.Presentation
             foreach (Transform child in model) { child.gameObject.SetActive(false); Object.Destroy(child.gameObject); }
             ClearHover(HoveredIndex);
             bool replacingModel = builtModel != owner.View.Model;
-            rings.Clear(); ringsB.Clear(); targets.Clear(); crownTargets.Clear(); builtModel = owner.View.Model;
+            predictorMarkers.Clear(); rings.Clear(); ringsB.Clear(); targets.Clear(); crownTargets.Clear(); builtModel = owner.View.Model;
             builtPage = GroupPage;
             if (replacingModel) { GroupPage=builtPage=-1;Scale = 1; Yaw = 0; ApplyTransform(); }
             var garden = owner.Garden;
@@ -151,6 +153,7 @@ namespace VRExperienceAGB.Presentation
                 float support = .02f + i / columns * Mathf.Min(.045f,.35f/Mathf.Max(1,rows-1));
                 Mesh("Planter", plot, Vector3.down * (support - .02f), new Vector3(spacing * .8f, support, spacing * .8f), garden.planterMesh, garden.stoneMaterial);
                 Mesh("Pine", plot, new Vector3(0, .02f, 0), new Vector3(diameter, height, diameter), garden.pineMesh, garden.ModelFoliage);
+                predictorMarkers.Add(garden.CreatePredictorMarker(plot,height+.055f,.10f));
                 garden.M6.AddComposition(plot,index,new Vector3(0,.012f,-spacing*.42f),spacing*.0012f);
                 rings.Add(Mesh("Ring", plot, new Vector3(0, .024f, 0), new Vector3(spacing * .8f, .009f, spacing * .8f), garden.ringMesh, garden.completedMaterial));
                 ringsB.Add(Mesh("RingB", plot, new Vector3(0, .034f, 0), new Vector3(spacing * .6f, .009f, spacing * .6f), garden.ringMesh, garden.completedMaterial));

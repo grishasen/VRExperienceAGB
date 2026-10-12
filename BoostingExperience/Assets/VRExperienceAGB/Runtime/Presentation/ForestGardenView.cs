@@ -16,6 +16,7 @@ namespace VRExperienceAGB.Presentation
         public M5ForestPresentation M5 { get; private set; }
         public M6ExplanationPresentation M6 { get; private set; }
         public Mesh pineMesh, trunkMesh, planterMesh, ringMesh;
+        public Mesh clearingRockMesh, clearingFernMesh;
         public Material pineMaterial, barkMaterial, stoneMaterial, soilMaterial, pathMaterial, selectedMaterial, completedMaterial;
         public OneTreeExperience Experience { get; private set; }
         public GardenLocomotion Locomotion { get; private set; }
@@ -35,8 +36,12 @@ namespace VRExperienceAGB.Presentation
             public TMP_Text label, hoverLabel, linkLabel;
             public Renderer ring, ringB;
             public Canvas crownTarget;
+            public Transform composition;
+            public GameObject predictorMarker;
             public Vector3 ringScale;
         }
+        private Mesh predictorMarkerMesh;
+        private Material predictorMarkerMaterial;
         private readonly List<Plot> plots = new List<Plot>();
         private readonly List<Canvas> waypoints = new List<Canvas>();
         private readonly List<GameObject> numberButtons = new List<GameObject>();
@@ -147,6 +152,7 @@ namespace VRExperienceAGB.Presentation
                     }
                 }
             }
+            root.AddComponent<ForestPerimeterScenery>().Build(length,stoneMaterial,pineMaterial,oldEnvironment,clearingRockMesh,clearingFernMesh);
             Block("GardenGround",new Vector3(groundBounds.center.x,-.13f,groundBounds.center.z),new Vector3(groundBounds.size.x+24,.22f,groundBounds.size.z+24),soilMaterial);
             for(int row=0;row<rows;row++)
             {
@@ -204,20 +210,40 @@ namespace VRExperienceAGB.Presentation
             var pineTarget=Button(crown,"",Vector2.zero,((RectTransform)crown.transform).sizeDelta,GardenCommand.SelectTree,index,29);
             pineTarget.name="PinePointerTarget-"+(index+1);pineTarget.GetComponent<UnityEngine.UI.Image>().color=Color.clear;
             var button=Button(plaque,"",Vector2.zero,new Vector2(360,62),GardenCommand.SelectTree,index,25);
-            button.name="PlanterName-"+(index+1);button.GetComponent<UnityEngine.UI.Image>().color=Color.clear;
+            button.name="PlanterName-"+(index+1);button.GetComponent<UnityEngine.UI.Image>().color=new Color(.015f,.035f,.045f,.96f);
             var hoverLabel=Text(plaque.transform,"HoverDetails","",new Vector2(0,420),new Vector2(500,390),21);
             var backing=new GameObject("HoverBacking",typeof(RectTransform),typeof(UnityEngine.UI.Image));
             backing.transform.SetParent(plaque.transform,false);
             backing.transform.localScale=Vector3.one*.8f;
             backing.transform.localPosition=new Vector3(520,420,400);
-            hoverLabel.transform.SetParent(backing.transform,false);hoverLabel.rectTransform.anchoredPosition=Vector2.zero;hoverLabel.enableAutoSizing=true;hoverLabel.fontSizeMin=17;hoverLabel.fontSizeMax=21;hoverLabel.richText=false;
-            ((RectTransform)backing.transform).sizeDelta=new Vector2(530,410);
+            hoverLabel.transform.SetParent(backing.transform,false);hoverLabel.rectTransform.anchoredPosition=Vector2.zero;hoverLabel.enableAutoSizing=true;hoverLabel.fontSizeMin=24;hoverLabel.fontSizeMax=26;hoverLabel.rectTransform.sizeDelta=new Vector2(620,450);hoverLabel.richText=false;
+            ((RectTransform)backing.transform).sizeDelta=new Vector2(650,480);
             backing.GetComponent<UnityEngine.UI.Image>().color=new Color(.025f,.065f,.085f,.96f);
             backing.GetComponent<UnityEngine.UI.Image>().raycastTarget=false;
-            var linkCanvas=CanvasAt("PredictorMatch",new Vector3(0,tree.PineHeight+.85f,0),new Vector2(500,60),.0024f,container);
-            var linkLabel=Text(linkCanvas.transform,"Match","",Vector2.zero,new Vector2(500,60),25);
+            var linkCanvas=CanvasAt("PredictorMatch",new Vector3(0,tree.PineHeight+1.5f,0),new Vector2(700,95),.0024f,container,false);
+            var linkLabel=Text(linkCanvas.transform,"Match","",Vector2.zero,new Vector2(700,95),25);
             M6.AddComposition(container,index,new Vector3(0,.48f,-1.12f),.002f);
-            plots.Add(new Plot{root=container,plaque=plaque,crownTarget=crown,label=button.GetComponentInChildren<TMP_Text>(),hoverLabel=hoverLabel,linkLabel=linkLabel,ring=ring,ringB=ringB,ringScale=ring.transform.localScale});
+            plots.Add(new Plot{root=container,predictorMarker=CreatePredictorMarker(container,tree.PineHeight),composition=container.Find("PredictorComposition"),plaque=plaque,crownTarget=crown,label=button.GetComponentInChildren<TMP_Text>(),hoverLabel=hoverLabel,linkLabel=linkLabel,ring=ring,ringB=ringB,ringScale=ring.transform.localScale});
+        }
+        internal GameObject CreatePredictorMarker(Transform parent,float pineHeight,float scale=1)
+        {
+            if(predictorMarkerMesh==null) {
+                var vertices=new List<Vector3>();var triangles=new List<int>();
+                var ring=new[]{new Vector3(.17f,0,0),new Vector3(0,0,.17f),new Vector3(-.17f,0,0),new Vector3(0,0,-.17f)};
+                for(int i=0;i<4;i++) {
+                    int j=(i+1)%4;
+                    foreach(var v in new[]{ring[i],Vector3.up*.25f,ring[j],ring[j],Vector3.down*.32f,ring[i]}) {triangles.Add(vertices.Count);vertices.Add(v);}
+                }
+                predictorMarkerMesh=new Mesh{name="SelectedPredictorDiamond"};
+                predictorMarkerMesh.SetVertices(vertices);predictorMarkerMesh.SetTriangles(triangles,0);predictorMarkerMesh.RecalculateNormals();predictorMarkerMesh.RecalculateBounds();
+                predictorMarkerMaterial=new Material(stoneMaterial){name="SelectedPredictorGreen",enableInstancing=true};
+                predictorMarkerMaterial.color=new Color(.12f,.95f,.23f);predictorMarkerMaterial.mainTexture=Texture2D.whiteTexture;
+                predictorMarkerMaterial.DisableKeyword("_ALPHATEST_ON");predictorMarkerMaterial.SetFloat("_AlphaClip",0);
+                predictorMarkerMaterial.EnableKeyword("_EMISSION");predictorMarkerMaterial.SetColor("_EmissionColor",new Color(.035f,.45f,.065f));
+            }
+            var marker=MeshObject("SelectedPredictorMarker",parent,new Vector3(0,pineHeight+.85f*scale,0),Vector3.one*scale,predictorMarkerMesh,predictorMarkerMaterial,false);
+            var renderer=marker.GetComponent<MeshRenderer>();renderer.shadowCastingMode=UnityEngine.Rendering.ShadowCastingMode.Off;renderer.receiveShadows=false;
+            marker.SetActive(false);return marker;
         }
         private void BuildGuide()
         {
@@ -311,7 +337,8 @@ namespace VRExperienceAGB.Presentation
             Experience.SelectGardenTree(bed*TreesPerBed);
             Locomotion.Teleport(new Vector3(0,0,6.6f+bed*4.8f-2.1f));PlaceGuide();
         }
-        public void RefreshExplanationLinks() { if (root != null) RefreshState(); }
+        public void RefreshExplanationLinks() { if (root != null) RefreshState(); if(M5?.Diorama?.Visible==true)M5.Diorama.Refresh(); }
+        internal bool IsPredictorMatch(int index) => M5.Extensions.SearchActive ? M5.Extensions.Matches(index) : M6.LinkedFeature!=null && M6.Analysis.MatchingTrees(M6.LinkedFeature).Contains(index);
         public void Hover(int index) { if(index>=0&&index<PlotCount){hovered=index;RefreshState();} }
         public void ClearHover(int index) { if(hovered==index){hovered=-1;hoverDirty=true;} }
         private void RefreshDetails()
@@ -356,16 +383,17 @@ namespace VRExperienceAGB.Presentation
                 var scale=plots[i].ringScale;scale.y*=1+4*magnitude;plots[i].ring.transform.localScale=scale;
                 string sign=!reached?"":contribution>0?" +":contribution<0?" −":" 0";
                 string linkedFeature = M5.Extensions.SearchActive ? M5.Extensions.Feature : M6.LinkedFeature;
-                bool linked = M5.Extensions.SearchActive ? M5.Extensions.Matches(i) : linkedFeature != null && M6.Analysis.MatchingTrees(linkedFeature).Contains(i);
-                plots[i].label.text="TREE "+(i+1)+sign+(linked?" ◆":"");
-                plots[i].label.color=reached&&contribution!=0?material.color:new Color(.88f,.96f,.94f);
-                plots[i].linkLabel.text=linked?"LINK · "+M6.Analysis.Label(linkedFeature):"";
+                bool linked = IsPredictorMatch(i);
+                plots[i].label.text="TREE "+(i+1)+sign;
+                plots[i].label.color=new Color(.96f,.98f,1f);
+                plots[i].linkLabel.text=linked?"Selected predictor: "+M6.Analysis.Label(linkedFeature):"";
                 plots[i].linkLabel.transform.parent.gameObject.SetActive(linked);
+                plots[i].predictorMarker.SetActive(linked);
                 plots[i].hoverLabel.transform.parent.gameObject.SetActive(i==hovered);
                 string value=contribution.ToString("+0.###;-0.###;0",System.Globalization.CultureInfo.InvariantCulture);
                 string route=reached?(Experience.Ensemble.Mode==ExperienceMode.Manual?"Route contribution: ":"Profile contribution: ")+value:"Contribution not reached";
                 if(hasB){Experience.Director.TryContribution(i,true,out var bv);route="A: "+value+" · B: "+bv.ToString("+0.###;-0.###;0",System.Globalization.CultureInfo.InvariantCulture);}
-                plots[i].hoverLabel.text=M6.Analysis.Passport(i)+"\n"+route+"\n"+(linkedFeature==null?"Point at node names to link predictors":"◆ "+M6.Analysis.Label(linkedFeature)+" · "+(linked?"in search scope":"outside search scope"))+"\nTrigger / Click to explore";
+                plots[i].hoverLabel.text=M6.Analysis.Passport(i)+"\n"+route+"\n"+(linkedFeature==null?"Point at node names to link predictors":"Selected predictor: "+M6.Analysis.Label(linkedFeature)+" · "+(linked?"in search scope":"outside search scope"))+"\nTrigger / Click to explore";
             }
             if(simplifiedNavigation) { Navigation.Refresh(); RefreshNearbyPlaques(); return; }
             if(shownBed!=bed)
@@ -411,32 +439,37 @@ namespace VRExperienceAGB.Presentation
             {
                 var plot = plots[i];
                 plot.root.gameObject.SetActive(forest && M5.Extensions.TreeVisible(i));
-                bool nearby=forest && Vector3.Distance(Locomotion.Head.position,plot.root.position)<12;
+                float distance=Vector3.Distance(Locomotion.Head.position,plot.root.position);
+                bool nearby=forest && distance<12;
+                if(plot.composition!=null)plot.composition.gameObject.SetActive(forest && distance<8);
                 var link=plot.linkLabel.transform.parent;
                 link.gameObject.SetActive(forest && plot.linkLabel.text.Length>0 && Vector3.Distance(Locomotion.Head.position,plot.root.position)<32);
                 if(link.gameObject.activeSelf)link.rotation=Quaternion.LookRotation(link.position-Locomotion.Head.position);
-                plot.plaque.gameObject.SetActive(nearby);
+                plot.plaque.gameObject.SetActive(forest && (distance<8 || (nearby && i==hovered)));
                 plot.crownTarget.gameObject.SetActive(nearby);
                 if(nearby)
                 {
+                    plot.label.fontSize=Mathf.Clamp(distance*6.4f,32,50);
                     var direction=plot.crownTarget.transform.position-Locomotion.Head.position;direction.y=0;
                     if(direction.sqrMagnitude>.01f)plot.crownTarget.transform.rotation=Quaternion.LookRotation(direction);
                     var card=plot.hoverLabel.transform.parent;
-                    card.rotation=plot.crownTarget.transform.rotation;
-                    card.position=plot.crownTarget.transform.position+plot.crownTarget.transform.right*.9f-plot.crownTarget.transform.forward*.05f;
+                    var cardDirection=plot.crownTarget.transform.position-Locomotion.Head.position;
+                    card.position=Locomotion.Head.position+cardDirection.normalized*Mathf.Min(2.2f,cardDirection.magnitude)+plot.crownTarget.transform.right*.65f;
+                    card.rotation=Quaternion.LookRotation(card.position-Locomotion.Head.position);
                 }
 
             }
             foreach(var waypoint in waypoints)waypoint.gameObject.SetActive(forest && Vector3.Distance(Locomotion.Head.position,waypoint.transform.position)<16);
         }
-        internal Canvas CanvasAt(string name,Vector3 position,Vector2 size,float scale,Transform parent)
+        internal Canvas CanvasAt(string name,Vector3 position,Vector2 size,float scale,Transform parent,bool interactive=true)
         {
-            var go=new GameObject(name,typeof(RectTransform),typeof(Canvas),typeof(UnityEngine.UI.GraphicRaycaster));
+            var go=new GameObject(name,typeof(RectTransform),typeof(Canvas));
+            if(interactive)go.AddComponent<UnityEngine.UI.GraphicRaycaster>();
             go.transform.SetParent(parent,false);go.transform.localPosition=position;go.transform.localScale=Vector3.one*scale;
             ((RectTransform)go.transform).sizeDelta=size;
             var canvas=go.GetComponent<Canvas>();canvas.renderMode=RenderMode.WorldSpace;canvas.worldCamera=Locomotion.Head.GetComponent<Camera>();
             var template=Experience.explanation.GetComponentInParent<Canvas>(true).GetComponentInChildren<Oculus.Interaction.PointableCanvas>(true);
-            if(template!=null)
+            if(interactive && template!=null)
             {
                 var interaction=Instantiate(template.gameObject,go.transform);
                 interaction.GetComponent<Oculus.Interaction.PointableCanvas>().InjectCanvas(canvas);
@@ -473,6 +506,6 @@ namespace VRExperienceAGB.Presentation
             if(fit)go.transform.localPosition-=Vector3.Scale(bounds.center,go.transform.localScale)-Vector3.up*size.y*.5f;
             go.GetComponent<MeshFilter>().sharedMesh=mesh;go.GetComponent<MeshRenderer>().sharedMaterial=material;return go;
         }
-        private void OnDestroy() { if(backdropFoliage!=null)Destroy(backdropFoliage);if(quietRing!=null)Destroy(quietRing);if(gardenFoliage!=null)Destroy(gardenFoliage);if(positiveRing!=null)Destroy(positiveRing);if(negativeRing!=null)Destroy(negativeRing); }
+        private void OnDestroy() { if(predictorMarkerMesh!=null)Destroy(predictorMarkerMesh);if(predictorMarkerMaterial!=null)Destroy(predictorMarkerMaterial); if(backdropFoliage!=null)Destroy(backdropFoliage);if(quietRing!=null)Destroy(quietRing);if(gardenFoliage!=null)Destroy(gardenFoliage);if(positiveRing!=null)Destroy(positiveRing);if(negativeRing!=null)Destroy(negativeRing); }
     }
 }
