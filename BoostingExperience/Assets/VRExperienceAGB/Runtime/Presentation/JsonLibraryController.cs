@@ -34,6 +34,18 @@ namespace VRExperienceAGB.Presentation
         {
             director=owner;Storage=new ModelFileLibrary(root??UnityEngine.Application.persistentDataPath);
             callbackObject=gameObject.name;
+            if(root==null)SeedBundledFiles();
+        }
+        public void SeedBundledFiles()
+        {
+            try {
+                foreach(bool profiles in new[]{false,true})
+                    foreach(var file in Resources.LoadAll<TextAsset>("LocalLibrary/"+(profiles?"Profiles":"Models")))
+                        Storage.Save(profiles,file.name+".json",file.text);
+            }
+            catch(Exception error)when(error is IOException || error is UnauthorizedAccessException) {
+                Status="Could not add bundled JSON files to the local library. Check available storage and reopen the app.";
+            }
         }
         public void List(bool profiles) { ListedFiles=Storage.Files(profiles); }
         public void Pick(bool profiles)

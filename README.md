@@ -1,5 +1,13 @@
 # VRExperienceAGB
 
+**Bundled Web model — October 13:** the local APK includes the supplied ten-tree Web export and two selected CDH profiles in Models / profiles. The pair differs in eight tree routes; complete A/B playback and independent leaf-sum agreement passed in the Editor. Private bundle resources stay ignored. See [selection and verification](docs/bundled-web-model-2026-10-13.md).
+
+**Carezza tree refinement — October 12:** grounded shoreline spruce cards and moved water-overlapping trees onto the bank. Six larger interior firs now have open crowns, visible trunks and woody branches based on the one-tree clearing. See [implementation and verification](docs/design/moonlit-carezza.md#ground-contact-and-open-interior-crowns-follow-up).
+
+**Carezza side refinement — October 12:** side ridges are smaller and softened with local atmospheric haze; six original decorative firs return between the model rows. The rear mountains retain their approved appearance. All 118 enabled PlayMode tests pass in a full run (one optional video case skipped). See [follow-up verification](docs/design/moonlit-carezza.md#side-atmosphere-and-interior-firs-follow-up).
+
+**Carezza environment — October 12:** the selected second concept adds a lake, textured spruce groups and cream/rose Dolomite cliffs around the forest sides and rear. The lake and four-direction Editor views are verified; all 118 enabled PlayMode cases pass across the full run and focused rerun. The Android candidate is built and installed; visual and performance acceptance on Quest remain pending. See [implementation and current verification status](docs/design/moonlit-carezza.md).
+
 **Predictor search and keyboard — October 12:** Search predictors is on the main menu; matching trees show green markers in forest and Table View. The keyboard now shares its panel's root Canvas, fixing Meta SDK rejection of nested-canvas pointer hits. The SDK-routing regression and eight extension tests pass. The latest Android APK was built and installed; physical controller acceptance remains pending. See [verification](docs/quest-menu-focus-pause-2026-10-12.md).
 
 **Menu/focus pause fix — October 12:** branch input logs showed clicks reaching disabled controls while the session remained paused. Menu pause now composes with application suspension without restoring stale pause state. **113 PlayMode tests pass** (one optional video test skipped). Remaining `LINKED` labels use explicit predictor wording. See [evidence and verification](docs/quest-menu-focus-pause-2026-10-12.md).

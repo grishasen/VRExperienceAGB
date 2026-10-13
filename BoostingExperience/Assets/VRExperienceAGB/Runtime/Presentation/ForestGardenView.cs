@@ -17,6 +17,9 @@ namespace VRExperienceAGB.Presentation
         public M6ExplanationPresentation M6 { get; private set; }
         public Mesh pineMesh, trunkMesh, planterMesh, ringMesh;
         public Mesh clearingRockMesh, clearingFernMesh;
+        public Mesh sceneryPineBranchesMesh, sceneryPineTrunkMesh;
+        public Material carezzaBackdropMaterial, carezzaSpruceMaterial, carezzaWaterMaterial;
+        public Material carezzaGroundMaterial, carezzaRockMaterial;
         public Material pineMaterial, barkMaterial, stoneMaterial, soilMaterial, pathMaterial, selectedMaterial, completedMaterial;
         public OneTreeExperience Experience { get; private set; }
         public GardenLocomotion Locomotion { get; private set; }
@@ -152,8 +155,10 @@ namespace VRExperienceAGB.Presentation
                     }
                 }
             }
-            root.AddComponent<ForestPerimeterScenery>().Build(length,stoneMaterial,pineMaterial,oldEnvironment,clearingRockMesh,clearingFernMesh);
-            Block("GardenGround",new Vector3(groundBounds.center.x,-.13f,groundBounds.center.z),new Vector3(groundBounds.size.x+24,.22f,groundBounds.size.z+24),soilMaterial);
+            root.AddComponent<ForestPerimeterScenery>().Build(length,stoneMaterial,pineMaterial,oldEnvironment,clearingRockMesh,clearingFernMesh,
+                carezzaBackdropMaterial,carezzaSpruceMaterial,carezzaWaterMaterial,carezzaGroundMaterial,carezzaRockMaterial);
+            RestoreInteriorPines(rows, oldEnvironment);
+            Block("GardenGround",new Vector3(groundBounds.center.x,-.13f,groundBounds.center.z),new Vector3(groundBounds.size.x+24,.22f,groundBounds.size.z+24),carezzaGroundMaterial!=null?carezzaGroundMaterial:soilMaterial);
             for(int row=0;row<rows;row++)
             {
                 float z=6.6f+row*4.8f-2.1f;
@@ -180,6 +185,41 @@ namespace VRExperienceAGB.Presentation
             if(simplifiedNavigation) Navigation = new SimpleExperienceNavigation(this, root.transform);
             else { Navigation = null; BuildGuide(); }
         }
+        private void RestoreInteriorPines(int rows, Transform originalEnvironment)
+        {
+            if (rows < 2 || sceneryPineBranchesMesh == null || sceneryPineTrunkMesh == null) return;
+            var sourceTrunk = originalEnvironment != null ? originalEnvironment.Find("PineTree/Trunk") : null;
+            var bark = sourceTrunk != null ? sourceTrunk.GetComponent<Renderer>().sharedMaterial : barkMaterial;
+            var scenery = root.GetComponent<ForestPerimeterScenery>();
+            var openCrown = scenery.OpenInteriorCrown(sceneryPineBranchesMesh);
+            var limbs = scenery.InteriorLimbs(sceneryPineTrunkMesh);
+            int groups = Mathf.Min(3, rows - 1);
+            for (int group = 0; group < groups; group++)
+            {
+                int row = groups == 1 ? 0 : Mathf.RoundToInt(Mathf.Lerp(0, rows - 2, group / (float)(groups - 1)));
+                foreach (int side in new[] { -1, 1 })
+                {
+                    var tree = new GameObject("GardenInteriorPine");
+                    tree.transform.SetParent(root.transform, false);
+                    // Between planters, before the next crosswalk, away from the central aisle.
+                    tree.transform.localPosition = new Vector3(side * (group % 2 == 0 ? 7.55f : 13.75f), 0, 8.05f + row * 4.8f);
+                    tree.transform.localRotation = Quaternion.Euler(0, group * 71 + side * 23, 0);
+                    float height = 7.8f + group * .55f + (side > 0 ? .5f : 0);
+                    MeshObject("InteriorBranches", tree.transform, Vector3.up * height * .08f,
+                        new Vector3(height * 1.18f, height * .9f, height * 1.18f),
+                        openCrown, backdropFoliage != null ? backdropFoliage : pineMaterial, false);
+                    MeshObject("InteriorTrunk", tree.transform, Vector3.zero, Vector3.one * height,
+                        sceneryPineTrunkMesh, bark, false);
+                    MeshObject("InteriorWoodyBranches", tree.transform, Vector3.zero, Vector3.one * height, limbs, bark, false);
+                    foreach (var renderer in tree.GetComponentsInChildren<Renderer>())
+                    {
+                        renderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+                        renderer.receiveShadows = false;
+                    }
+                }
+            }
+        }
+
         private void StyleBackdrop(GameObject tree)
         {
             foreach(var renderer in tree.GetComponentsInChildren<Renderer>(true)) {

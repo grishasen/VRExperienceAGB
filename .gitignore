@@ -38,6 +38,9 @@ artifacts/
 # Development connection credentials are generated locally by the Unity tooling.
 BoostingExperience/Assets/Resources/DevAgentSettings.asset
 BoostingExperience/Assets/Resources/DevAgentSettings.asset.meta
+# Local Meta SDK setup-task completion markers.
+BoostingExperience/Assets/Oculus/OculusProjectSetupSettings.asset
+BoostingExperience/Assets/Oculus/OculusProjectSetupSettings.asset.meta
 BoostingExperience/.vscode/*
 !BoostingExperience/.vscode/extensions.json
 .env
@@ -63,3 +66,7 @@ BoostingExperience/Assets/_Recovery.meta
 # Local-only reconstruction of the user-selected sample and derived fixtures.
 BoostingExperience/Assets/VRExperienceAGB/Resources/LocalModel/
 BoostingExperience/Assets/VRExperienceAGB/Resources/LocalModel.meta
+
+# Generated private model/profile files included only in local APKs.
+BoostingExperience/Assets/VRExperienceAGB/Resources/LocalLibrary/
+BoostingExperience/Assets/VRExperienceAGB/Resources/LocalLibrary.meta

@@ -172,7 +172,7 @@ namespace VRExperienceAGB.Tests
             view.Garden.ClearHover(0);yield return null;
             Assert.That(garden.Find("TreePlaque-1").gameObject.activeSelf,Is.False);
             var scenery=garden.GetComponent<ForestPerimeterScenery>();Assert.That(scenery,Is.Not.Null);
-            foreach(var name in new[]{"DistantSideAndRearMountains","SideShrubs","RearSlateBoulder","RearGroundFern"}) {
+            foreach(var name in new[]{"CarezzaMountainPanorama","CarezzaLake","CarezzaShore","CarezzaShorePines","RearSlateBoulder","RearGroundFern"}) {
                 var item=garden.Find(name);Assert.That(item,Is.Not.Null);
                 Assert.That(item.GetComponent<Collider>(),Is.Null);
                 Assert.That(item.GetComponent<MeshFilter>().sharedMesh.vertexCount,Is.InRange(1,59999));
@@ -368,9 +368,9 @@ namespace VRExperienceAGB.Tests
             Assert.That(Vector3.Dot(ahead,Vector3.ProjectOnPlane(head.forward,Vector3.up).normalized),Is.GreaterThan(.99));
             yield return null;
         }
-        [UnityTest] public IEnumerator SceneryPinesShareBlueFrostAcrossBothScenesAndKeepModelMaterialSeparate()
+        [UnityTest] public IEnumerator CarezzaSceneryKeepsTeachingTreeMaterialsSeparate()
         {
-            var branches=view.GetComponentsInChildren<Renderer>(true).Where(r=>r.name=="RadialBranches").ToArray();
+            var branches=view.transform.Find("MoonlitEnvironment").GetComponentsInChildren<Renderer>(true).Where(r=>r.name=="RadialBranches").ToArray();
             Assert.That(branches.Length,Is.GreaterThan(10));
             var material=branches[0].sharedMaterial;
             Assert.That(material.name,Is.EqualTo("BlueFrostSceneryFoliage"));
@@ -380,10 +380,35 @@ namespace VRExperienceAGB.Tests
             var model=view.transform.Find("ModelPineGarden/ModelTree-1/Pine").GetComponent<Renderer>();
             Assert.That(model.sharedMaterial,Is.Not.SameAs(material));Assert.That(model.sharedMaterial.color.g,Is.GreaterThan(model.sharedMaterial.color.b));
             Assert.That(model.sharedMaterial.GetColor("_EmissionColor").g,Is.InRange(.04f,.09f));
+            var scenery=view.transform.Find("ModelPineGarden").GetComponentsInChildren<Renderer>(true).Where(r=>r.name=="RadialBranches").ToArray();
+            Assert.That(scenery.Length,Is.GreaterThan(10));
+            Assert.That(scenery.All(r=>r.sharedMaterial==view.Garden.carezzaSpruceMaterial),Is.True);
+            Assert.That(view.Garden.carezzaSpruceMaterial.mainTexture,Is.Not.Null);
+            Assert.That(view.Garden.carezzaSpruceMaterial.shader.isSupported,Is.True);
             view.Director.Activate("table");
             foreach(var pine in view.Garden.M5.Diorama.ModelRoot.GetComponentsInChildren<MeshRenderer>().Where(r=>r.name=="Pine"))
                 Assert.That(pine.sharedMaterial,Is.SameAs(model.sharedMaterial));
             yield return null;
+        }
+        [UnityTest] public IEnumerator CarezzaSceneryStaysWorldAnchoredAndReleasesMeshesOnModelReplacement()
+        {
+            view.Director.Activate("forest");yield return null;
+            var root=view.transform.Find("ModelPineGarden");
+            var panorama=root.Find("CarezzaMountainPanorama");var lake=root.Find("CarezzaLake");
+            var panoramaPosition=panorama.position;
+            var oldMesh=panorama.GetComponent<MeshFilter>().sharedMesh;
+            Assert.That(lake.GetComponent<Renderer>().bounds.max.z,Is.LessThan(-8),"Keep the bank outside the walkable garden.");
+            Assert.That(lake.GetComponent<Renderer>().sharedMaterial.shader.isSupported,Is.True);
+            view.Garden.Locomotion.Origin.position+=new Vector3(2,0,3);yield return null;
+            Assert.That(panorama.position,Is.EqualTo(panoramaPosition),"Scenery must not follow the head or locomotion origin.");
+            var model=DeepTreeExample.Model();
+            view.OpenImportedModel(new VRExperienceAGB.Import.ImportedModel(model),new VRExperienceAGB.Domain.ProfileSet(1,model.Id,Array.Empty<VRExperienceAGB.Domain.PreparedProfile>()),"Small scenery regression model");
+            view.Director.Activate("forest");yield return null;yield return null;
+            Assert.That(oldMesh==null,Is.True,"Discarded garden meshes must be released.");
+            var replacement=view.transform.Find("ModelPineGarden");
+            Assert.That(replacement.Find("CarezzaLake"),Is.Not.Null);
+            Assert.That(replacement.Find("CarezzaMountainPanorama").GetComponent<MeshFilter>().sharedMesh.vertexCount,Is.GreaterThan(0));
+            Assert.That(view.Garden.PlotCount,Is.EqualTo(model.Trees.Count));
         }
         [UnityTest] public IEnumerator WildlifeOnlyAppearsDuringSoundEvent()
         {

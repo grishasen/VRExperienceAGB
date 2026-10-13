@@ -31336,6 +31336,13 @@ MonoBehaviour:
   ringMesh: {fileID: 4300000, guid: 303d98eff538e4c2684d735059d9154f, type: 2}
   clearingRockMesh: {fileID: 4300000, guid: f1e17f4e422384e85a7f289288a6067b, type: 2}
   clearingFernMesh: {fileID: 4300000, guid: 991d2162bea01444aa486373377df9d7, type: 2}
+  sceneryPineBranchesMesh: {fileID: 4300000, guid: 8170da8733a5d4e7ebcf25e224474367, type: 2}
+  sceneryPineTrunkMesh: {fileID: 4300000, guid: 2e7bb8b06f27141c8bcf46fd389978fb, type: 2}
+  carezzaBackdropMaterial: {fileID: 2100000, guid: 66dc0601082d641d1b26f3b9ce280694, type: 2}
+  carezzaSpruceMaterial: {fileID: 2100000, guid: 85271545331ce42589189ae0aa7dda39, type: 2}
+  carezzaWaterMaterial: {fileID: 2100000, guid: 316e3ec524da74104a70db14c815dca8, type: 2}
+  carezzaGroundMaterial: {fileID: 2100000, guid: f4e610acd97b74ba9ac285f71a908a6c, type: 2}
+  carezzaRockMaterial: {fileID: 2100000, guid: 887d6f280449343ca922b927cca3fedd, type: 2}
   pineMaterial: {fileID: 2100000, guid: 7ca5cb930e11c4a64bfb83e77105b568, type: 2}
   barkMaterial: {fileID: 2100000, guid: f5fe5f7a801874388a0fd9ed24b5964a, type: 2}
   stoneMaterial: {fileID: 2100000, guid: 428efad0420c74ab78a324e3587860e5, type: 2}
@@ -39443,7 +39450,7 @@ Camera:
     width: 1
     height: 1
   near clip plane: 0.3
-  far clip plane: 160
+  far clip plane: 400
   field of view: 58
   orthographic: 0
   orthographic size: 5
@@ -40540,7 +40547,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 2037080, guid: 126d619cf4daa52469682f85c1378b4a, type: 3}
       propertyPath: far clip plane
-      value: 160
+      value: 400
       objectReference: {fileID: 0}
     - target: {fileID: 2037080, guid: 126d619cf4daa52469682f85c1378b4a, type: 3}
       propertyPath: m_BackGroundColor.a
@@ -40580,7 +40587,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 20000010189485334, guid: 126d619cf4daa52469682f85c1378b4a, type: 3}
       propertyPath: far clip plane
-      value: 160
+      value: 400
       objectReference: {fileID: 0}
     - target: {fileID: 20000010189485334, guid: 126d619cf4daa52469682f85c1378b4a, type: 3}
       propertyPath: m_BackGroundColor.a
@@ -40604,7 +40611,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 20000012175207052, guid: 126d619cf4daa52469682f85c1378b4a, type: 3}
       propertyPath: far clip plane
-      value: 160
+      value: 400
       objectReference: {fileID: 0}
     - target: {fileID: 20000012175207052, guid: 126d619cf4daa52469682f85c1378b4a, type: 3}
       propertyPath: m_BackGroundColor.a
