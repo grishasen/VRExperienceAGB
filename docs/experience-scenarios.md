@@ -86,7 +86,7 @@ Startup centers the scene and opens one menu ahead of the observer: One tree, Ex
 
 The local default is the complete 50-tree `export_Mobile_Click_Through_Rate_AGB_demo.json` with three fully supplied synthetic profiles. Run `python3 scripts/prepare-local-sample.py` to prepare ignored local Resources before opening/building. The synthetic demo source is tracked; generated model resources are excluded from Git. A checkout without them retains the previous 50-tree structure-only preview. No real customer profiles are bundled. Ordinary AGB and CDH profile import remains available in Models / profiles.
 
-Crown selection enters a tree from either the forest or Table View. All 50 trees appear in both overviews. Existing walking, deliberate path-marker teleports, snap turns, subtree inspection, predictor search, boosting trail and recorded review remain available.
+In the main forest experience, the first crown click opens **Explore tree / Details**; hovering alone opens nothing. **Details** expands that same nearby panel into paged reading, with Summary and Explore tree still available. **Explore tree** enters the tree. Table View retains its existing tree-entry action. Every model tree appears in both overviews. Existing walking, deliberate path-marker teleports, snap turns, subtree inspection, predictor search, boosting trail and recorded review remain available.
 
 For dense trees, show a bounded neighborhood around the selected node. Collapsed branches retain their identity and a count of hidden nodes. Selecting a branch can place an enlarged subtree on an inspection table, with a marker connecting it to its original location.
 
@@ -140,7 +140,7 @@ This is a model sensitivity demonstration, not a claim about the causal effect o
 
 ## Movement and presentation
 
-The unified menu is placed once at startup and remains anchored until an explicit placement action. Right-controller B (desktop R) centers the current forest, stones or table and the menu in front of the observer once per press. Entering a tree places its stones ahead of the observer using the horizontal gaze at entry; subsequent head turns do not rotate the scene.
+The unified menu is placed in front of the current gaze each time it opens, then stays anchored while reading or changing pages. Right-controller B (desktop R) centers the current forest, stones or table and the menu in front of the observer once per press. Entering a tree places its stones ahead of the observer using the horizontal gaze at entry; subsequent head turns do not rotate the scene. Inter menus and progressive Details are described in the [October 17 follow-up](design/inter-menus-2026-10-17.md). Split Details now opens in the same nearby node card with Summary to return. The source-color key is a compact lower-left row that expands and collapses with an arrow; see the [inline split and legend update](design/inline-split-and-legend-2026-10-17.md).
 
 Default to a stationary observer, controller-directed transitions, and a clear return point. Offer a seated configuration. Continuous riding is an optional later comfort mode, started and stopped by the user. Head orientation always follows tracking; no scripted head bob, forced yaw, camera shake, or surprise acceleration.
 

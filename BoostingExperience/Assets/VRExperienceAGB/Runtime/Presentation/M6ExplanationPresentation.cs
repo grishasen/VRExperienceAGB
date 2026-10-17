@@ -12,6 +12,7 @@ namespace VRExperienceAGB.Presentation
     /// <summary>Read-only in-world explanations. Refreshes from accepted state; never drives evaluation or tracking.</summary>
     public sealed class M6ExplanationPresentation : MonoBehaviour
     {
+        public SourceLegend Legend { get; private set; }
         public ForestExplanation Analysis { get; private set; }
         public string LinkedFeature { get; private set; }
         public TMP_Text SegmentText { get; private set; }
@@ -41,6 +42,7 @@ namespace VRExperienceAGB.Presentation
         public void Configure(ForestGardenView owner)
         {
             garden = owner;
+            Legend = new SourceLegend(garden);
             root = new GameObject("M6InWorldExplanations").transform; root.SetParent(View.transform, false);
             segment = Card("SegmentPortrait", new Vector3(-1.5f,.72f,3), new Vector2(680,480), .0015f);
             SegmentText = Text(segment, "Segment", new Vector2(0,0), new Vector2(620,430), 26);
@@ -134,6 +136,7 @@ namespace VRExperienceAGB.Presentation
         public int ContentRefreshCount { get; private set; }
         public void RefreshVisibility()
         {
+            Legend?.Refresh();
             if(root!=null)root.gameObject.SetActive(View.Director?.PlayingTour!=true && View.Director?.MenuVisible!=true);
         }
         public void Refresh()
@@ -190,6 +193,7 @@ namespace VRExperienceAGB.Presentation
                 if(!modelTree.Nodes.TryGetValue(slot.nodeId,out var source))continue;
                 slot.title.richText=false;
                 if(source is SplitNode question) slot.title.text=source.Id==(View.FocusedView.FocusRoot??View.Session.State.NodeId)?Analysis.Question(question):"Next question · point for details";
+                if(View.Director!=null)QuietTreeText.StyleNode(View,slot,source,source.Id==(View.FocusedView.FocusRoot??View.Session.State.NodeId));
                 int si=Array.IndexOf(View.nodeViews,slot);
                 bool linked=garden.M5.Extensions.SearchActive ? garden.M5.Extensions.Matches(index, source.Id) : source is SplitNode match&&match.FeatureId==LinkedFeature;
                 badges[si].text=(source is SplitNode missing&&missing.Condition.Operator==DecisionOperator.IsMissing?"[MISSING] ":"")+(linked?"Same predictor":"");
@@ -198,7 +202,7 @@ namespace VRExperienceAGB.Presentation
                     string child=matched?parent.TrueChild:parent.FalseChild;
                     var target=View.nodeViews.FirstOrDefault(s=>s.gameObject.activeSelf&&s.nodeId==child);
                     if(target==null||edgeIndex>=edges.Count)continue;
-                    var label=edges[edgeIndex++];label.transform.parent.gameObject.SetActive(true);
+                    var label=edges[edgeIndex++];label.transform.parent.gameObject.SetActive(View.Director==null);
                     label.transform.parent.position=Vector3.Lerp(slot.transform.position,target.transform.position,.48f)+new Vector3(0,-.14f,-.12f);
                     label.text=ShortBranch(parent,matched);
                     bool taken=View.Session.State.Decisions.Any(d=>d.NodeId==parent.Id&&d.Matched==matched) ||
@@ -209,6 +213,16 @@ namespace VRExperienceAGB.Presentation
                 }
             }
             for(;edgeIndex<edges.Count;edgeIndex++)edges[edgeIndex].transform.parent.gameObject.SetActive(false);
+            if(View.Director!=null) {
+                View.explanation.gameObject.SetActive(false);
+                TreeCardTypography.Apply(View.score);View.score.fontSize=22;View.score.alignment=TextAlignmentOptions.Center;
+                View.score.text="Tree "+(index+1)+" / "+View.Model.Trees.Count+" · "+(View.Ensemble.Profile==null?"Manual exploration":"Prepared profile");
+                foreach(var control in View.controls.Where(c=>c.action==TreeAction.TrueBranch||c.action==TreeAction.FalseBranch)) {
+                    TreeCardTypography.Apply(control.label,true);control.label.fontSize=28;control.label.alignment=TextAlignmentOptions.Center;
+                    control.GetComponent<UnityEngine.UI.Image>().color=Color.clear;
+                    if(View.Session.CurrentNode is SplitNode branch)control.label.text=QuietTreeText.Predicate(branch,control.action==TreeAction.TrueBranch,10);
+                }
+            }
         }
         private string ShortBranch(SplitNode node,bool matched)
         {
@@ -246,20 +260,22 @@ namespace VRExperienceAGB.Presentation
         public void ShowHover(M6ExplanationHover source)
         {
             string id=source.NodeId??View.FocusedView.FocusRoot??View.Session.State.NodeId;
-            Point(source,id);View.NameTooltip.Show(source,Detail(id));
+            Point(source,id);View.NameTooltip.ShowNode(source,id);
         }
         public void AddComposition(Transform parent,int index,Vector3 position,float scale)
         {
             EnsureModel();var canvas=garden.CanvasAt("PredictorComposition",position,new Vector2(600,56),scale,parent,false);
             var gains=Analysis.Trees[index];float left=-300;
-            if(!gains.Gain.HasValue||gains.Gain<=0){garden.Text(canvas.transform,"Unavailable",gains.Gain==0?"No split gain":"Gain composition unavailable",Vector2.zero,new Vector2(600,56),21);return;}
-            for(int i=0;i<Analysis.Families.Count;i++){
-                double share=gains.FamilyGains.TryGetValue(Analysis.Families[i],out var gain)?gain/gains.Gain.Value:0;if(share<=0)continue;
-                float width=600*(float)share;var go=new GameObject(Analysis.Families[i],typeof(RectTransform),typeof(UnityEngine.UI.Image));go.transform.SetParent(canvas.transform,false);
+            var groups=gains.Tree.Nodes.OfType<SplitNode>().GroupBy(n=>PredictorPalette.Family(n.FeatureId)).OrderBy(g=>g.Key,StringComparer.Ordinal).ToArray();
+            foreach(var group in groups) {
+                double share=groups.Length==0?0:1d/groups.Length;
+                if(gains.Gain>0) share=group.Sum(n=>View.ExportPreview.Metadata[gains.Tree.Id+"/"+n.Id].Gain)/gains.Gain.Value;
+                if(share<=0)continue;
+                float width=600*(float)share;var go=new GameObject(group.Key,typeof(RectTransform),typeof(UnityEngine.UI.Image));go.transform.SetParent(canvas.transform,false);
                 var rect=(RectTransform)go.transform;rect.sizeDelta=new Vector2(width,25);rect.anchoredPosition=new Vector2(left+width*.5f,14);left+=width;
-                var image=go.GetComponent<UnityEngine.UI.Image>();image.color=Color.HSVToRGB(Mathf.Repeat(i*.618034f,.999f),.48f,.85f);image.raycastTarget=false;
+                var image=go.GetComponent<UnityEngine.UI.Image>();image.color=PredictorPalette.ForFamily(group.Key);image.raycastTarget=false;
             }
-            garden.Text(canvas.transform,"Legend","Namespace gain · inspect tree for amounts",new Vector2(0,-18),new Vector2(600,30),19);
+            garden.Text(canvas.transform,"Legend",groups.Length==0?"No predictors":gains.Gain>0?"Source mix · Details":"Sources",new Vector2(0,-18),new Vector2(600,30),19);
         }
         private void OnDestroy(){if(root!=null)Destroy(root.gameObject);}
     }

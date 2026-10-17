@@ -22,8 +22,9 @@ namespace VRExperienceAGB.Presentation
         private Texture2D furTexture;
         public bool Visible => wolves.Exists(w => w.gameObject.activeSelf);
         private readonly System.Random random = new System.Random(73031);
-        private bool soundEnabled = true, paused, unfocused, wasAllowed;
-        private float remaining = 9f, callingTime;
+        private const float ArrivalDelay = 60f;
+        private bool soundEnabled = true, paused, unfocused, wasAllowed, waitingForArrivalHowl = true;
+        private float remaining = ArrivalDelay, callingTime;
         private int calling = -1, lastCaller = -1, treeCount = -1;
         public IReadOnlyList<Transform> Wolves => wolves.AsReadOnly();
         public IReadOnlyList<AudioSource> Voices => voices.AsReadOnly();
@@ -112,7 +113,17 @@ namespace VRExperienceAGB.Presentation
             if (soundEnabled == value) return;
             soundEnabled = value;
             foreach (var voice in voices) voice.mute = !value;
-            Silence(); remaining = 12f; wasAllowed = false;
+            InterruptHowl(); wasAllowed = false;
+        }
+        public void BeginArrivalDelay()
+        {
+            Silence(); remaining = ArrivalDelay; waitingForArrivalHowl = true; wasAllowed = false;
+        }
+        private void InterruptHowl()
+        {
+            Silence();
+            // Focus and sound toggles must not shorten the initial minute of exploration.
+            if (!waitingForArrivalHowl) remaining = 12f;
         }
         public bool CanPlay => Allowed;
         public void RequestHowl() { if (Allowed) { AdvanceAmbience(0); BeginHowl(0); } }
@@ -156,7 +167,7 @@ namespace VRExperienceAGB.Presentation
         }
         private void BeginHowl(int next)
         {
-            Silence(); calling = lastCaller = next; callingTime = 0;
+            Silence(); waitingForArrivalHowl = false; calling = lastCaller = next; callingTime = 0;
             wolves[next].gameObject.SetActive(true);
             voices[next].Play(); remaining = 32 + (float)random.NextDouble() * 22;
         }
@@ -167,8 +178,8 @@ namespace VRExperienceAGB.Presentation
             foreach(var wolf in wolves) if(wolf!=null)wolf.gameObject.SetActive(false);
             calling = -1; callingTime = 0;
         }
-        private void OnApplicationPause(bool value) { paused = value; if (value) { Silence(); remaining = 12; } }
-        private void OnApplicationFocus(bool value) { unfocused = !value; if (!value) { Silence(); remaining = 12; } }
+        private void OnApplicationPause(bool value) { paused = value; if (value) InterruptHowl(); }
+        private void OnApplicationFocus(bool value) { unfocused = !value; if (!value) InterruptHowl(); }
         private void OnDisable() { Silence(); }
         private void OnDestroy()
         {

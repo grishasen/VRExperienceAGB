@@ -53,6 +53,13 @@ namespace VRExperienceAGB.Tests
             Assert.That(UI.BodyText, Does.Contain("-3.8")); Assert.That(pair.A.Evaluation, Is.SameAs(full));
             Click(M5Action.TrailLast); Assert.That(view.Garden.VisiblePlotCount, Is.EqualTo(3));
             Assert.That(UI.BodyText, Does.Contain("-4.1")); Assert.That(pair.A.CompletedCount, Is.Zero);
+            Click(M5Action.ExtensionMore);
+            var body=view.GetComponentsInChildren<TMPro.TMP_Text>().Single(t=>t.name=="Body");body.ForceMeshUpdate();
+            int pages=body.textInfo.pageCount;
+            for(int i=1;i<pages;i++)Click(M5Action.ExtensionMore);
+            Click(M5Action.TrailBaseline);body.ForceMeshUpdate();
+            Assert.That(body.pageToDisplay,Is.InRange(1,System.Math.Max(1,body.textInfo.pageCount)),"Changing iteration cannot leave a blank details page.");
+            Click(M5Action.TrailLast);
             Click(M5Action.TrailInspect); Assert.That(view.Ensemble.Index, Is.EqualTo(2));
             yield return null;
         }

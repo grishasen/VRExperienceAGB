@@ -204,6 +204,10 @@ namespace VRExperienceAGB.Presentation
                 bool visible = View.Director?.PlayingTour!=true && simple && page == NavigationPage.Tree && !HelpOpen && !Garden.Navigation.TreeMenuOpen && count > 0 && i > 0;
                 target.gameObject.SetActive(visible); target.nodeId = slot.nodeId;
                 target.GetComponentInChildren<TMP_Text>(true).text = "Open subtree · " + count + " hidden";
+                if(View.Director!=null) {
+                    var label=target.GetComponentInChildren<TMP_Text>(true);
+                    label.text="Explore +"+count;TreeCardTypography.SetFont(label);label.fontSize=20;
+                }
                 target.GetComponent<UnityEngine.UI.Button>().interactable = View.Session.State.PendingDecision == null;
             }
             if (simple && page == NavigationPage.Tree && (browsing || HelpOpen))

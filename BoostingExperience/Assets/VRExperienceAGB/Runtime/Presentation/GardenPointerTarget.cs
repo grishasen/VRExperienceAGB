@@ -20,7 +20,11 @@ namespace VRExperienceAGB.Presentation
         {
             if (navigationRevision != (garden.Navigation?.Revision ?? 0) || pressed == null || pressed != garden.Experience.Ensemble || pointer != data.pointerId || pressedIndex != index || pressedRevision != pressed.Revision || data.button != PointerEventData.InputButton.Left) return;
             pressed=null;
-            if (garden.Visible) { garden.Activate(command,index); ControllerSelectionFeedback.Pulse(data.pointerId); }
+            if (garden.Visible) {
+                if(command==GardenCommand.SelectTree && garden.Navigation?.Page==NavigationPage.Forest) garden.ShowTreeChoices(index);
+                else garden.Activate(command,index);
+                ControllerSelectionFeedback.Pulse(data.pointerId);
+            }
         }
         public void OnPointerEnter(PointerEventData data) { if (command == GardenCommand.SelectTree && garden.Visible) garden.Hover(index); }
         public void OnPointerExit(PointerEventData data) { pressed=null; if(command==GardenCommand.SelectTree) garden.ClearHover(index); }

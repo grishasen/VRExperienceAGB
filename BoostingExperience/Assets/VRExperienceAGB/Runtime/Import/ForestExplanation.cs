@@ -141,10 +141,13 @@ namespace VRExperienceAGB.Import
                 (data.SampleCount < 100 ? " · REVIEW: below 100 observations" : "") +
                 "\nCount is not a traffic share or observed positives. Node age unverified.";
         }
-        public string NodeDetail(int index, string id)
+        public string NodeDetail(int index, string id, bool compactSource = false)
         {
             var tree = Trees[index]; var node = tree.Nodes[id];
-            string text = "SOURCE " + tree.Tree.Id + "/" + id + "\nSHA-256: " + (SourceSha256 ?? "not supplied") + "\n";
+            // Abbreviate the displayed path only; lookups retain the exact source ID.
+            string displayId = compactSource ? string.Join("/", id.Split('/').Select(part => part == "left" ? "L" : part == "right" ? "R" : part)) : id;
+            string text = "SOURCE " + tree.Tree.Id + "/" + displayId + "\n";
+            if (!compactSource) text += "SHA-256: " + (SourceSha256 ?? "not supplied") + "\n";
             if (node is SplitNode split) {
                 text += split.FeatureId + "\n" + Kind(split) + "\nTRUE: " + Branch(split, true, true) + "\nFALSE: " + Branch(split, false, true) +
                     "\nUsed " + tree.Tree.Nodes.OfType<SplitNode>().Count(n => n.FeatureId == split.FeatureId) + " times here; " + Occurrences(split.FeatureId) + " splits in " + MatchingTrees(split.FeatureId).Length + " trees.";

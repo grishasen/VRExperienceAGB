@@ -40,7 +40,7 @@ namespace VRExperienceAGB.Presentation
         private readonly Transform[] dots = new Transform[2];
         private int builtTree = -1, builtStep = -1;
         private PlaybackPhase shownPhase=(PlaybackPhase)(-1);
-        private bool completeShown, configured, menuPlaced;
+        private bool completeShown, configured;
         private string runA, runB;
         private VRExperienceAGB.Domain.PreparedProfile runProfileA, runProfileB;
         private float startupDelay = .5f;
@@ -63,13 +63,17 @@ namespace VRExperienceAGB.Presentation
             menu.transform.localScale=Vector3.one*.00135f;
             title = Garden.Text(menu.transform,"Title","",new Vector2(-30,340),new Vector2(920,65),42);
             subtitle = Garden.Text(menu.transform,"Subtitle","",new Vector2(0,268),new Vector2(980,65),28);
-            title.richText=false;subtitle.richText=false;subtitle.enableAutoSizing=true;subtitle.fontSizeMin=18;subtitle.fontSizeMax=28;
+            TreeCardTypography.SetFont(title,true);title.fontSize=38;
+            title.richText=false;subtitle.richText=false;subtitle.fontSize=25;subtitle.enableAutoSizing=false;subtitle.overflowMode=TextOverflowModes.Ellipsis;
             content = new GameObject("MenuContent",typeof(RectTransform)).transform; content.SetParent(menu.transform,false);
             AddButton(menu.transform,"X",new Vector2(480,345),new Vector2(75,65),"close");
             AddButton(menu.transform,"Main menu",new Vector2(-340,-350),new Vector2(290,65),"home");
             AddButton(menu.transform,"Position scene",new Vector2(0,-350),new Vector2(290,65),"position");
             AddButton(menu.transform,"Tools",new Vector2(340,-350),new Vector2(290,65),"tools");
-            Garden.Text(menu.transform,"ControllerShortcuts","A: menu  ·  B: center scene  ·  X (left): screenshot",new Vector2(0,-260),new Vector2(1000,45),23);
+            Garden.Text(menu.transform,"ControllerShortcuts","A: menu  ·  B: center  ·  X: screenshot",new Vector2(-140,-260),new Vector2(700,45),22);
+            AddButton(menu.transform,"Details",new Vector2(380,-260),new Vector2(220,48),"page-details");
+            foreach(var text in view.GetComponentsInChildren<TMP_Text>(true)) TreeCardTypography.SetFont(text);
+            TreeCardTypography.SetFont(title,true);
             routeRoot = new GameObject("ProfileRoutePresentation").transform; routeRoot.SetParent(view.presentationRoot,false);
             detailCanvas = Garden.M5.Panel("ProfileExplanation",new Vector2(1100,560),routeRoot);
             detailCanvas.transform.localPosition = new Vector3(0,.6f,2.8f);
@@ -90,18 +94,19 @@ namespace VRExperienceAGB.Presentation
             go.GetComponent<UnityEngine.UI.Image>().color=new Color(.045f,.19f,.25f,.98f);
             go.GetComponent<UnityEngine.UI.Button>().navigation=new UnityEngine.UI.Navigation{mode=UnityEngine.UI.Navigation.Mode.None};
             var target=go.GetComponent<ExperienceMenuTarget>();target.Owner=this;target.Command=command;
-            var label=Garden.Text(go.transform,"Label",text,Vector2.zero,size-new Vector2(22,12),32);
-            label.richText=false;label.enableAutoSizing=true;label.fontSizeMin=20;label.fontSizeMax=32;label.overflowMode=TextOverflowModes.Ellipsis;
+            var label=Garden.Text(go.transform,"Label",text,Vector2.zero,size-new Vector2(22,12),27);
+            label.richText=false;label.enableAutoSizing=false;label.overflowMode=TextOverflowModes.Ellipsis;
             go.AddComponent<ButtonHint>();
         }
         private void Row(string label,string command,int row,int column=0,bool half=false)
         { AddButton(content,label,new Vector2(half?(column==0?-245:245):0,175-row*82),new Vector2(half?460:940,68),command); }
         public void OpenMenu(string page="home")
         {
-            if(!MenuVisible) { wasPaused=View.SessionPausedWithoutSuspension;View.SetSessionPaused(true); }
+            bool opening = !MenuVisible;
+            if(opening) { wasPaused=View.SessionPausedWithoutSuspension;View.SetSessionPaused(true); }
             Garden.Navigation?.InvalidatePointerPresses(); View.NameTooltip?.Hide();
             if(page=="values" && (MenuPage=="profiles" || MenuPage=="compare")) { valuesReturnPage=MenuPage=="compare"?"compare":"profiles";valuePage=0; }
-            MenuPage=page;menu.gameObject.SetActive(true);Revision++;BuildMenu();if(!menuPlaced)PlaceMenu(true);
+            MenuPage=page;menu.gameObject.SetActive(true);Revision++;BuildMenu();if(opening)PlaceMenu(true);
             readingSpace.Hide(View.transform,menu.transform,Revision);
         }
         internal void PrepareSceneRebuild() => readingSpace.Restore();
@@ -243,7 +248,7 @@ namespace VRExperienceAGB.Presentation
             if(Garden.Navigation.Page==NavigationPage.Diorama)Garden.M5.Diorama.Place();
             if(PlayingTour) { PlaceRoute();RenderPlayback(); }
             else View.Refresh();
-            PlaceMenu(true);resultPlaced=false;Garden.Navigation.InvalidatePointerPresses();
+            PlaceMenu(true);Garden.M6.Legend?.Place();resultPlaced=false;Garden.Navigation.InvalidatePointerPresses();
         }
         private void Update()
         {
@@ -257,7 +262,7 @@ namespace VRExperienceAGB.Presentation
         private void LateUpdate()
         {
             if(!configured||!View.Ready)return;
-            // The menu stays anchored in the world until an explicit placement action.
+            // Each opening uses the current viewer pose; page changes and reading stay world-anchored.
             Garden.Navigation.HideLegacyMenus();Garden.M5.HideLegacyTools();Garden.M6.RefreshVisibility();
             if(PlayingTour) {
                 View.presentationRoot.gameObject.SetActive(true);routeRoot.gameObject.SetActive(true);View.drop.gameObject.SetActive(false);
@@ -272,9 +277,8 @@ namespace VRExperienceAGB.Presentation
         }
         private void PlaceMenu(bool immediate)
         {
-            menuPlaced=true;
-            var head=Garden.Locomotion.Head;var forward=Vector3.ProjectOnPlane(head.forward,Vector3.up).normalized;if(forward.sqrMagnitude<.1f)forward=Vector3.forward;
-            var position=head.position+forward*1.45f+Vector3.up*menuHeight;var rotation=Quaternion.LookRotation(forward);
+            var head=Garden.Locomotion.Head;var forward=head.forward.normalized;
+            var position=head.position+forward*1.6f+Vector3.up*menuHeight;var rotation=Quaternion.LookRotation(forward);
             float t=immediate?1:1-Mathf.Exp(-Time.unscaledDeltaTime*4);
             menu.transform.SetPositionAndRotation(Vector3.Lerp(menu.transform.position,position,t),Quaternion.Slerp(menu.transform.rotation,rotation,t));
         }

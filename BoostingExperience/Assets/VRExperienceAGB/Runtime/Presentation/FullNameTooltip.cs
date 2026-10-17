@@ -15,8 +15,10 @@ namespace VRExperienceAGB.Presentation
         private string shownText;
         private object source;
         private bool overPanel;
+        private bool compactNode;
+        public SplitDescriptionContent CompactDescription { get; private set; }
         public bool Pinned { get; private set; }
-        public void TogglePin() { if(!Visible)return;Pinned=!Pinned;hideAt=float.PositiveInfinity;Text.text=(Pinned?"PINNED DETAILS · click panel to unpin":"NODE DETAILS · click to pin · scroll for more")+"\n"+shownText; }
+        public void TogglePin() { if(!Visible)return;Pinned=!Pinned;hideAt=float.PositiveInfinity;if(compactNode)CompactDescription.RefreshPin();else Text.text=(Pinned?"PINNED DETAILS · click panel to unpin":"NODE DETAILS · click to pin · scroll for more")+"\n"+shownText; }
         private float hideAt = float.PositiveInfinity;
         public bool Visible => panel != null && panel.activeSelf;
         public void Build(Transform parent, TMP_Text style)
@@ -51,15 +53,41 @@ namespace VRExperienceAGB.Presentation
                 readingCanvas.gameObject.SetActive(Visible);
             }
             var rect=(RectTransform)panel.transform;
-            rect.anchoredPosition3D=Vector3.zero;rect.sizeDelta=new Vector2(1000,600);
+            rect.anchoredPosition3D=Vector3.zero;rect.sizeDelta=compactNode?new Vector2(580,CompactDescription?.DetailsVisible==true?640:400):new Vector2(1000,600);
+            if(readingCanvas!=null)((RectTransform)readingCanvas.transform).sizeDelta=rect.sizeDelta;
             Text.fontSize=32;
+        }
+        private bool ReadingDetails => Visible && compactNode && CompactDescription!=null && CompactDescription.DetailsVisible;
+        internal void KeepVisible() { hideAt=float.PositiveInfinity; }
+        internal void SetCompactSize(Vector2 size)
+        {
+            ((RectTransform)panel.transform).sizeDelta=size;
+            if(readingCanvas!=null)((RectTransform)readingCanvas.transform).sizeDelta=size;
+        }
+        public void ShowNode(object owner,string id)
+        {
+            var view=GetComponent<OneTreeExperience>();
+            if(view.Director==null) { Show(owner,view.Garden?.M6?.Detail(id)??view.FullNodeName(id));return; }
+            if(Pinned || ReadingDetails)return;
+            if(Visible && compactNode && CompactDescription.NodeId==id) { source=owner;hideAt=float.PositiveInfinity;return; }
+            UseCompactLayout();Show(owner,view.Garden.M6.Detail(id));
+            compactNode=true;
+            if(CompactDescription==null)CompactDescription=SplitDescriptionContent.Create(this,view,panel.transform);
+            scroll.viewport.gameObject.SetActive(false);scroll.enabled=false;
+            CompactDescription.gameObject.SetActive(true);CompactDescription.Show(id);
+
+            var head=view.Garden.Locomotion.Head;var forward=Vector3.ProjectOnPlane(head.forward,Vector3.up).normalized;
+            if(forward.sqrMagnitude<.01f)forward=Vector3.forward;
+            readingCanvas.transform.SetPositionAndRotation(head.position+forward*2.4f+Vector3.Cross(Vector3.up,forward)*1.6f+Vector3.up*.12f,Quaternion.LookRotation(forward));
         }
         public void Show(object owner, string text)
         {
             if(Pinned)return;
-            bool unchanged=Visible && shownText==text;
+            bool unchanged=Visible && shownText==text && !compactNode;
             source=owner; hideAt=float.PositiveInfinity;
             if(unchanged)return;
+            compactNode=false;if(CompactDescription!=null)CompactDescription.gameObject.SetActive(false);
+            scroll.enabled=true;scroll.viewport.gameObject.SetActive(true);UseCompactLayout();
             overPanel=false;shownText=text;
             Text.richText=false;
             Text.text="NODE DETAILS · click to pin · scroll for more\n"+text;
@@ -86,7 +114,7 @@ namespace VRExperienceAGB.Presentation
         }
         public void OnPointerEnter(PointerEventData data) { overPanel=true; }
         public void OnPointerExit(PointerEventData data) { overPanel=false; hideAt=Time.unscaledTime+.7f; }
-        private void Update() { if(!Pinned && !overPanel && Time.unscaledTime>=hideAt) Hide(); }
+        private void Update() { if(!Pinned && !ReadingDetails && !overPanel && Time.unscaledTime>=hideAt) Hide(); }
         private void OnDestroy() { if(panel!=null) Destroy(panel); }
     }
     public sealed class TooltipPanelHover : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler, IPointerClickHandler

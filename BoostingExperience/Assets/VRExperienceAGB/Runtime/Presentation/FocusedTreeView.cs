@@ -147,6 +147,7 @@ namespace VRExperienceAGB.Presentation
                 var node=lookup[addresses[i]];
                 slot.title.text=node is SplitNode split?view.Condition(split,true):"LEAF "+(tree.Weight*((LeafNode)node).Score).ToString("+0.###;-0.###;0",System.Globalization.CultureInfo.InvariantCulture);
                 if (node is SplitNode && addresses[i]!=a && addresses[i]!=b) slot.title.text="Next question · point for details";
+                QuietTreeText.StyleNode(view,slot,node,addresses[i]==a || addresses[i]==b);
                 slot.marker.enabled=addresses[i]==a || addresses[i]==b;
                 slot.marker.text=addresses[i]==a && addresses[i]==b?"A + B":addresses[i]==a?"A":"B";
                 slot.marker.rectTransform.anchoredPosition=new Vector2(0,-60);

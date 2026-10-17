@@ -22,7 +22,7 @@ namespace VRExperienceAGB.Presentation
         private PredictorSearch search;
         private string[] filteredFeatures = Array.Empty<string>();
         private string featureFilter = "";
-        private int featureIndex, occurrenceIndex, detailPage = 1, tab;
+        private int featureIndex, occurrenceIndex, detailPage, tab;
         private PredictorScope scope;
         private string evaluationId;
         private IReadOnlyList<PredictorOccurrence> matches = Array.Empty<PredictorOccurrence>();
@@ -42,6 +42,7 @@ namespace VRExperienceAGB.Presentation
             this.owner = owner;
             panel = owner.Panel("ExplorationExtensions", new Vector2(1160, 920), root);
             panel.overrideSorting = true; panel.sortingOrder = 110;
+            panel.GetComponent<UnityEngine.UI.Image>().color = new Color(.025f, .065f, .085f, 1f);
             heading = Label("Heading", new Vector2(0, 405), new Vector2(1100, 55), 30);
             body = Label("Body", new Vector2(0, 92), new Vector2(1080, 415), 25);
             body.alignment = TextAlignmentOptions.TopLeft; body.overflowMode = TextOverflowModes.Page;
@@ -94,13 +95,13 @@ namespace VRExperienceAGB.Presentation
             EnsureModel();
             if (Garden.Navigation.TreeMenuOpen) Garden.Navigation.ToggleTreeMenu();
             if (ReviewRunning) { ReviewPaused = true; View.Session.SetPaused(true); transport.gameObject.SetActive(false); }
-            tab = selectedTab; PanelOpen = true; detailPage = 1;
+            tab = selectedTab; PanelOpen = true; detailPage = 0;
             if (tab == 0) { SearchActive = true; TrailActive = false; UpdateMatches(); }
             Place(); View.NameTooltip?.Hide(); View.Refresh();
         }
         private void Place()
         {
-            var head = Garden.Locomotion.Head; var forward = head.forward; forward.y = 0;
+            var head = Garden.Locomotion.Head; var forward = head.forward;
             if (forward.sqrMagnitude < .01f) forward = Vector3.forward;
             forward.Normalize(); panel.transform.rotation = Quaternion.LookRotation(forward);
             panel.transform.position = head.position + forward * 1.65f - Vector3.up * .08f;
@@ -126,14 +127,14 @@ namespace VRExperienceAGB.Presentation
             {
                 case M5Action.ExtensionClose: Close(); return;
                 case M5Action.ExtensionClear: SearchActive = TrailActive = false; Garden.M6.LinkFeature(null); break;
-                case M5Action.ExtensionMore: body.ForceMeshUpdate(); detailPage = detailPage % Math.Max(1, body.textInfo.pageCount) + 1; break;
+                case M5Action.ExtensionMore: body.ForceMeshUpdate(); detailPage = detailPage==0?1:detailPage>=Math.Max(1,body.textInfo.pageCount)?0:detailPage+1; break;
                 case M5Action.SearchPreviousFeature: ChangeFeature(-1); break;
                 case M5Action.SearchNextFeature: ChangeFeature(1); break;
                 case M5Action.SearchFilter: BeginTextEntry(1, featureFilter); break;
                 case M5Action.TrailJump: BeginTextEntry(2, Iteration.ToString()); break;
                 case M5Action.SearchScope: scope = scope == PredictorScope.EntireModel ? PredictorScope.CurrentProfilePath : PredictorScope.EntireModel; occurrenceIndex = 0; SearchActive = true; break;
-                case M5Action.SearchPreviousMatch: if (matches.Count > 0) occurrenceIndex = (occurrenceIndex + matches.Count - 1) % matches.Count; detailPage = 1; break;
-                case M5Action.SearchNextMatch: if (matches.Count > 0) occurrenceIndex = (occurrenceIndex + 1) % matches.Count; detailPage = 1; break;
+                case M5Action.SearchPreviousMatch: if (matches.Count > 0) occurrenceIndex = (occurrenceIndex + matches.Count - 1) % matches.Count; detailPage = 0; break;
+                case M5Action.SearchNextMatch: if (matches.Count > 0) occurrenceIndex = (occurrenceIndex + 1) % matches.Count; detailPage = 0; break;
                 case M5Action.SearchInspect:
                     if (matches.Count > 0) { var m = matches[occurrenceIndex]; Close(); Inspect(m.TreeIndex, m.Node.Id); } return;
                 case M5Action.TrailBaseline: Iteration = 0; break;
@@ -155,7 +156,7 @@ namespace VRExperienceAGB.Presentation
         {
             if (filteredFeatures.Length == 0) return;
             featureIndex = (featureIndex + delta + filteredFeatures.Length) % filteredFeatures.Length;
-            occurrenceIndex = 0; detailPage = 1; SearchActive = true;
+            occurrenceIndex = 0; detailPage = 0; SearchActive = true;
         }
         public void Inspect(int tree, string node)
         {
@@ -184,15 +185,18 @@ namespace VRExperienceAGB.Presentation
             if (tab == 0) RefreshSearch();
             else if (tab == 1) RefreshTrail();
             else RefreshReview();
-            body.pageToDisplay = detailPage; body.ForceMeshUpdate();
-            notice.text += "\nDetail page " + detailPage + " / " + Math.Max(1, body.textInfo.pageCount);
-            Enable(M5Action.ExtensionMore, body.textInfo.pageCount > 1);
+            body.pageToDisplay = Math.Max(1,detailPage); body.ForceMeshUpdate();
+            int pages=Math.Max(1,body.textInfo.pageCount);
+            detailPage=Math.Min(detailPage,pages);body.pageToDisplay=Math.Max(1,detailPage);
+            buttons[M5Action.ExtensionMore].GetComponentInChildren<TMP_Text>().text=detailPage==0?"Details":detailPage>=pages?"Summary":"Next details";
+            if(detailPage>0)notice.text += " · " + detailPage + " / " + pages;
+            Enable(M5Action.ExtensionMore, true);
             RefreshKeyboard();
         }
         private void Enable(M5Action action, bool enabled) => buttons[action].GetComponent<UnityEngine.UI.Button>().interactable = enabled;
         private void RefreshSearch()
         {
-            heading.text = "PREDICTOR FIREFLIES";
+            heading.text = "Search predictors";
             string scopeText = scope == PredictorScope.EntireModel ? "Entire model" : "Current profile path";
             body.text = "Feature " + (filteredFeatures.Length == 0 ? 0 : featureIndex + 1) + " / " + filteredFeatures.Length + " (filter: " + (featureFilter.Length == 0 ? "all" : featureFilter) + ")\n" + (Feature ?? "No matching predictors. Clear or change Find feature.") +
                 "\nScope: " + scopeText + " · " + matches.Count + " splits in " + matches.Select(m => m.TreeIndex).Distinct().Count() + " trees\n";
@@ -205,13 +209,19 @@ namespace VRExperienceAGB.Presentation
                 body.text += "Match " + (occurrenceIndex + 1) + " / " + matches.Count + " · iteration " + (m.TreeIndex + 1) + "\n" +
                     Garden.M6.Analysis.NodeDetail(m.TreeIndex, m.Node.Id);
             }
-            notice.text = "Markers use exact feature IDs. Occurrence and gain describe model structure, not causality.";
+            if(detailPage==0) {
+                body.text=(Feature==null?"No matching predictors":Garden.M6.Analysis.Label(Feature))+"\n"+(Feature??"Change the search to continue.")+"\n\n"+
+                    matches.Select(m=>m.TreeIndex).Distinct().Count()+" trees · "+matches.Count+" splits · "+scopeText;
+                if(matches.Count>0) {var m=matches[occurrenceIndex];body.text+="\n\nTree "+(m.TreeIndex+1)+" · Match "+(occurrenceIndex+1)+" / "+matches.Count+"\n"+QuietTreeText.Predicate(m.Node,true);}
+                else if(scope==PredictorScope.CurrentProfilePath && View.Ensemble.Evaluation==null)body.text+="\nChoose a prepared profile to search its path.";
+            }
+            notice.text = "Select a match to inspect it.";
             foreach (var a in new[] { M5Action.SearchPreviousMatch, M5Action.SearchNextMatch, M5Action.SearchInspect }) Enable(a, matches.Count > 0);
             Enable(M5Action.SearchPreviousFeature, filteredFeatures.Length > 1); Enable(M5Action.SearchNextFeature, filteredFeatures.Length > 1);
         }
         private void RefreshTrail()
         {
-            heading.text = "BOOSTING TRAIL · ENSEMBLE PROGRESSION";
+            heading.text = "Boosting trail";
             var points = BoostingProgression.Points(View.Ensemble);
             body.text = "Iteration " + Iteration + " / " + model.Trees.Count + " · 0 is the baseline\n";
             if (points.Count > 0)
@@ -224,7 +234,12 @@ namespace VRExperienceAGB.Presentation
             else body.text += "Structure / manual preview: no profile probability.\nUse Compare synthetic profiles for verified intermediate results.\n";
             if (Iteration > 0) body.text += "\n" + Garden.M6.Analysis.Passport(Iteration - 1);
             body.text += "\n\nHeight = depth; crown = leaf count. Stored gain describes splits. Signed contribution belongs to this profile.\nThis is ensemble progression, not a training-loss curve.";
-            notice.text = "Reveal trees changes visibility only. Every tree remains in evaluation. Return from inspection restores your forest location.";
+            if(detailPage==0) {
+                body.text="Iteration "+Iteration+" / "+model.Trees.Count+"\n\n";
+                if(points.Count>0)body.text+="Profile: "+View.Ensemble.Profile.DisplayName+"\nCurrent score: "+N(points[Iteration].RawScore)+"\nFinal score: "+N(points[points.Count-1].RawScore)+"\n\n"+ModelInsightText.CalibrationNotice;
+                else body.text+="Manual exploration\nChoose a prepared profile to see score progression.";
+            }
+            notice.text = "Reveal changes visibility; all trees remain in calculation.";
             buttons[M5Action.TrailReveal].GetComponentInChildren<TMP_Text>().text = "Reveal trees: " + (TrailActive ? "on" : "off");
             Enable(M5Action.TrailInspect, Iteration > 0); Enable(M5Action.TrailPrevious, Iteration > 0); Enable(M5Action.TrailNext, Iteration < model.Trees.Count);
         }

@@ -32,7 +32,7 @@ namespace VRExperienceAGB.Tests
         {
             var session = view.Session; var model = view.Model; var head = view.Garden.Locomotion.Head;
             var position = head.localPosition; var rotation = head.localRotation;
-            wildlife.AdvanceAmbience(10);
+            wildlife.AdvanceAmbience(60);
             Assert.That(wildlife.Wolves.Count, Is.EqualTo(3));
             Assert.That(wildlife.LastCaller, Is.GreaterThanOrEqualTo(0));
             var root = view.transform.Find("HorizonWildlife");
@@ -45,6 +45,42 @@ namespace VRExperienceAGB.Tests
             Assert.That(view.Session, Is.SameAs(session)); Assert.That(view.Model, Is.SameAs(model));
             Assert.That(head.localPosition, Is.EqualTo(position)); Assert.That(head.localRotation, Is.EqualTo(rotation));
             view.Garden.Navigation.OpenTree(0); Assert.That(root.gameObject.activeInHierarchy, Is.True);
+            yield return null;
+        }
+        [UnityTest]
+        public IEnumerator ArrivalDelaySurvivesInterruptionsAndRestartsOnEveryTreeEntry()
+        {
+            Assert.That(wildlife.SecondsUntilHowl, Is.InRange(59f, 60f));
+            wildlife.AdvanceAmbience(wildlife.SecondsUntilHowl - 1f);
+            Assert.That(wildlife.LastCaller, Is.EqualTo(-1));
+            Assert.That(wildlife.Visible, Is.False);
+
+            wildlife.SetSoundEnabled(false); wildlife.AdvanceAmbience(100);
+            wildlife.SetSoundEnabled(true);
+            wildlife.SendMessage("OnApplicationFocus", false); wildlife.AdvanceAmbience(100);
+            wildlife.SendMessage("OnApplicationFocus", true);
+            wildlife.SendMessage("OnApplicationPause", true); wildlife.AdvanceAmbience(100);
+            wildlife.SendMessage("OnApplicationPause", false);
+            view.Garden.M5.OpenHelp(); wildlife.AdvanceAmbience(100); view.Garden.M5.CloseHelp();
+            Assert.That(wildlife.SecondsUntilHowl, Is.EqualTo(1f).Within(.001f));
+            Assert.That(wildlife.LastCaller, Is.EqualTo(-1));
+            wildlife.AdvanceAmbience(1);
+            Assert.That(wildlife.LastCaller, Is.EqualTo(0));
+            Assert.That(wildlife.Visible, Is.True);
+
+            foreach (int tree in new[] { 0, 1, 0 }) {
+                view.Garden.Navigation.ShowForest(); view.Garden.Navigation.OpenTree(tree);
+                Assert.That(wildlife.SecondsUntilHowl, Is.EqualTo(60f));
+                Assert.That(wildlife.Visible, Is.False);
+                Assert.That(wildlife.Voices.All(v => !v.isPlaying), Is.True);
+                wildlife.AdvanceAmbience(59);
+                Assert.That(wildlife.Visible, Is.False);
+                view.Garden.Navigation.Refresh();
+                Assert.That(wildlife.SecondsUntilHowl, Is.EqualTo(1f), "Refreshing the tree must not restart the timer.");
+                wildlife.AdvanceAmbience(1);
+                Assert.That(wildlife.Visible, Is.True);
+                Assert.That(wildlife.SecondsUntilHowl, Is.InRange(32f, 54f));
+            }
             yield return null;
         }
         [UnityTest]
@@ -64,7 +100,7 @@ namespace VRExperienceAGB.Tests
         public IEnumerator SoundToggleStopsEveryVoiceAndResumesAfterADelay()
         {
             var atmosphere = view.Garden.M5.Atmosphere;
-            wildlife.AdvanceAmbience(10); int first = wildlife.LastCaller;
+            wildlife.AdvanceAmbience(60); int first = wildlife.LastCaller;
             Assert.That(first, Is.GreaterThanOrEqualTo(0));
             atmosphere.SoundEnabled = false; wildlife.AdvanceAmbience(100);
             Assert.That(wildlife.SoundEnabled, Is.False);

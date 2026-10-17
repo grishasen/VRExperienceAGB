@@ -113,8 +113,13 @@ namespace VRExperienceAGB.Tests
                 Assert.That(target.index, Is.Zero);
                 ExecuteEvents.Execute(target.gameObject, pointer, ExecuteEvents.pointerEnterHandler);
                 Assert.That(view.Ensemble.CompletedCount, Is.Zero, "Hover cannot choose a route.");
-                var card = view.transform.Find("ModelPineGarden/TreePlaque-1/HoverBacking");
-                Assert.That(Vector3.Dot(card.forward, (plot.Find("PineCrownTarget-1").position - camera.transform.position).normalized), Is.GreaterThan(.7f), "Hover details face the observer from each approach.");
+                var card = Garden.DescriptionCard;
+                Assert.That(card.Visible, Is.False,"Hover is quiet.");
+                Garden.ShowTreeChoices(0);Assert.That(card.Visible, Is.True);
+                Assert.That(Vector3.Dot(card.transform.forward, (card.transform.position - camera.transform.position).normalized), Is.GreaterThan(.9f), "Hover details face the observer from each approach.");
+                ExecuteEvents.Execute(target.gameObject, pointer, ExecuteEvents.pointerExitHandler);
+                yield return new WaitForSecondsRealtime(1);
+                card.Hide();
             }
         }
         [UnityTest]

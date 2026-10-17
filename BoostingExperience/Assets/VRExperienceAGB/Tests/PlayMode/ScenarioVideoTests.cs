@@ -89,7 +89,7 @@ namespace VRExperienceAGB.Tests
                 // Only the Editor preview camera is moved for this close visual inspection.
                 camera.transform.position=wildlife.Wolves[0].position+new Vector3(0,2,-9);
                 camera.transform.LookAt(wildlife.Wolves[0].position+Vector3.up*1.2f);
-                wildlife.SetSoundEnabled(false);wildlife.SetSoundEnabled(true);wildlife.AdvanceAmbience(13);
+                wildlife.SetSoundEnabled(false);wildlife.SetSoundEnabled(true);wildlife.AdvanceAmbience(60);
                 var active=wildlife.Wolves[0];foreach(var w in wildlife.Wolves)if(w.gameObject.activeSelf)active=w;
                 camera.transform.position=active.position+new Vector3(0,1.4f,-8);camera.transform.LookAt(active.position+Vector3.up);
                 yield return Frames(120,"20 · Wolf appearance, natural howl and departure",()=>wildlife.AdvanceAmbience(1f/Fps));

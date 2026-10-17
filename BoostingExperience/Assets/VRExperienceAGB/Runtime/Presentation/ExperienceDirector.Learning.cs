@@ -15,6 +15,21 @@ namespace VRExperienceAGB.Presentation
         private string textPurpose="", textDraft="", textReturn="home";
         private const string EntryKeys="ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 ._-";
         private TMP_Text readingText;
+        private int describedTree;
+        private string describedNode;
+        private string menuDetails, savedMenuDetails, detailsReturnPage;
+        public void OpenNodeDetails(int index,string nodeId)
+        {
+            if(index<0 || index>=View.Model.Trees.Count || !View.Model.Trees[index].Nodes.Any(n=>n.Id==nodeId))return;
+            describedTree=index;describedNode=nodeId;readingPage=1;View.NameTooltip.Hide();OpenMenu("node-details");
+        }
+        public void OpenTreeDetails(int index)
+        {
+            if(index<0 || index>=View.Model.Trees.Count)return;
+            describedTree=index;readingPage=1;
+            Garden.DescriptionCard?.Hide();
+            OpenMenu("tree-details");
+        }
         public void SetPace(PlaybackPace pace)
         {
             Pace=pace;
@@ -31,14 +46,14 @@ namespace VRExperienceAGB.Presentation
             switch(MenuPage)
             {
                 case "comfort":
-                    title.text="COMFORT AND FEEDBACK";subtitle.text="Teleport targets remain available. Head tracking stays independent.";
+                    title.text="COMFORT AND FEEDBACK";subtitle.text="Movement, sound and feedback.";
                     Row(Garden.Locomotion.WalkEnabled?"Movement: teleport + stick":"Movement: teleport only","walk-mode",0);
                     Row("Walk speed: "+Garden.Locomotion.WalkSpeed.ToString("0.00"),"walk-speed",1,0,true);Row(View.IsSeated?"Layout: seated":"Layout: standing","seated",1,1,true);
                     Row("Transition fade: "+(Garden.Locomotion.ComfortFadeEnabled?"on":"off"),"comfort-fade",2,0,true);Row("Haptics: "+(ControllerSelectionFeedback.Enabled?"on":"off"),"haptics",2,1,true);
                     Row("Ambience: "+(Garden.M5.Atmosphere.AmbienceEnabled?"on":"off"),"ambience",3,0,true);Row("Selection sound: "+(Garden.M5.Atmosphere.CuesEnabled?"on":"off"),"cues",3,1,true);
                     Row("Center scene","recenter",4,0,true);Row("Hear wolves in forest","hear-wolves",4,1,true);break;
                 case "learn":
-                    title.text="LEARN THE FOREST · "+(lessonPage+1)+" / 4";subtitle.text="Read a step, try it, then reopen Learn to continue.";
+                    title.text="LEARN THE FOREST · "+(lessonPage+1)+" / 4";subtitle.text="Read a step, then try it.";
                     string[] lessons={
                         "1. ONE QUESTION\nPoint at a decision. Read its input and two conditions. Choose a branch manually, or let a prepared profile supply the value.\n\nPoint at a label for evidence; click to pin it. Back undoes the accepted decision.",
                         "2. ONE LEAF\nContinue until the route reaches a leaf. Its signed contribution adds to the raw score.\n\nA positive contribution increases the raw score; it is not a probability or proof of model quality.",
@@ -46,22 +61,34 @@ namespace VRExperienceAGB.Presentation
                         "4. COMPARE TWO INPUTS\nReview A and B before playback. In What-if, copy A to B and edit one input. Inspect the first divergence and largest contribution changes.\n\nThis demonstrates model sensitivity, not causality."
                     };
                     var lesson=ReadingBlock(lessons[lessonPage],new Vector2(0,100),new Vector2(950,240));
-                    lesson.enableAutoSizing=true;lesson.fontSizeMin=23;lesson.fontSizeMax=27;
+                    lesson.enableAutoSizing=false;lesson.fontSize=25;
                     Row("Previous lesson","lesson-prev",3,0,true);Row("Next lesson","lesson-next",3,1,true);
                     Row(lessonPage<2?"Try manual branches":lessonPage==2?"Choose a profile":"Compare A / B",lessonPage<2?"single":lessonPage==2?"profiles":"compare",4);break;
                 case "model-info":
-                    title.text="ABOUT THIS MODEL";subtitle.text=CapabilityCopy;
+                    title.text="Model details";subtitle.text=View.Model.Trees.Count+" trees · "+View.Model.Features.Count+" inputs";
                     Row("Model passport","passport",0);Row("Structure and stored gain","structure",1);Row("Feature dictionary","dictionary",2);
                     Row("Terms and calculation","glossary",3);Row("Sources and verification","verification",4);break;
-                case "profile-source":case "input-detail":case "result-details":case "passport":case "structure":case "dictionary":case "glossary":case "verification":
-                    Garden.M6.EnsureModel();var a=Garden.M6.Analysis;
-                    title.text=MenuPage=="profile-source"?"PROFILE SOURCE":MenuPage=="input-detail"?"INPUT DETAILS":MenuPage=="result-details"?"CALCULATION DETAILS":MenuPage.ToUpperInvariant();
-                    string copy=MenuPage=="profile-source"?ProfileSourceCopy():MenuPage=="input-detail"?InputDetailCopy():MenuPage=="result-details"?ResultCopy():MenuPage=="passport"?ModelInsightText.Passport(a):MenuPage=="structure"?ModelInsightText.Structure(a):MenuPage=="dictionary"?ModelInsightText.Dictionary(a):MenuPage=="glossary"?ModelInsightText.Glossary:ModelInsightText.Verification(a);
-                    readingText=ReadingBlock(copy,new Vector2(0,95),new Vector2(960,240));readingText.overflowMode=TextOverflowModes.Page;
+                case "tree-details":case "node-details":
+                    Garden.M6.EnsureModel();
+                    describedTree=Mathf.Clamp(describedTree,0,View.Model.Trees.Count-1);
+                    title.text="Tree "+(describedTree+1).ToString("00")+ (MenuPage=="node-details"?" · Split details":" · Details");
+                    readingText=ReadingBlock(MenuPage=="node-details"?Garden.M6.Analysis.NodeDetail(describedTree,describedNode):TreeDetailsCopy(describedTree),new Vector2(0,100),new Vector2(940,232));
+                    TreeCardTypography.Apply(readingText);readingText.fontSize=28;
+                    readingText.overflowMode=TextOverflowModes.Page;
                     readingText.ForceMeshUpdate();readingPage=Mathf.Clamp(readingPage,1,Math.Max(1,readingText.textInfo.pageCount));readingText.pageToDisplay=readingPage;
-                    subtitle.text="Page "+readingPage+" / "+Math.Max(1,readingText.textInfo.pageCount)+" · exact identifiers and source evidence retained";
+                    subtitle.text="Page "+readingPage+" / "+Math.Max(1,readingText.textInfo.pageCount);
                     Row("Previous page","reading-prev",3,0,true);Row("Next page","reading-next",3,1,true);
-                    if(MenuPage=="input-detail" || MenuPage=="profile-source") { Row("Back to inputs","values",4); }
+                    Row("Back to scene","close",4,0,true);Row("About model","model-info",4,1,true);break;
+                case "menu-details":case "profile-source":case "input-detail":case "result-details":case "passport":case "structure":case "dictionary":case "glossary":case "verification":
+                    Garden.M6.EnsureModel();var a=Garden.M6.Analysis;
+                    title.text=MenuPage=="menu-details"?"Details":MenuPage=="profile-source"?"PROFILE SOURCE":MenuPage=="input-detail"?"INPUT DETAILS":MenuPage=="result-details"?"CALCULATION DETAILS":MenuPage.ToUpperInvariant();
+                    string copy=MenuPage=="menu-details"?savedMenuDetails:MenuPage=="profile-source"?ProfileSourceCopy():MenuPage=="input-detail"?InputDetailCopy():MenuPage=="result-details"?ResultCopy():MenuPage=="passport"?ModelInsightText.Passport(a):MenuPage=="structure"?ModelInsightText.Structure(a):MenuPage=="dictionary"?ModelInsightText.Dictionary(a):MenuPage=="glossary"?ModelInsightText.Glossary:ModelInsightText.Verification(a);
+                    readingText=ReadingBlock(copy,new Vector2(0,100),new Vector2(940,232));readingText.overflowMode=TextOverflowModes.Page;
+                    readingText.ForceMeshUpdate();readingPage=Mathf.Clamp(readingPage,1,Math.Max(1,readingText.textInfo.pageCount));readingText.pageToDisplay=readingPage;
+                    subtitle.text="Page "+readingPage+" / "+Math.Max(1,readingText.textInfo.pageCount);
+                    Row("Previous page","reading-prev",3,0,true);Row("Next page","reading-next",3,1,true);
+                    if(MenuPage=="menu-details") { Row("Back","details-back",4); }
+                    else if(MenuPage=="input-detail" || MenuPage=="profile-source") { Row("Back to inputs","values",4); }
                     else if(MenuPage=="result-details") { Row("Back to result","result",4,0,true);Row("What-if · edit B","what-if",4,1,true); }
                     else { Row("About model","model-info",4,0,true);Row(MenuPage=="glossary"?"Try a Missing example":"Inspect a predictor",MenuPage=="glossary"?"missing-example":"search",4,1,true); }break;
                 case "text-entry":
@@ -72,7 +99,8 @@ namespace VRExperienceAGB.Presentation
                     AddButton(content,"Cancel",new Vector2(0,-220),new Vector2(300,45),"entry-cancel");break;
                 case "performance":
                     title.text="PERFORMANCE CAPTURE";subtitle.text=Performance.Status;
-                    ReadingBlock("Capture 60 seconds in the current scene after a 3-second warm-up. Close the menu and use the scene normally.\n\nEditor captures are diagnostic only. Quest acceptance requires an active headset and the target build. The report includes frame times, available CPU/GPU timing, memory and view transitions.\n\n"+Performance.LastPath,new Vector2(0,70),new Vector2(950,290));
+                    menuDetails += "\n\n60 seconds after a 3-second warm-up. Reports include frame time, CPU/GPU timing, memory and view transitions.\nEditor captures are diagnostic only; Quest acceptance needs the target build and an active headset.\n\n"+Performance.LastPath;
+                    ReadingBlock("Record 60 seconds.\nClose this menu and explore normally.\n\n"+(Performance.LastPath.Length>0?"Last capture saved. See Details for its location.":""),new Vector2(0,70),new Vector2(950,290));
                     Row(Performance.Recording?"Stop and save":"Start 60-second capture",Performance.Recording?"performance-stop":"performance-start",4);break;
             }
         }
@@ -83,12 +111,26 @@ namespace VRExperienceAGB.Presentation
             return "A · "+CdhSourceText.Describe(profiles[SelectedA])+
                 (valuesReturnPage=="compare"?"\n\nB · "+CdhSourceText.Describe(profiles[SelectedB]):"");
         }
+        internal string TreeDetailsCopy(int index)
+        {
+            Garden.M6.EnsureModel();
+            var analysis=Garden.M6.Analysis;
+            var tree=View.Model.Trees[index];
+            var root=tree.Nodes.First(n=>n.Id==tree.RootId);
+            string condition=root is VRExperienceAGB.Domain.SplitNode split?analysis.NodeDetail(index,split.Id,compactSource:true):"Single leaf; no split.";
+            var identifiers=tree.Nodes.OfType<VRExperienceAGB.Domain.SplitNode>().Select(n=>n.FeatureId).Distinct().OrderBy(id=>id,StringComparer.Ordinal);
+            return analysis.Passport(index)+"\n\n"+Garden.TreeContributionCopy(index)+
+                "\n\nROOT CONDITION\n"+condition+"\n\nPREDICTOR IDENTIFIERS\n"+string.Join("\n",identifiers)+
+                "\n\nStored gain describes split structure, not a profile contribution or probability.\nTree numbers preserve export order.";
+        }
         private TMP_Text ReadingBlock(string copy,Vector2 position,Vector2 size)
         {
             var t=Garden.Text(content,"Reading",copy,position,size,27);t.alignment=TextAlignmentOptions.TopLeft;t.richText=false;return t;
         }
         private bool ActivateLearning(string command)
         {
+            if(command=="page-details") { savedMenuDetails=menuDetails;detailsReturnPage=MenuPage;readingPage=1;OpenMenu("menu-details");return true; }
+            if(command=="details-back") { OpenMenu(detailsReturnPage??"home");return true; }
             if(command=="hear-wolves") {
                 Activate("forest");Garden.M5.Atmosphere.SoundEnabled=true;Garden.M5.Atmosphere.AmbienceEnabled=true;
                 Garden.M5.Atmosphere.Wildlife.RequestHowl();return true;

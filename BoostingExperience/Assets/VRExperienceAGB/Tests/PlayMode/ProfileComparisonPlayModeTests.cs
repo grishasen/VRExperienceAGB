@@ -115,6 +115,8 @@ namespace VRExperienceAGB.Tests
             Assert.That(canvas.GetComponent<UnityEngine.UI.GraphicRaycaster>(), Is.Not.Null);
             Assert.That(canvas.GetComponentInChildren<Oculus.Interaction.PointableCanvas>(), Is.Not.Null);
             Assert.That(view.Garden.M6.StoryText.gameObject.activeInHierarchy, Is.False);
+            Assert.That(UI.DetailText, Does.Not.Contain("A path:"));
+            Click(M5Action.CompareNextDetail);
             Assert.That(UI.DetailText, Does.Contain("A path:")); Assert.That(UI.DetailText, Does.Contain("B path:"));
             var text = canvas.GetComponentsInChildren<TMPro.TMP_Text>().Single(t => t.name == "Details");
             text.ForceMeshUpdate(); Assert.That(text.textInfo.pageCount, Is.GreaterThan(1));

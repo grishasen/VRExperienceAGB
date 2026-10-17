@@ -27,7 +27,7 @@ namespace VRExperienceAGB.Presentation
                 (!DifferencesOnly || b == null || !SameValue(a.GetValue(f.Id), b.GetValue(f.Id)))).ToArray();
             int pages = Math.Max(1, (features.Length + InputRows - 1) / InputRows);
             valuePage = Math.Max(0, Math.Min(valuePage, pages - 1));
-            subtitle.text = "A: " + a.DisplayName + (b == null ? "" : " · B: " + b.DisplayName) + "\nPage " + (valuePage + 1) + " / " + pages + " · " + features.Length + " inputs · Missing differs from Not supplied";
+            subtitle.text = "A: " + a.DisplayName + (b == null ? "" : " · B: " + b.DisplayName) + "\nPage " + (valuePage + 1) + " / " + pages + " · " + features.Length + " inputs";
             AddButton(content, "Back to selection", new Vector2(-320,175), new Vector2(300,60), "values-back");
             AddButton(content, DifferencesOnly ? "Differences only" : "All inputs", new Vector2(0,175), new Vector2(300,60), "values-diff");
             AddButton(content, ValueSearch.Length == 0 ? "Search inputs" : "Search: " + ValueSearch, new Vector2(320,175), new Vector2(300,60), "values-search");
@@ -40,14 +40,14 @@ namespace VRExperienceAGB.Presentation
                 float y = 63 - row * 50;
                 AddButton(content,"",new Vector2(0,y),new Vector2(965,46),"input-detail:"+View.Model.Features.ToList().IndexOf(f));
                 var av = a.GetValue(f.Id); var bv = b?.GetValue(f.Id);
-                InputCell("Feature-" + row, View.FeatureLabel(f.Id) + (string.IsNullOrEmpty(f.Unit) ? "" : " (" + f.Unit + ")"), -230, y, 490, 46);
+                InputCell("Feature-" + row, View.FeatureLabel(f.Id) + (string.IsNullOrEmpty(f.Unit) ? "" : " (" + f.Unit + ")"), -230, y, 490, 46).color=PredictorPalette.ForFeature(f.Id);
                 InputCell("A-" + row, Value(av), 120, y, 180, 46);
                 if (b != null) InputCell("B-" + row, (SameValue(av,bv.Value) ? "= " : "≠ ") + Value(bv.Value), 350, y, 210, 46);
                 row++;
             }
             if (features.Length == 0) InputCell("NoInputs", View.Model.Features.Count==0?"This model has only constant leaves and uses no predictors.":"No inputs match this filter.", 0, 40, 900, 80);
             AddButton(content,"Previous",new Vector2(-320,-153),new Vector2(300,68),"values-prev");
-            AddButton(content,"Profile source",new Vector2(0,-153),new Vector2(300,68),"profile-source");
+            AddButton(content,"Details",new Vector2(0,-153),new Vector2(300,68),"profile-source");
             AddButton(content,"Next",new Vector2(320,-153),new Vector2(300,68),"values-next");
         }
         private string InputDetailCopy()
@@ -60,11 +60,12 @@ namespace VRExperienceAGB.Presentation
                 "\n\nExact values\nA · "+a.DisplayName+": "+Exact(a.GetValue(f.Id))+(b==null?"":"\nB · "+b.DisplayName+": "+Exact(b.GetValue(f.Id)))+
                 "\n\nMissing and Not supplied are distinct input states. Names do not establish feature-preparation rules.";
         }
-        private void InputCell(string name, string text, float x, float y, float width, float height)
+        private TMP_Text InputCell(string name, string text, float x, float y, float width, float height)
         {
             var label = Garden.Text(content, name, text, new Vector2(x,y), new Vector2(width,height), 23);
             label.richText = false; label.alignment = TextAlignmentOptions.MidlineLeft;
             label.overflowMode = TextOverflowModes.Ellipsis;
+            return label;
         }
     }
 }

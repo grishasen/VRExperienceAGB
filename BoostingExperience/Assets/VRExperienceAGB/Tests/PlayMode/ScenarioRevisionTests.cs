@@ -154,6 +154,8 @@ namespace VRExperienceAGB.Tests
         }
         [UnityTest] public IEnumerator DistantDetailsCullWithoutRemovingTreesAndRestoreNearViewer()
         {
+            // This test drives hover explicitly; the desktop cursor must not re-enter a crown.
+            Object.FindAnyObjectByType<DesktopTreePreview>().enabled=false;
             view.Director.Activate("forest");yield return null;
             var garden=view.transform.Find("ModelPineGarden");
             var compositions=garden.GetComponentsInChildren<Canvas>(true).Where(c=>c.name=="PredictorComposition").ToArray();
@@ -167,8 +169,9 @@ namespace VRExperienceAGB.Tests
             Assert.That(view.Garden.VisiblePlotCount,Is.EqualTo(100));
             var first=garden.Find("ModelTree-1");
             view.Garden.Locomotion.Head.position=first.position+new Vector3(0,1.5f,-10);
-            view.Garden.Hover(0);
-            Assert.That(garden.Find("TreePlaque-1/HoverBacking").gameObject.activeInHierarchy,Is.True,"Distant crown selection must still show its readable card.");
+            view.Garden.Hover(0);Assert.That(view.Garden.DescriptionCard.Visible,Is.False);
+            view.Garden.ShowTreeChoices(0);
+            Assert.That(view.Garden.DescriptionCard.Visible,Is.True,"Distant crown selection must still show its readable card.");
             view.Garden.ClearHover(0);yield return null;
             Assert.That(garden.Find("TreePlaque-1").gameObject.activeSelf,Is.False);
             var scenery=garden.GetComponent<ForestPerimeterScenery>();Assert.That(scenery,Is.Not.Null);
@@ -191,22 +194,17 @@ namespace VRExperienceAGB.Tests
             owner.OnPointerEnter(new PointerEventData(EventSystem.current));
             yield return null;
             Assert.That(tooltip.Visible,Is.True);
-            Assert.That(tooltip.Text.fontSize,Is.EqualTo(32));
-            Assert.That(tooltip.Text.GetComponentInParent<Canvas>().sortingOrder,Is.EqualTo(1000));
-            Assert.That(tooltip.Text.enableAutoSizing,Is.False);
-            Assert.That(tooltip.Text.text,Does.Contain("SEGMENT").And.Contain("SOURCE"));
-            var scroll=tooltip.Text.GetComponentInParent<UnityEngine.UI.ScrollRect>();
-            Assert.That(scroll.content.rect.height,Is.GreaterThan(scroll.viewport.rect.height));
-            scroll.verticalNormalizedPosition=.4f;
-            var position=scroll.content.anchoredPosition;var world=scroll.transform.position;
-            var revision=view.Session.State.Revision;
+            Assert.That(tooltip.CompactDescription,Is.Not.Null);
+            Assert.That(tooltip.CompactDescription.PredicateText.font.name,Is.EqualTo("Inter-SemiBold"));
+            Assert.That(tooltip.CompactDescription.PredicateText.enableAutoSizing,Is.False);
+            var canvas=tooltip.CompactDescription.GetComponentInParent<Canvas>();
+            Assert.That(((RectTransform)canvas.transform).sizeDelta,Is.EqualTo(new Vector2(580,400)));
+            var world=canvas.transform.position;var revision=view.Session.State.Revision;
             yield return new WaitForSecondsRealtime(.6f);
-            Assert.That(tooltip.Visible,Is.True);
-            Assert.That(Vector2.Distance(position,scroll.content.anchoredPosition),Is.LessThan(.1f));
-            Assert.That(Vector3.Distance(world,scroll.transform.position),Is.LessThan(.001f));
+            Assert.That(tooltip.Visible,Is.True);Assert.That(canvas.transform.position,Is.EqualTo(world));
             Assert.That(view.Session.State.Revision,Is.EqualTo(revision));
-            Assert.That(tooltip.Text.GetComponent<UnityEngine.UI.ContentSizeFitter>(),Is.Null);
-            Assert.That(view.explanation.fontSizeMin,Is.GreaterThanOrEqualTo(30));
+            Assert.That(view.Garden.M6.EdgeLabels.All(t=>!t.gameObject.activeInHierarchy),Is.True);
+
         }
         [UnityTest] public IEnumerator SampleProfilesMatchIndependentReferenceForEveryLeaf()
         {
@@ -296,11 +294,15 @@ namespace VRExperienceAGB.Tests
             Assert.That(view.nodeViews.Count(n=>n.gameObject.activeSelf),Is.LessThanOrEqualTo(7));
             yield return null;
         }
-        [UnityTest] public IEnumerator AnchoredMenuAndTreeEntryFollowOnlyDeliberatePlacement()
+        [UnityTest] public IEnumerator MenuReopensAheadAndStaysAnchoredWhileReading()
         {
             var d=view.Director;var head=view.Garden.Locomotion.Head;
             d.OpenMenu();var menu=view.transform.Find("UnifiedExperienceMenu");var p=menu.position;var q=menu.rotation;
             head.localRotation=Quaternion.Euler(0,95,0);d.SendMessage("LateUpdate");d.CloseMenu();d.OpenMenu("tools");
+            Assert.That(Vector3.Dot((menu.position-head.position).normalized,head.forward),Is.GreaterThan(.99f));
+            Assert.That(menu.position,Is.Not.EqualTo(p));
+            p=menu.position;q=menu.rotation;
+            head.localRotation=Quaternion.Euler(0,110,0);d.OpenMenu("help");d.SendMessage("LateUpdate");
             Assert.That(menu.position,Is.EqualTo(p));Assert.That(menu.rotation,Is.EqualTo(q));
             d.Activate("single");var local=head.localPosition;var rotation=head.localRotation;
             view.Garden.Navigation.OpenTree(0);
@@ -415,7 +417,7 @@ namespace VRExperienceAGB.Tests
             var wildlife=view.Garden.M5.Atmosphere.Wildlife;wildlife.enabled=false;
             wildlife.SendMessage("OnApplicationFocus",true);wildlife.SendMessage("OnApplicationPause",false);
             wildlife.SetSoundEnabled(false);Assert.That(wildlife.Visible,Is.False);
-            wildlife.SetSoundEnabled(true);wildlife.AdvanceAmbience(13);Assert.That(wildlife.Visible,Is.True);
+            wildlife.SetSoundEnabled(true);wildlife.AdvanceAmbience(60);Assert.That(wildlife.Visible,Is.True);
             wildlife.AdvanceAmbience(8);Assert.That(wildlife.Visible,Is.False);
             yield return null;
         }

@@ -15,7 +15,7 @@ namespace VRExperienceAGB.Presentation
                 {
                 string id=node == null ? experience.Session.State.NodeId : node.nodeId;
                 experience.Garden?.M6?.Point(this,id);
-                experience.NameTooltip.Show(this, experience.Garden?.M6?.Detail(id) ?? experience.FullNodeName(id));
+                experience.NameTooltip.ShowNode(this,id);
             }
         }
         public void OnPointerExit(PointerEventData data) { if (experience != null) { experience.NameTooltip?.Leave(this); experience.Garden?.M6?.Leave(this); } }

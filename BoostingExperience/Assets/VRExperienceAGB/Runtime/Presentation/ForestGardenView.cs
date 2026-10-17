@@ -27,6 +27,7 @@ namespace VRExperienceAGB.Presentation
         public int PlotCount => plots.Count;
         public IReadOnlyList<GardenTreeMetrics> Metrics => metrics;
         public TMP_Text Details { get; private set; }
+        public TreeDescriptionCard DescriptionCard { get; private set; }
         public GameObject EnterButton { get; private set; }
         public GameObject PreviousButton { get; private set; }
         public GameObject NextButton { get; private set; }
@@ -36,7 +37,7 @@ namespace VRExperienceAGB.Presentation
         {
             public Transform root;
             public Canvas plaque;
-            public TMP_Text label, hoverLabel, linkLabel;
+            public TMP_Text label, linkLabel;
             public Renderer ring, ringB;
             public Canvas crownTarget;
             public Transform composition;
@@ -104,7 +105,7 @@ namespace VRExperienceAGB.Presentation
             if (garden != Visible)
             {
                 if (garden) { root.SetActive(true); Locomotion.SetGarden(true); PlaceGuide(); }
-                else { root.SetActive(false); hovered=-1; Locomotion.SetGarden(false); }
+                else { DescriptionCard.Hide();root.SetActive(false); hovered=-1; Locomotion.SetGarden(false); }
             }
             foreach(var entry in walkthroughObjects) entry.Key.SetActive(!garden && entry.Value);
             if(garden)RefreshState();
@@ -129,6 +130,7 @@ namespace VRExperienceAGB.Presentation
             builtModel=Experience.Model;metrics=builtModel.Trees.Select(t=>new GardenTreeMetrics(t)).ToArray();
             maximumContribution=builtModel.Trees.SelectMany(t=>t.Nodes.OfType<LeafNode>().Select(n=>Math.Abs(t.Weight*n.Score))).DefaultIfEmpty(0).Max();
             root=new GameObject("ModelPineGarden");root.transform.SetParent(Experience.transform,false);root.SetActive(false);
+            DescriptionCard=TreeDescriptionCard.Create(this,root.transform);
             int rows=(metrics.Length+TreesPerBed-1)/TreesPerBed;
             float length=rows*4.8f+12;
             var groundBounds=new Bounds(new Vector3(0,0,length*.5f-3),new Vector3(42,0,length+10));
@@ -251,19 +253,10 @@ namespace VRExperienceAGB.Presentation
             pineTarget.name="PinePointerTarget-"+(index+1);pineTarget.GetComponent<UnityEngine.UI.Image>().color=Color.clear;
             var button=Button(plaque,"",Vector2.zero,new Vector2(360,62),GardenCommand.SelectTree,index,25);
             button.name="PlanterName-"+(index+1);button.GetComponent<UnityEngine.UI.Image>().color=new Color(.015f,.035f,.045f,.96f);
-            var hoverLabel=Text(plaque.transform,"HoverDetails","",new Vector2(0,420),new Vector2(500,390),21);
-            var backing=new GameObject("HoverBacking",typeof(RectTransform),typeof(UnityEngine.UI.Image));
-            backing.transform.SetParent(plaque.transform,false);
-            backing.transform.localScale=Vector3.one*.8f;
-            backing.transform.localPosition=new Vector3(520,420,400);
-            hoverLabel.transform.SetParent(backing.transform,false);hoverLabel.rectTransform.anchoredPosition=Vector2.zero;hoverLabel.enableAutoSizing=true;hoverLabel.fontSizeMin=24;hoverLabel.fontSizeMax=26;hoverLabel.rectTransform.sizeDelta=new Vector2(620,450);hoverLabel.richText=false;
-            ((RectTransform)backing.transform).sizeDelta=new Vector2(650,480);
-            backing.GetComponent<UnityEngine.UI.Image>().color=new Color(.025f,.065f,.085f,.96f);
-            backing.GetComponent<UnityEngine.UI.Image>().raycastTarget=false;
             var linkCanvas=CanvasAt("PredictorMatch",new Vector3(0,tree.PineHeight+1.5f,0),new Vector2(700,95),.0024f,container,false);
             var linkLabel=Text(linkCanvas.transform,"Match","",Vector2.zero,new Vector2(700,95),25);
             M6.AddComposition(container,index,new Vector3(0,.48f,-1.12f),.002f);
-            plots.Add(new Plot{root=container,predictorMarker=CreatePredictorMarker(container,tree.PineHeight),composition=container.Find("PredictorComposition"),plaque=plaque,crownTarget=crown,label=button.GetComponentInChildren<TMP_Text>(),hoverLabel=hoverLabel,linkLabel=linkLabel,ring=ring,ringB=ringB,ringScale=ring.transform.localScale});
+            plots.Add(new Plot{root=container,predictorMarker=CreatePredictorMarker(container,tree.PineHeight),composition=container.Find("PredictorComposition"),plaque=plaque,crownTarget=crown,label=button.GetComponentInChildren<TMP_Text>(),linkLabel=linkLabel,ring=ring,ringB=ringB,ringScale=ring.transform.localScale});
         }
         internal GameObject CreatePredictorMarker(Transform parent,float pineHeight,float scale=1)
         {
@@ -379,8 +372,29 @@ namespace VRExperienceAGB.Presentation
         }
         public void RefreshExplanationLinks() { if (root != null) RefreshState(); if(M5?.Diorama?.Visible==true)M5.Diorama.Refresh(); }
         internal bool IsPredictorMatch(int index) => M5.Extensions.SearchActive ? M5.Extensions.Matches(index) : M6.LinkedFeature!=null && M6.Analysis.MatchingTrees(M6.LinkedFeature).Contains(index);
-        public void Hover(int index) { if(index>=0&&index<PlotCount){hovered=index;RefreshState();} }
+        public void Hover(int index) { if(index>=0&&index<PlotCount && Experience.Director?.MenuVisible!=true){hovered=index;RefreshState();} }
         public void ClearHover(int index) { if(hovered==index){hovered=-1;hoverDirty=true;} }
+        public void ShowTreeChoices(int index)
+        {
+            if(!Visible || index<0 || index>=PlotCount || Experience.Director?.MenuVisible==true ||
+                M5.HelpOpen || M5.Comparison.PanelOpen || M5.Extensions.PanelOpen)return;
+            DescriptionCard.Show(index);
+        }
+        public string TreeContributionCopy(int index)
+        {
+            var row=Experience.Ensemble.Ledger[index];
+            bool reached=row.Progress!=ContributionProgress.Pending;
+            double value=row.PresentedContribution;
+            if(M5.Extensions.TrailActive && Experience.Ensemble.Evaluation!=null) {
+                reached=index<M5.Extensions.Iteration;value=Experience.Ensemble.Evaluation.Trees[index].Contribution;
+            }
+            if(Experience.Director!=null && Experience.Director.TryContribution(index,false,out var result)) { reached=true;value=result; }
+            string signed=value.ToString("+0.###;-0.###;0",System.Globalization.CultureInfo.InvariantCulture);
+            if(Experience.Director!=null && Experience.Director.TryContribution(index,true,out var b))
+                return "A: "+signed+"  ·  B: "+b.ToString("+0.###;-0.###;0",System.Globalization.CultureInfo.InvariantCulture);
+            return reached?(Experience.Ensemble.Mode==ExperienceMode.Manual?"Route contribution: ":"Profile contribution: ")+signed:
+                Experience.Ensemble.Trees[index].State.Decisions.Count>0?"Leaf not reached":"Not visited";
+        }
         private void RefreshDetails()
         {
             if(simplifiedNavigation)return;
@@ -429,12 +443,8 @@ namespace VRExperienceAGB.Presentation
                 plots[i].linkLabel.text=linked?"Selected predictor: "+M6.Analysis.Label(linkedFeature):"";
                 plots[i].linkLabel.transform.parent.gameObject.SetActive(linked);
                 plots[i].predictorMarker.SetActive(linked);
-                plots[i].hoverLabel.transform.parent.gameObject.SetActive(i==hovered);
-                string value=contribution.ToString("+0.###;-0.###;0",System.Globalization.CultureInfo.InvariantCulture);
-                string route=reached?(Experience.Ensemble.Mode==ExperienceMode.Manual?"Route contribution: ":"Profile contribution: ")+value:"Contribution not reached";
-                if(hasB){Experience.Director.TryContribution(i,true,out var bv);route="A: "+value+" · B: "+bv.ToString("+0.###;-0.###;0",System.Globalization.CultureInfo.InvariantCulture);}
-                plots[i].hoverLabel.text=M6.Analysis.Passport(i)+"\n"+route+"\n"+(linkedFeature==null?"Point at node names to link predictors":"Selected predictor: "+M6.Analysis.Label(linkedFeature)+" · "+(linked?"in search scope":"outside search scope"))+"\nTrigger / Click to explore";
             }
+            if(DescriptionCard.Visible)DescriptionCard.RefreshContent();
             if(simplifiedNavigation) { Navigation.Refresh(); RefreshNearbyPlaques(); return; }
             if(shownBed!=bed)
             {
@@ -492,10 +502,6 @@ namespace VRExperienceAGB.Presentation
                     plot.label.fontSize=Mathf.Clamp(distance*6.4f,32,50);
                     var direction=plot.crownTarget.transform.position-Locomotion.Head.position;direction.y=0;
                     if(direction.sqrMagnitude>.01f)plot.crownTarget.transform.rotation=Quaternion.LookRotation(direction);
-                    var card=plot.hoverLabel.transform.parent;
-                    var cardDirection=plot.crownTarget.transform.position-Locomotion.Head.position;
-                    card.position=Locomotion.Head.position+cardDirection.normalized*Mathf.Min(2.2f,cardDirection.magnitude)+plot.crownTarget.transform.right*.65f;
-                    card.rotation=Quaternion.LookRotation(card.position-Locomotion.Head.position);
                 }
 
             }
@@ -528,7 +534,7 @@ namespace VRExperienceAGB.Presentation
         internal TMP_Text Text(Transform parent,string name,string text,Vector2 position,Vector2 size,int fontSize)
         {
             var go=new GameObject(name,typeof(RectTransform),typeof(TextMeshProUGUI));go.transform.SetParent(parent,false);
-            var label=go.GetComponent<TextMeshProUGUI>();label.font=Experience.status.font;label.fontSharedMaterial=Experience.status.fontSharedMaterial;
+            var label=go.GetComponent<TextMeshProUGUI>();TreeCardTypography.SetFont(label);label.fontStyle=FontStyles.Normal;label.enableAutoSizing=false;label.richText=false;
             label.text=text;label.fontSize=fontSize;label.color=new Color(.88f,.96f,.94f);label.alignment=TextAlignmentOptions.Center;label.raycastTarget=false;
             label.textWrappingMode=TextWrappingModes.Normal;label.rectTransform.sizeDelta=size;label.rectTransform.anchoredPosition=position;return label;
         }

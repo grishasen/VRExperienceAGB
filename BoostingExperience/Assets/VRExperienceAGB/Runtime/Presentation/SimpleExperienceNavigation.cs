@@ -54,7 +54,7 @@ namespace VRExperienceAGB.Presentation
 
             forest=Panel("ForestNavigation",new Vector2(600,210),root);
             garden.Button(forest,"Menu · A / Tab",new Vector2(0,60),new Vector2(350,64),GardenCommand.Home,0,27);
-            garden.Text(forest.transform,"Hint","Point at a crown · Trigger to enter\nLeft stick: walk · Right stick: turn\nPath markers: teleport",new Vector2(0,-36),new Vector2(565,105),25);
+            garden.Text(forest.transform,"Hint","Select a crown · Choose Explore tree\nLeft stick: walk · Right stick: turn\nPath markers: teleport",new Vector2(0,-36),new Vector2(565,105),25);
             Refresh();Place();
         }
         private Canvas Panel(string name,Vector2 size,Transform root)
@@ -86,6 +86,7 @@ namespace VRExperienceAGB.Presentation
             View.SelectGardenTree(index);
             Page=NavigationPage.Tree;Revision++;
             View.EnterNavigationTree();
+            garden.M5?.Atmosphere.Wildlife.BeginArrivalDelay();
             Refresh();
         }
         public bool Activate(GardenCommand command,int index)
@@ -148,6 +149,9 @@ namespace VRExperienceAGB.Presentation
             // Lower the diagram instead of moving tracking. Keep the table's base at floor level in either posture.
             View.presentationRoot.localPosition=new Vector3(0,View.IsSeated?-.4f:0,0);
             var console=View.explanation.transform.parent;
+            // Meta rays hit the canvas rectangle before uGUI checks its visible graphics.
+            // Keep this lower control surface away from the node labels behind it.
+            ((RectTransform)console).sizeDelta=new Vector2(1000,400);
             console.localPosition=new Vector3(0,.85f,3.25f);
             var stone=View.presentationRoot.Find("ConsoleStone");
             if(stone!=null) { stone.localPosition=new Vector3(0,View.IsSeated?.75f:.55f,3.93f);stone.localScale=new Vector3(3.3f,View.IsSeated?.618f:1.03f,.52f); }

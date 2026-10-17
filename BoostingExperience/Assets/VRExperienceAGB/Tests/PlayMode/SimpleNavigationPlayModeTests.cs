@@ -27,6 +27,10 @@ namespace VRExperienceAGB.Tests
         {
             var p=new PointerEventData(EventSystem.current){pointerId=77,button=PointerEventData.InputButton.Left};
             ExecuteEvents.Execute(target,p,ExecuteEvents.pointerDownHandler);ExecuteEvents.Execute(target,p,ExecuteEvents.pointerUpHandler);ExecuteEvents.Execute(target,p,ExecuteEvents.pointerClickHandler);
+            if(target.GetComponent<GardenPointerTarget>()?.command==GardenCommand.SelectTree && Garden.DescriptionCard.Visible) {
+                var explore=Garden.DescriptionCard.GetComponentsInChildren<TreeCardButton>().Single(t=>t.Explore);
+                explore.OnPointerDown(p);explore.OnPointerClick(p);
+            }
         }
         private void Action(TreeAction action)
         {var s=view.Session.State;view.Execute(action,s.Revision,s.NodeId);}
@@ -159,8 +163,7 @@ namespace VRExperienceAGB.Tests
             var pine=Target(GardenCommand.SelectTree,40);var p=new PointerEventData(EventSystem.current){pointerId=77};
             var revision=view.Session.State.Revision;ExecuteEvents.Execute(pine,p,ExecuteEvents.pointerEnterHandler);
             Assert.That(view.Session.State.Revision,Is.EqualTo(revision));Assert.That(view.Ensemble.RouteTotal,Is.Zero);
-            var plaque=view.transform.Find("ModelPineGarden/TreePlaque-41").GetComponentsInChildren<TMPro.TMP_Text>();
-            Assert.That(plaque.Any(t=>t.text.Contains("Click to explore")),Is.True);
+            Assert.That(Garden.DescriptionCard.Visible,Is.False,"Hover must not open choices.");
             Click(pine);Assert.That(view.Ensemble.Index,Is.EqualTo(40));Assert.That(Garden.Navigation.Page,Is.EqualTo(NavigationPage.Tree));
             for(int safety=0; !view.Session.State.AtLeaf && safety<100; safety++){Action(TreeAction.TrueBranch);view.Advance(2);}
             var leaf=view.Session.State.NodeId;var total=view.Ensemble.RouteTotal;
@@ -185,12 +188,12 @@ namespace VRExperienceAGB.Tests
                 Garden.Navigation.OpenTree(i);
                 for(int safety=0; !view.Session.State.AtLeaf && safety<100; safety++){Action(TreeAction.TrueBranch);view.Advance(2);}
                 double contribution=view.Session.State.Contribution;
-                Action(TreeAction.Overview);Garden.Hover(i);
+                Action(TreeAction.Overview);Garden.ShowTreeChoices(i);
                 Assert.That(ring.sharedMaterial.name,Is.EqualTo(contribution>0?"PositiveContribution":contribution<0?"NegativeContribution":"UnvisitedPlanterRing"));
                 positive|=contribution>0;negative|=contribution<0;
                 Assert.That(ring.transform.localScale.y,Is.InRange(1f,5f));
                 if(contribution!=0)Assert.That(ring.transform.localScale.y,Is.GreaterThan(1f));
-                var text=root.Find("TreePlaque-"+(i+1)+"/HoverBacking/HoverDetails").GetComponent<TMPro.TMP_Text>().text;
+                var text=Garden.DescriptionCard.ContributionText.text;
                 Assert.That(text,Does.Contain("Route contribution:").And.Not.Contain("probability"));
                 var scale=ring.transform.localScale;Garden.ClearHover(i);Garden.Hover(i);
                 Assert.That(ring.transform.localScale,Is.EqualTo(scale),"Hover must not change contribution magnitude.");
@@ -207,6 +210,7 @@ namespace VRExperienceAGB.Tests
             Click(Target(GardenCommand.Forest));yield return null;
             var root=view.transform.Find("ModelPineGarden");
             var heights=new System.Collections.Generic.List<float>();
+            Assert.That(Garden.DescriptionCard.Visible,Is.False);
             for(int i=0;i<Garden.PlotCount;i++)
             {
                 var plot=root.Find("ModelTree-"+(i+1));var pine=plot.Find("Pine").GetComponent<Renderer>();
@@ -216,12 +220,13 @@ namespace VRExperienceAGB.Tests
                 Assert.That(label.position.y,Is.InRange(.12f,.3f));
                 Assert.That(((RectTransform)label).rect.width*label.lossyScale.x,Is.LessThan(1f));
                 Assert.That(label.GetComponent<UnityEngine.UI.Image>().color.a,Is.GreaterThan(.9f),"Names need a solid contrast backing against snow and foliage.");
-                Assert.That(plaque.Find("HoverBacking").gameObject.activeSelf,Is.False);
             }
             Assert.That(heights.Max()-heights.Min(),Is.GreaterThan(.7f));
-            Garden.Hover(0);Assert.That(root.Find("TreePlaque-1/HoverBacking").gameObject.activeSelf,Is.True);
-            Garden.ClearHover(0);yield return null;
-            Assert.That(root.Find("TreePlaque-1/HoverBacking").gameObject.activeSelf,Is.False);
+            Garden.Hover(0);Assert.That(Garden.DescriptionCard.Visible,Is.False);
+            Garden.ShowTreeChoices(0);Assert.That(Garden.DescriptionCard.Visible,Is.True);
+            Garden.ClearHover(0);yield return new WaitForSecondsRealtime(1);
+            Assert.That(Garden.DescriptionCard.Visible,Is.True,"Explicit choices stay open after the pointer leaves.");
+            Garden.DescriptionCard.Hide();
         }
         [UnityTest]
         public IEnumerator BranchStonesAreTheOnlyControlsUntilATogglesTheMenu()

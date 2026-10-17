@@ -65,6 +65,10 @@ The current adapter accepts strict numeric `<`, plain comma-separated categorica
 
 Compact tree labels summarize large category sets. Hover over a predictor label or the current condition to read the complete identifier and original condition in a scrollable panel. Hover and scrolling do not change decisions, scores or camera pose. Mouse and Meta canvas pointer event wiring are implemented; headset pointer behavior still requires a device check.
 
+The October 17 Quiet tree UI replaces that main-experience hover panel with a compact summary and **Model details** action. The paged details retain the complete identifier, categorical set, original export condition and evidence. The [inline split follow-up](design/inline-split-and-legend-2026-10-17.md) opens these pages inside the same node card, with Summary returning to its compact view. The legacy teaching harness retains the scrollable panel. This changes presentation only; exact predicates still determine every route.
+
+The subsequent [Inter menu follow-up](design/inter-menus-2026-10-17.md) keeps forest-tree Details inside its nearby card and shares identifier colors across text, base strips and a source legend that can be expanded or collapsed with an arrow. Base-strip widths retain stored-gain shares when complete positive gain is available; otherwise equal-width swatches identify sources only. Colors and display grouping never enter evaluation.
+
 See [the export preview test record](m4-mobile-export-preview-2026-09-30.md) for the tested sample and evidence.
 
 ## Prepared profiles

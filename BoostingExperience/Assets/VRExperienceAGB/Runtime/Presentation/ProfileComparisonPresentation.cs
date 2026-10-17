@@ -21,7 +21,7 @@ namespace VRExperienceAGB.Presentation
         private readonly Dictionary<M5Action, GameObject> buttons = new Dictionary<M5Action, GameObject>();
         private readonly Transform[] drops = new Transform[2];
         private readonly Material[] dropMaterials = new Material[2];
-        private int tree, feature, detailPage = 1;
+        private int tree, feature, detailPage = 0;
         private string message = "";
         public bool PanelOpen { get; private set; }
         public int SelectedTree => tree;
@@ -128,9 +128,9 @@ namespace VRExperienceAGB.Presentation
                 var started = View.BeginComparison(View.Model.StructureOnlyPreview);
                 if (!started.IsSuccess) { Debug.LogWarning(string.Join("; ", started.Diagnostics.Select(d => d.Message))); return; }
             }
-            tree = View.Ensemble.Index; detailPage = 1; message = ""; PanelOpen = true;
+            tree = View.Ensemble.Index; detailPage = 0; message = ""; PanelOpen = true;
             View.NameTooltip?.Hide();
-            var head = owner.Garden.Locomotion.Head; var forward = head.forward; forward.y = 0;
+            var head = owner.Garden.Locomotion.Head; var forward = head.forward;
             if (forward.sqrMagnitude < .01f) forward = Vector3.forward;
             forward.Normalize(); panel.transform.rotation = Quaternion.LookRotation(forward);
             panel.transform.position = head.position + forward * 1.55f - Vector3.up * .10f;
@@ -154,12 +154,12 @@ namespace VRExperienceAGB.Presentation
             {
                 case M5Action.CompareClose: Close(); return;
                 case M5Action.CompareExit: Close(); View.EndComparison(); return;
-                case M5Action.ComparePreviousTree: tree = Math.Max(0, tree - 1); detailPage = 1; break;
-                case M5Action.CompareNextTree: tree = Math.Min(pair.Trees.Count - 1, tree + 1); detailPage = 1; break;
+                case M5Action.ComparePreviousTree: tree = Math.Max(0, tree - 1); detailPage = 0; break;
+                case M5Action.CompareNextTree: tree = Math.Min(pair.Trees.Count - 1, tree + 1); detailPage = 0; break;
                 case M5Action.CompareNextDifference:
                     for (int offset = 1; offset <= pair.Trees.Count; offset++)
                     { int index = (tree + offset) % pair.Trees.Count; if (!pair.Trees[index].PathsDiffer) continue; tree = index; break; }
-                    detailPage = 1; break;
+                    detailPage = 0; break;
                 case M5Action.CompareNextA: SelectNext(false); break;
                 case M5Action.CompareNextB: SelectNext(true); break;
                 case M5Action.CompareCopyA: Accept(pair.CopyAToB()); break;
@@ -175,15 +175,15 @@ namespace VRExperienceAGB.Presentation
                     View.FocusedView.Inspect(divergence.NodeId); View.Refresh(); return;
                 case M5Action.CompareEdit:
                     if (View.Model.Features.Count == 0) { message = "This export contains constant leaves; there are no editable predictors."; break; }
-                    pair.BeginEdit(); feature = 0; detailPage = 1; break;
+                    pair.BeginEdit(); feature = 0; detailPage = 0; break;
                 case M5Action.CompareApply: Accept(pair.ApplyEdit()); break;
-                case M5Action.CompareCancel: pair.CancelEdit(); detailPage = 1; break;
-                case M5Action.ComparePreviousFeature: feature = (feature + View.Model.Features.Count - 1) % View.Model.Features.Count; detailPage = 1; break;
-                case M5Action.CompareNextFeature: feature = (feature + 1) % View.Model.Features.Count; detailPage = 1; break;
+                case M5Action.CompareCancel: pair.CancelEdit(); detailPage = 0; break;
+                case M5Action.ComparePreviousFeature: feature = (feature + View.Model.Features.Count - 1) % View.Model.Features.Count; detailPage = 0; break;
+                case M5Action.CompareNextFeature: feature = (feature + 1) % View.Model.Features.Count; detailPage = 0; break;
                 case M5Action.CompareMissing: pair.StageEdit(View.Model.Features[feature].Id, ProfileValue.Missing); break;
                 case M5Action.CompareDecrease: EditValue(-1); break;
                 case M5Action.CompareIncrease: EditValue(1); break;
-                case M5Action.CompareNextDetail: detail.ForceMeshUpdate(); detailPage = detailPage % Math.Max(1, detail.textInfo.pageCount) + 1; break;
+                case M5Action.CompareNextDetail: detail.ForceMeshUpdate(); detailPage = detailPage==0?1:detailPage>=Math.Max(1,detail.textInfo.pageCount)?0:detailPage+1; break;
             }
             Refresh();
         }
@@ -199,7 +199,7 @@ namespace VRExperienceAGB.Presentation
         private void Accept(Outcome<ProfileComparisonSession> outcome)
         {
             if (!outcome.IsSuccess) { message = string.Join("; ", outcome.Diagnostics.Select(d => d.Message)); return; }
-            View.ShowComparisonProfile(Pair.ShowingB, tree); detailPage = 1;
+            View.ShowComparisonProfile(Pair.ShowingB, tree); detailPage = 0;
             message = "Complete model recomputed. Unchanged profile progress is retained.";
         }
         private void EditValue(int direction)
@@ -231,7 +231,7 @@ namespace VRExperienceAGB.Presentation
             panel.gameObject.SetActive(PanelOpen);
             if (!PanelOpen) return;
             tree = Math.Min(tree, Pair.Trees.Count - 1);
-            heading.text = Editing ? "EDIT PROFILE B · DRAFT" : View.Model.ExportInfo != null ? "COMPARE PROFILES · EXPORTED TREES" : "COMPARE PROFILES · SUPPLIED MODEL";
+            heading.text = Editing ? "Edit profile B" : "Compare profiles";
             totals.text = "A · " + Pair.A.Profile.DisplayName + "    |    B · " + Pair.B.Profile.DisplayName +
                 "\nRaw score: A " + Number(Pair.A.Evaluation.RawScore) + "    B " + Number(Pair.B.Evaluation.RawScore) + "    Δ B − A " + Signed(Pair.RawDelta) +
                 "\nAll " + Pair.Trees.Count + " trees evaluated\n" + VRExperienceAGB.Import.ModelInsightText.CalibrationNotice;
@@ -264,11 +264,15 @@ namespace VRExperienceAGB.Presentation
                 foreach(var ranked in Pair.Trees.Select((t,i)=>new { Row=t, Index=i }).OrderByDescending(t=>Math.Abs(t.Row.ContributionDelta)).Take(5))
                     text.AppendLine("Tree "+(ranked.Index+1)+": "+Signed(ranked.Row.ContributionDelta));
                 detail.text = text.ToString();
+                if(detailPage==0) detail.text="Tree "+(tree+1)+" / "+Pair.Trees.Count+" · "+(row.PathsDiffer?"Different paths":"Same path")+
+                    "\nContribution: A "+Signed(row.A.Contribution)+" · B "+Signed(row.B.Contribution)+"\nDifference: "+Signed(row.ContributionDelta)+
+                    (row.PathsDiffer?"\nFirst divergence: "+View.FeatureLabel(((SplitNode)View.Model.Trees[tree].Nodes.Single(n=>n.Id==row.DivergenceA.NodeId)).FeatureId):"");
             }
-            detail.pageToDisplay = detailPage;
+            detail.pageToDisplay = Math.Max(1,detailPage);
             detail.ForceMeshUpdate();
             notice.text = (message.Length > 0 ? message + "\n" : "") + (Editing ? "Totals show accepted profiles until Apply. " : Pair.Trees.Count(t => t.PathsDiffer) + " trees have different paths. ") +
-                "Model sensitivity, not causality.\nDetail page " + detailPage + " / " + Math.Max(1, detail.textInfo.pageCount);
+                "Model sensitivity, not causality." + (detailPage>0?" · Details " + detailPage + " / " + Math.Max(1, detail.textInfo.pageCount):"");
+            buttons[M5Action.CompareNextDetail].GetComponentInChildren<TMP_Text>().text=detailPage==0?"Details":detailPage>=Math.Max(1,detail.textInfo.pageCount)?"Summary":"Next details";
             foreach (var entry in buttons)
             {
                 bool visible = IsEditAction(entry.Key) ? Editing : entry.Key == M5Action.CompareNextDetail || !Editing;
@@ -280,7 +284,7 @@ namespace VRExperienceAGB.Presentation
             Enable(M5Action.CompareInspect, Pair.Trees[tree].PathsDiffer);
             Enable(M5Action.CompareEdit, View.Model.Features.Count > 0);
             Enable(M5Action.CompareMissing, View.Model.Features.Count > 0 && View.Model.Features[feature].AllowMissing);
-            Enable(M5Action.CompareNextDetail, detail.textInfo.pageCount > 1);
+            Enable(M5Action.CompareNextDetail, true);
         }
         private void Enable(M5Action action, bool value) => buttons[action].GetComponent<UnityEngine.UI.Button>().interactable = value;
         private static string ExactCondition(SplitNode node) => node.FeatureId + (node.Condition.Operator == DecisionOperator.LessThan ?
