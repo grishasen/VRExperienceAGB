@@ -1,5 +1,7 @@
 # Validation and acceptance
 
+**ZIP packages — October 18:** all 218 EditMode and six JSON-library PlayMode tests pass. Coverage includes binary HTTP upload, atomic rejection, package isolation for identical models, complete A/B calculation and reopening. The non-Development Android APK is built and signature-verified; installation and headset acceptance remain pending. See [ZIP verification](zip-packages-2026-10-18.md).
+
 **October 11 score-only sample:** the default generated bundle now contains the complete 50-tree synthetic demo and three synthetic profiles. All 207 EditMode and 104 PlayMode tests pass (one opt-in video test skipped). Results display score and a calibration notice; earlier references below to 100 trees and sigmoid percentages describe historical builds. See [current build and headset checklist](sample50-score-2026-10-11.md).
 
 **AGB/CDH import — October 11:** ordinary AGB export and CDH JSON/JSONL profile import, complete tree calculation and A/B playback are implemented. **207 EditMode and 104 PlayMode tests pass** (one opt-in video test skipped). The supplied Mobile files produce 27 usable execution profiles. CDH propensity reconciliation and fresh headset acceptance are deferred. See [the import validation record](agb-cdh-import-2026-10-11.md).

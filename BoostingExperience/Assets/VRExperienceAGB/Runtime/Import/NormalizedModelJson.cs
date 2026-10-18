@@ -120,12 +120,14 @@ namespace VRExperienceAGB.Import
             return new SplitNode(id, Text(node, "feature"), condition, Text(node, "trueChild"), Text(node, "falseChild"));
         }
 
-        public static Outcome<ProfileSet> ReadProfiles(string json, ModelDefinition model) => Read(() =>
+        public static Outcome<ProfileSet> ReadProfiles(string json, ModelDefinition model, bool packageBinding = false) => Read(() =>
         {
             var modelErrors = ModelValidator.Validate(model);
             if (modelErrors.Count != 0) return Outcome<ProfileSet>.Failure(modelErrors);
             var root = Document(json); Fields(root, "schemaVersion", "modelId", "profiles");
             var version = Version(root); var modelId = Text(root, "modelId");
+            // A validated package explicitly binds these inputs to its single model.
+            if (packageBinding) modelId = model.Id;
             if (modelId != model.Id) return Fail<Outcome<ProfileSet>>("Profiles belong to a different model.", root, "ModelMismatch");
             var profiles = new List<PreparedProfile>(); var errors = new List<Diagnostic>();
             var ids = new HashSet<string>(StringComparer.Ordinal);

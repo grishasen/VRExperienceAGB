@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.IO.Compression;
 using System.Linq;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -116,6 +117,28 @@ namespace VRExperienceAGB.Tests
                 Assert.That(profiles.Profiles.Count, Is.EqualTo(1)); Assert.That(profiles.Profiles[0].Source.RuleName, Is.EqualTo(Name));
                 Assert.That(profiles.Profiles[0].WithValue("Party.Value", ProfileValue.FromNumber(5)).Source, Is.Null);
             } finally { if (Directory.Exists(folder)) Directory.Delete(folder, true); }
+        }
+        [Test] public void PackageMembershipReplacesCdhNameMatchingButKeepsSourceAndValidation()
+        {
+            string folder=Path.Combine(Path.GetTempPath(),"cdh-package-"+Guid.NewGuid().ToString("N"));Directory.CreateDirectory(folder);
+            try {
+                var library=new ModelFileLibrary(folder);string zip=Path.Combine(folder,"pair.zip");
+                var execution=Execution();execution["ruleName"]="DifferentRule";execution["component"]="Other.Component";
+                string cdh=Record(Cell(4),execution).ToString();
+                string export=Export(Split("Party.Value < 5"),Leaf(.125));
+                Assert.Throws<InvalidDataException>(()=>ModelFileLibrary.ParseProfiles(cdh,ModelFileLibrary.ParseModel(export,"renamed.json").Model));
+                using(var archive=ZipFile.Open(zip,ZipArchiveMode.Create)) {
+                    using(var writer=new StreamWriter(archive.CreateEntry("renamed.json").Open()))writer.Write(export);
+                    using(var writer=new StreamWriter(archive.CreateEntry("records.jsonl").Open()))writer.Write(cdh);
+                }
+                string path=library.ImportPackage(zip,"pair.zip");
+                var model=ModelFileLibrary.ParseModel(ModelFileLibrary.Read(path),path).Model;
+                var profile=library.CompatibleProfiles(model,out int skipped,path).Profiles.Single();
+                Assert.That(skipped,Is.Zero);Assert.That(profile.Source.RuleName,Is.EqualTo("DifferentRule"));
+                Assert.That(profile.Source.ModelVersion,Is.EqualTo("different-log-version"));
+                Assert.That(Fixtures.Require(ModelEvaluator.Evaluate(model,profile)).RawScore,Is.EqualTo(-.125));
+                Assert.Throws<InvalidDataException>(()=>ModelFileLibrary.ParseProfiles(Record(Cell("NaN"),execution).ToString(),model,true));
+            } finally {Directory.Delete(folder,true);}
         }
     }
 }

@@ -54,7 +54,7 @@ public final class JsonFilePicker extends Fragment {
                     while((count=input.read(buffer))!=-1){total+=count;if(total>32*1024*1024)throw new Exception();output.write(buffer,0,count);}
                 }
                 finish(temporary.getAbsolutePath(),name,"");
-            }catch(Exception e){if(temporary!=null)temporary.delete();finish("","","Cannot read document. Choose a readable JSON file up to 32 MiB.");}
+            }catch(Exception e){if(temporary!=null)temporary.delete();finish("","","Cannot read document. Choose a readable JSON or ZIP file up to 32 MiB.");}
         },"VRJsonImport").start();
     }
     private void finish(String path,String name,String error) {

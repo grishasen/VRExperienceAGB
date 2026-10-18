@@ -23,16 +23,16 @@ namespace VRExperienceAGB.Presentation
                 case "library":
                     title.text="MODELS AND PROFILES";subtitle.text=Library.Status;
                     Row("Saved models","models",0);Row("Saved profile files","profile-files",1);
-                    Row("Import model JSON","import-model",2);Row("Import profile JSON","import-profile",3);
+                    Row("Import model / ZIP","import-model",2);Row("Import profile JSON","import-profile",3);
                     Row("From computer / Wi-Fi","upload",4,0,true);Row("Import details","library-help",4,1,true);break;
                 case "upload":
                     title.text="UPLOAD FROM COMPUTER";subtitle.text=Library.Status;
-                    var address=Garden.Text(content,"UploadAddress",Library.UploadAddress==null?"Enable a temporary upload session.\nUse a computer on the same Wi-Fi network.":Library.UploadAddress+"\nAccess code: "+Library.UploadCode+"\nOpen this address in your computer browser.\nChoose Model JSON or Profile JSON.\nKeep this app open; session expires after 15 minutes.",new Vector2(0,70),new Vector2(970,250),30);address.richText=false;
+                    var address=Garden.Text(content,"UploadAddress",Library.UploadAddress==null?"Enable a temporary upload session.\nUse a computer on the same Wi-Fi network.":Library.UploadAddress+"\nAccess code: "+Library.UploadCode+"\nOpen this address in your computer browser.\nChoose Model + profiles ZIP, Model JSON or Profile JSON.\nKeep this app open; session expires after 15 minutes.",new Vector2(0,70),new Vector2(970,250),30);address.richText=false;
                     Row(Library.UploadAddress==null?"Start receiving":"Stop receiving",Library.UploadAddress==null?"upload-start":"upload-stop",3);
                     Row("Models","models",4,0,true);Row("Profile files","profile-files",4,1,true);break;
                 case "library-help":
                     title.text="Import details";subtitle.text="Files stay on this device.";
-                    readingText=ReadingBlock("Models: normalized v1 or supported AGB tree export.\nProfiles: normalized v1, or CDH JSON / JSONL execution records.\nCDH selection uses model rule/component name from the export filename.\n\nSaved folders:\n"+Library.Storage.ModelsPath+"\n"+Library.Storage.ProfilesPath+"\n\nImport from Downloads or copy files to these folders and Refresh.\nMaximum file size: 32 MiB. Invalid files keep the current scene.",new Vector2(0,100),new Vector2(940,232));
+                    readingText=ReadingBlock("Models: normalized v1 or supported AGB tree export.\nProfiles: normalized v1, or CDH JSON / JSONL execution records.\nZIP: exactly one model and its profiles. Package membership binds inputs to that model; other packages stay separate. Loose CDH files use the export model name.\n\nSaved folders:\n"+Library.Storage.ModelsPath+"\n"+Library.Storage.ProfilesPath+"\n"+Library.Storage.PackagesPath+"\n\nImport from Downloads or copy files to these folders and Refresh.\nMaximum upload: 32 MiB. ZIP expanded total: 64 MiB. Invalid files keep the current scene.",new Vector2(0,100),new Vector2(940,232));
                     readingText.overflowMode=TextOverflowModes.Page;readingText.ForceMeshUpdate();readingPage=Mathf.Clamp(readingPage,1,Math.Max(1,readingText.textInfo.pageCount));readingText.pageToDisplay=readingPage;
                     subtitle.text="Page "+readingPage+" / "+Math.Max(1,readingText.textInfo.pageCount);
                     Row("Previous","reading-prev",3,0,true);Row("Next","reading-next",3,1,true);Row("Back","library",4);break;
@@ -40,9 +40,9 @@ namespace VRExperienceAGB.Presentation
                     bool profileFiles=MenuPage=="profile-files";
                     title.text=profileFiles?"PROFILE FILES":"MODEL FILES";subtitle.text=Library.Status;
                     Library.List(profileFiles);int pages=Math.Max(1,(Library.ListedFiles.Length+2)/3);libraryPage=Math.Min(libraryPage,pages-1);
-                    for(int i=0;i<3;i++){int index=libraryPage*3+i;if(index<Library.ListedFiles.Length)Row(VRExperienceAGB.Import.ModelFileLibrary.DisplayName(Library.ListedFiles[index]).Replace("<","‹"),"library-open:"+index,i);}
-                    if(Library.ListedFiles.Length==0)Garden.Text(content,"EmptyLibrary","No saved files. Import a JSON document.",new Vector2(0,85),new Vector2(950,90),28);
-                    Row("Import JSON",profileFiles?"import-profile":"import-model",3,0,true);Row("Refresh files","library-refresh",3,1,true);
+                    for(int i=0;i<3;i++){int index=libraryPage*3+i;if(index<Library.ListedFiles.Length)Row(Library.Storage.Label(Library.ListedFiles[index]).Replace("<","‹"),"library-open:"+index,i);}
+                    if(Library.ListedFiles.Length==0)Garden.Text(content,"EmptyLibrary","No saved files. Import a ZIP package or JSON document.",new Vector2(0,85),new Vector2(950,90),28);
+                    Row("Import JSON / ZIP",profileFiles?"import-profile":"import-model",3,0,true);Row("Refresh files","library-refresh",3,1,true);
                     Row("Previous · "+(libraryPage+1)+" / "+pages,"library-prev",4,0,true);Row("Next","library-next",4,1,true);break;
                 case "tree":
                     title.text="TREE "+(View.Ensemble.Index+1)+" / "+View.Model.Trees.Count;

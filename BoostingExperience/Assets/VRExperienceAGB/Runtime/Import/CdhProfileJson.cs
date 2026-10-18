@@ -21,7 +21,7 @@ namespace VRExperienceAGB.Import
         private static readonly JsonLoadSettings LoadSettings = new JsonLoadSettings
         { DuplicatePropertyNameHandling = DuplicatePropertyNameHandling.Error };
 
-        public static Outcome<ProfileSet> Read(string json, ModelDefinition model)
+        public static Outcome<ProfileSet> Read(string json, ModelDefinition model, bool packageBinding = false)
         {
             try
             {
@@ -46,7 +46,7 @@ namespace VRExperienceAGB.Import
                     {
                         var outer = Object(item, location + ".pxModelExecutionResults");
                         var execution = Embedded(outer["pxModelExecutionResults"], location);
-                        if ((string)execution["modelType"] != "ADM" || !Matches(execution, model.ExportInfo.Name)) continue;
+                        if ((string)execution["modelType"] != "ADM" || (!packageBinding && !Matches(execution, model.ExportInfo.Name))) continue;
                         string index = Scalar(execution["modelExecutionIndex"], location);
                         string address = location + ".execution[" + index + "]";
                         if (!indices.Add(index)) throw new InvalidCdh("DuplicateExecution", "Execution indices must be unique within a record.", address);
@@ -94,7 +94,7 @@ namespace VRExperienceAGB.Import
                         profiles.Add(profile);
                     }
                 }
-                return profiles.Count == 0 ? Failure("NoMatchingCdhExecution", "No ADM execution matches the loaded model name: " + model.ExportInfo.Name + ". Keep the original export filename.") :
+                return profiles.Count == 0 ? Failure("NoMatchingCdhExecution", packageBinding ? "The package contains no ADM execution profiles." : "No ADM execution matches the loaded model name: " + model.ExportInfo.Name + ". Keep the original export filename.") :
                     Outcome<ProfileSet>.Success(new ProfileSet(1, model.Id, profiles));
             }
             catch (InvalidCdh e) { return Outcome<ProfileSet>.Failure(new[] { e.Diagnostic }); }

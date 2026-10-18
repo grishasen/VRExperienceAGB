@@ -51,7 +51,7 @@ Source SHA-256 identifies the immutable tree snapshot. Model name comes from the
 
 CDH import accepts one JSON record, a JSON array, or JSONL. Common inputs and execution bodies can be encoded JSON strings or objects. Each matching ADM execution becomes one selectable profile: referenced common inputs plus execution-specific parameter predictors and partition context. References are resolved within their own record. Conflicting common values, unresolved references, duplicate indices/keys, or conflicting explicit parameter/partition values reject the file. Parameters override common inputs; partition fields fill absent context.
 
-Matching uses the export model name against `ruleName` or the last component segment (including its terminal plural `s`). `modelVersion` is recorded, never used as a filter. Recorded technique is retained even if it describes a different served model type. No match is a visible error. Final decision outputs are not used to reconstruct inputs or scores.
+For loose files, matching uses the export model name against `ruleName` or the last component segment (including its terminal plural `s`). A ZIP package explicitly binds all its ADM execution profiles to its single model, replacing name matching while retaining schema, input and full-evaluation checks. Profiles from other packages or the loose library are excluded. `modelVersion` is recorded, never used as a filter. Recorded technique is retained even if it describes a different served model type. No match is a visible error. Final decision outputs are not used to reconstruct inputs or scores.
 
 Only predictors actually used by the trees are materialized. NUMERIC values must be finite invariant-culture numbers; SYMBOLIC values preserve case. Empty strings in used predictors are rejected as ambiguous, rather than guessed as Missing or zero. Empty unused attributes do not block import. Profiles are evaluated before activation, and rejected imports preserve the active session and saved files.
 
@@ -73,7 +73,7 @@ See [the export preview test record](m4-mobile-export-preview-2026-09-30.md) for
 
 ## Prepared profiles
 
-A profile declares `modelId` and a map from feature identifiers to values. Validate it against the model before playback. Show a readable display name while preserving the exact identifier internally. The same profile is passed to every tree. The accumulated ensemble score is not inserted as a new feature unless the actual model explicitly requires it.
+A profile declares `modelId` and a map from feature identifiers to values. Loose-file imports require exact modelId equality. In a ZIP package, membership explicitly binds the profile to that package's single model; its runtime modelId is rebound without changing the stored source JSON. Validate input types and complete evaluation against the model before playback. Package binding does not verify the original production-model snapshot. See [ZIP package import](json-library.md#zip-packages). Show a readable display name while preserving the exact identifier internally. The same profile is passed to every tree. The accumulated ensemble score is not inserted as a new feature unless the actual model explicitly requires it.
 
 A profile edit creates a copy and a new evaluation result. Reset or recompute affected presentation state consistently; never retain stale leaf contributions from the original profile. Explicitly distinguish a missing value from a feature that the user has not supplied in a partially constructed manual profile.
 

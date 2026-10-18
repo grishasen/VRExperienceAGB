@@ -1,25 +1,55 @@
 # Importing models and profiles
 
-The main menu's **Models / profiles** page imports JSON documents and opens saved files without rebuilding the APK. Android uses a system document picker when one is installed; the Editor uses a desktop file dialog. The connected Quest has no handler for `ACTION_OPEN_DOCUMENT`, so the import action opens the Wi-Fi receiver instead. Reading, parsing and profile validation run off the main thread. The current model is replaced only after successful validation.
+The main menu's **Models / profiles** page imports ZIP packages and JSON documents and opens saved files without rebuilding the APK. Android uses a system document picker when one is installed; the Editor uses a desktop file dialog. The connected Quest has no handler for `ACTION_OPEN_DOCUMENT`, so the import action opens the Wi-Fi receiver instead. Reading, parsing and profile validation run off the main thread. The current model is replaced only after successful validation.
 
 ## User flow
 
-1. On Quest, open **Models / profiles → From computer / Wi-Fi → Start receiving**. Open the displayed address on a computer on the same Wi-Fi and enter the eight-digit code. Upload the model first, then its profile JSON files. Up to eight received files can wait in order while the headset is off your head; put it on again to validate and open them.
-2. Alternatively, if a document picker is installed, use **Import model JSON** to choose a local document such as a file in Downloads. Select a normalized v1 scoring model or supported nested AGB export. The imported model opens as a forest and remains available under **Saved models**.
+1. On Quest, open **Models / profiles → From computer / Wi-Fi → Start receiving**. Open the displayed address on a computer on the same Wi-Fi and enter the eight-digit code. Upload one ZIP package containing the model and its profiles, or upload the model first followed by its separate profile JSON files. Up to eight received files can wait in order while the headset is off your head; put it on again to validate and open them.
+2. Alternatively, if a document picker is installed, use **Import model / ZIP** to choose a local document such as a file in Downloads. Select a normalized v1 scoring model or supported nested AGB export. The imported model opens as a forest and remains available under **Saved models**.
 3. For a scoring model, use **Import profile JSON** for each normalized profile or CDH JSON/JSONL file. A file may contain one or several profiles. Compatible saved profile files are combined automatically; files belonging to other models remain saved but are excluded.
 4. Return to the main menu and select **Play a prepared profile** or **Compare profiles A / B**. Cycle the A and B selectors independently. Pause, Calculate whole model, final forest and Table View results work with imported data.
 5. After restarting the application, open the saved model to restore its compatible profile collection. The bundled demonstration remains the startup scene.
 
-The library stores copies in separate `Models` and `Profiles` directories below `Application.persistentDataPath`. The in-app **Formats / storage folders** page shows the exact device paths. On this Android package they are normally:
+The library stores copies in separate `Models` and `Profiles` directories below `Application.persistentDataPath`. The in-app **Import details** page shows the exact device paths. On this Android package they are normally:
 
 ```text
 /sdcard/Android/data/com.vrexperienceagb.prototype/files/Models/
 /sdcard/Android/data/com.vrexperienceagb.prototype/files/Profiles/
 ```
 
-The system picker grants access only to the selected document; broad storage permission is not requested. A temporary cache copy is validated before being saved. Files stay on the device and survive application restarts and in-place APK updates; uninstalling the application can remove application-owned data. The Wi-Fi receiver is local, starts only on request, requires a per-session code and stops on demand or after 15 minutes. It does not upload to a cloud service. Network access is enabled in the Android manifest for this receiver.
+The system picker grants access only to the selected document; broad storage permission is not requested. A temporary cache copy is validated before being saved. ZIP packages are stored separately below `Application.persistentDataPath/Packages/`. Files stay on the device and survive application restarts and in-place APK updates; uninstalling the application can remove application-owned data. The Wi-Fi receiver is local, starts only on request, requires a per-session code and stops on demand or after 15 minutes. It does not upload to a cloud service. Network access is enabled in the Android manifest for this receiver.
 
 Imported filenames contain a content hash so different files do not overwrite each other. Reimporting the same name and contents is idempotent. Profile IDs are internally qualified by their source filename, allowing A and B files to use the same original ID. The selectors show the source name and profile display name. Invalid imports preserve the active model; malformed or incompatible saved profile files are counted and skipped. JSON larger than 32 MiB is explicitly rejected rather than truncated.
+
+## ZIP packages
+
+Use **Import model / ZIP**, or choose **Model + profiles ZIP** on the Wi-Fi upload page. A package contains exactly one supported model JSON and at least one normalized profile JSON or CDH JSON/JSONL file. Subfolders are allowed; file order does not matter. For example:
+
+```text
+customer-demo.zip
+  demo-model.json
+  profiles/
+    profile-a.json
+    profile-b.json
+```
+
+The archive is an explicit declaration that its profiles belong to its single model. Package membership replaces normalized `modelId` equality and CDH rule/component-name matching for these files. The original files and CDH execution provenance are preserved. All ADM executions in packaged CDH files are included; prepare the archive with only the executions intended for that model. Non-ADM executions remain excluded. CDH parsing requires an AGB export; normalized profiles work with either supported model format.
+
+The importer still validates schema, types, references, supported conditions and complete evaluation of every profile across all trees. Packaging does not certify agreement with the original production scorer or calibrated propensity. Invalid inputs reject the entire package before it is published, preserving the current model, route, pair and saved files.
+
+Each accepted ZIP is unpacked into `Packages/<archive-name>-<content-hash>/`, with `Models/` and `Profiles/` inside. The saved model's package folder scopes profile lookup; even identical model files in different packages have separate profile collections. Loose files remain in the existing Models / Profiles library and never join a package automatically. To add or replace packaged profiles, import a new ZIP. Reimporting the same archive with the same name and bytes is idempotent; changed bytes create a separate package.
+
+**Saved models** includes the package name beside its model. **Saved profile files** shows only the active package's files when a packaged model is selected. Reopening a saved model after restart restores profiles from that same folder. A direct attempt to open a profile from another package or the loose library is rejected.
+
+Limits: 32 MiB compressed upload, 32 MiB per expanded file, 64 MiB expanded total, and 256 ZIP entries. Only JSON/JSONL data files are accepted; Finder `.DS_Store` and `__MACOSX` metadata are ignored. Duplicate paths, absolute/traversal paths, symlinks and special files are rejected. Staging folders remain invisible to the library and are removed after failure.
+
+A synthetic example can be generated from the tracked fixtures:
+
+```sh
+python3 -m zipfile -c artifacts/zip-import-2026-10-18/example-package.zip data/examples/demo-model.json data/examples/demo-profiles.json
+```
+
+See [ZIP import verification](zip-packages-2026-10-18.md) for tested behavior and device limitations.
 
 ## Supported formats
 
@@ -46,9 +76,9 @@ A profile file uses this envelope (feature names and values must match the selec
 
 Use `data/examples/demo-profiles.json` with the demonstration model. `artifacts/json-import/example-library.zip` contains the same synthetic model and two separate A/B profile files in their respective directories. Unzip it before importing individual JSON files.
 
-Ordinary nested `AdaptiveBoostScoringModel` / `GRADIENT_BOOST` exports support complete tree calculation and A/B playback. Keep the original export filename: its model name is used to select matching CDH executions. All reached leaf scores are summed. The UI shows the **raw score** and explains that propensity comes from a separate calibration mapping, which is not loaded. Comparison against served CDH propensity is deferred.
+Ordinary nested `AdaptiveBoostScoringModel` / `GRADIENT_BOOST` exports support complete tree calculation and A/B playback. For loose imports, keep the original export filename: its model name is used to select matching CDH executions. ZIP packages use package membership instead. All reached leaf scores are summed. The UI shows the **raw score** and explains that propensity comes from a separate calibration mapping, which is not loaded. Comparison against served CDH propensity is deferred.
 
-Import CDH records directly as `.json` or `.jsonl`: one record, an array, or multiple newline-separated records. Each matching ADM execution supplies a selectable profile with its common inputs, action/treatment parameters and source information. Matching uses model/rule/component names, not modelVersion. Use **Inputs → Profile source** for recorded execution details and propensity; they never replace the calculated result. Select A and B independently, then start playback or calculate the whole model.
+Import CDH records directly as `.json` or `.jsonl`: one record, an array, or multiple newline-separated records. Each matching ADM execution supplies a selectable profile with its common inputs, action/treatment parameters and source information. Loose-file matching uses model/rule/component names, not modelVersion. ZIP membership replaces that name matching within a package. Use **Inputs → Profile source** for recorded execution details and propensity; they never replace the calculated result. Select A and B independently, then start playback or calculate the whole model.
 
 An export with only constant leaves needs no predictors and produces equal A/B results. Used empty-string inputs, non-finite numeric values, unresolved references and unsupported conditions are rejected visibly. Explicit null and absent values remain distinguishable; comparison at a missing numeric/category operand fails unless an explicit missing branch handles it. See [the exact contract](model-contract.md) and [current validation record](agb-cdh-import-2026-10-11.md).
 
