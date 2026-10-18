@@ -38,16 +38,16 @@ namespace VRExperienceAGB.Tests
         public IEnumerator SeatedRoomOffsetDoesNotLeaveTreeControlsFarAway()
         {
             var head=Garden.Locomotion.Head;
-            var reference=head.position; reference.y=0;
             head.localPosition+=new Vector3(4,-.5f,-6);
             var trackedPosition=head.localPosition; var trackedRotation=head.localRotation;
             Garden.Navigation.ShowForest();
             Garden.Locomotion.Teleport(Garden.StandingPoint(12)); Garden.Locomotion.SnapTurn(30);
             var forestOrigin=Garden.Locomotion.Origin.position;
+            var forestRotation=Garden.Locomotion.Origin.rotation;
             Garden.Navigation.OpenTree(1);
-            var expected=Garden.Locomotion.Origin.rotation*reference;
-            Assert.That(head.position.x,Is.EqualTo(expected.x).Within(.001f));
-            Assert.That(head.position.z,Is.EqualTo(expected.z).Within(.001f));
+            Assert.That(head.position.x,Is.EqualTo(0).Within(.001f));
+            Assert.That(head.position.z,Is.EqualTo(0).Within(.001f));
+            Assert.That(Vector3.Angle(Vector3.ProjectOnPlane(head.forward,Vector3.up),Vector3.forward),Is.LessThan(.01f));
             Assert.That(head.localPosition,Is.EqualTo(trackedPosition));
             Assert.That(head.localRotation,Is.EqualTo(trackedRotation));
             foreach(var branch in new[]{TreeAction.TrueBranch,TreeAction.FalseBranch})
@@ -59,6 +59,7 @@ namespace VRExperienceAGB.Tests
             }
             Action(TreeAction.Overview);
             Assert.That(Garden.Locomotion.Origin.position,Is.EqualTo(forestOrigin));
+            Assert.That(Quaternion.Angle(Garden.Locomotion.Origin.rotation,forestRotation),Is.LessThan(.01f));
             Assert.That(head.localPosition,Is.EqualTo(trackedPosition));
             yield return null;
         }
@@ -157,8 +158,7 @@ namespace VRExperienceAGB.Tests
         public IEnumerator ForestPointerHoverAndRoundTripPreserveRouteAndPose()
         {
             Click(Target(GardenCommand.Forest));
-            for(int group=0;group<5;group++){Click(Target(GardenCommand.Waypoint,group));yield return new WaitForSecondsRealtime(.2f);}
-            Click(Target(GardenCommand.Path,40));yield return null;
+            Garden.Locomotion.Teleport(Garden.StandingPoint(40));yield return new WaitForSecondsRealtime(.2f);
             var origin=Garden.Locomotion.Origin.position;var local=Garden.Locomotion.Head.localPosition;var rotation=Garden.Locomotion.Head.localRotation;
             var pine=Target(GardenCommand.SelectTree,40);var p=new PointerEventData(EventSystem.current){pointerId=77};
             var revision=view.Session.State.Revision;ExecuteEvents.Execute(pine,p,ExecuteEvents.pointerEnterHandler);
@@ -278,6 +278,8 @@ namespace VRExperienceAGB.Tests
             foreach(bool seated in new[]{false,true})
             {
                 if(view.IsSeated!=seated) { Action(TreeAction.Menu);Action(TreeAction.Seated);Action(TreeAction.Menu); }
+                // Look toward the lower controls from the centered observer position, as in the headset.
+                camera.transform.LookAt(view.explanation.transform.parent.position);
                 foreach(bool menu in new[]{false,true})
                 {
                     if(menu)Action(TreeAction.Menu);

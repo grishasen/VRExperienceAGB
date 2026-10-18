@@ -16,6 +16,9 @@ namespace VRExperienceAGB.Presentation
         public bool Visible => hint!=null && hint.activeSelf;
         public void OnPointerEnter(PointerEventData data)
         {
+            // Tree selection has an explicit click-to-open card. Its transparent crown target has no label.
+            var tree=GetComponent<GardenPointerTarget>();
+            if(tree!=null && tree.command==GardenCommand.SelectTree)return;
             var branch=GetComponent<TreeActionButton>();
             if(branch!=null && (branch.action==TreeAction.TrueBranch || branch.action==TreeAction.FalseBranch))return;
             var button=GetComponent<UnityEngine.UI.Button>();

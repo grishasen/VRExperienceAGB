@@ -17,6 +17,7 @@ Shader "VRExperienceAGB/CarezzaScenery"
             #pragma fragment frag
             #pragma multi_compile_instancing
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
+            #include "CarezzaPanorama.hlsl"
             TEXTURE2D(_MainTex); SAMPLER(sampler_MainTex);
             CBUFFER_START(UnityPerMaterial)
                 half4 _Color;
@@ -31,10 +32,9 @@ Shader "VRExperienceAGB/CarezzaScenery"
             }
             half4 frag(Output i):SV_Target {
                 UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(i);
-                float degrees=abs(atan2(i.horizon.x,-i.horizon.y)*57.29578);
-                half side=smoothstep(55,100,degrees)*_SideAtmosphere;
-                // Compress in texture space, keeping the continuous mesh free of tapered-panel distortion.
-                float2 uv=float2(i.uv.x,i.uv.y/lerp(1,.48,side));
+                float degrees=atan2(i.horizon.x,-i.horizon.y)*57.29578;
+                half side=CarezzaSideBlend(degrees)*_SideAtmosphere;
+                float2 uv=_SideAtmosphere>.5?CarezzaPanoramaUV(degrees,i.uv.y):i.uv;
                 clip(1-uv.y);
                 half4 tex=SAMPLE_TEXTURE2D(_MainTex,sampler_MainTex,uv);
                 clip(tex.a-_Cutoff);

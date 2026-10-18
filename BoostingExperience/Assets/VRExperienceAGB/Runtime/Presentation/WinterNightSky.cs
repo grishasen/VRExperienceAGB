@@ -22,6 +22,8 @@ namespace VRExperienceAGB.Presentation
         private readonly List<GameObject> hiddenMoons = new List<GameObject>();
         private bool paused, unfocused;
         private float meteorAge = 2;
+        private float twinkleTime;
+        private static readonly int TwinkleTimeId = Shader.PropertyToID("_TwinkleTime");
         private Vector3 start, end;
         public int VisibleStarCount { get; private set; }
         public int MeteorCount => schedule.Count;
@@ -82,6 +84,12 @@ namespace VRExperienceAGB.Presentation
             "Gemini|Castor,Pollux"
         };
         private static readonly HashSet<string> LandmarkNames = new HashSet<string>(GuidePaths.SelectMany(p => p.Split('|')[1].Split(';')).SelectMany(p => p.Split(',')));
+        // Preserve recognizable faint landmarks without restoring the entire magnitude-6 sky.
+        // HYG identifiers also distinguish the close components in Orion's sword.
+        private static readonly Dictionary<string, string> CatalogLandmarks = new Dictionary<string, string> {
+            { "81830", "Epsilon UMi" }, { "76819", "Zeta UMi" }, { "79580", "Eta UMi" },
+            { "26172", "42 Ori" }, { "26156", "Theta1 Ori C" }, { "26170", "Theta2 Ori A" }
+        };
         private Mesh guideMesh;
         private Transform guideLabels;
         private void BuildGuides()
@@ -117,40 +125,60 @@ namespace VRExperienceAGB.Presentation
         private void BuildStars()
         {
             var vertices = new List<Vector3>(); var colors = new List<Color>(); var uv = new List<Vector2>(); var triangles = new List<int>();
+            var scintillation = new List<Vector4>();
+            var starRandom = new System.Random(551706);
             var lines = Resources.Load<TextAsset>("WinterStars").text.Split('\n');
             foreach (var line in lines.Skip(1).Where(l => l.Length > 0)) {
                 var c = line.Split(','); double ra = Parse(c[2]), dec = Parse(c[3]); float magnitude = (float)Parse(c[4]), ci = (float)Parse(c[5]);
                 var d = WinterSkyCoordinates.Direction(ra, dec); var direction = new Vector3(-(float)d.east, (float)d.up, (float)d.south);
                 string starName=c[1];
-                if(c[0]=="81830")starName="Epsilon UMi";
-                if(c[0]=="76819")starName="Zeta UMi";
-                if(c[0]=="79580")starName="Eta UMi";
+                bool catalogLandmark = CatalogLandmarks.TryGetValue(c[0], out var landmarkName);
+                if (catalogLandmark) starName = landmarkName;
                 if (starName.Length > 0) names[starName] = direction;
-                if (direction.y <= 0 || (magnitude > MaximumVisibleMagnitude && !LandmarkNames.Contains(starName) && !(ra > 3.65 && ra < 3.88 && dec > 23 && dec < 25))) continue;
-                float radius = Mathf.Lerp(.075f, .21f, Mathf.InverseLerp(6, -1.5f, magnitude)) * Mathf.Deg2Rad;
+                if (direction.y <= 0 || (magnitude > MaximumVisibleMagnitude && !catalogLandmark && !LandmarkNames.Contains(starName) && !(ra > 3.65 && ra < 3.88 && dec > 23 && dec < 25))) continue;
+                float radius = Mathf.Lerp(.075f, .15f, Mathf.InverseLerp(6, -1.5f, magnitude)) * Mathf.Deg2Rad;
                 var right = Vector3.Cross(direction, Vector3.up).normalized * radius; var up = Vector3.Cross(right.normalized, direction) * radius;
                 var color = Color.Lerp(new Color(.66f,.80f,1), new Color(1,.64f,.36f), Mathf.InverseLerp(-.3f,1.8f,ci));
                 float visibility = Mathf.SmoothStep(0,1, direction.y / .12f);
-                color.a = Mathf.Lerp(.25f, 3.4f, Mathf.Pow(Mathf.InverseLerp(6, -1.5f, magnitude), 1.7f)) * visibility * 1.8f;
+                // Magnitudes are logarithmic. Compress relative flux with a square root for the
+                // headset's limited range, retaining a small visibility floor for faint landmarks.
+                float relativeLight = Mathf.Pow(10, -.2f * (magnitude + 1.44f));
+                color.a = (.12f + .73f * Mathf.Clamp01(relativeLight)) * visibility;
                 int index = vertices.Count;
                 vertices.Add(direction-right-up); vertices.Add(direction+right-up); vertices.Add(direction+right+up); vertices.Add(direction-right+up);
                 uv.AddRange(new[] { Vector2.zero, Vector2.right, Vector2.one, Vector2.up });
                 colors.AddRange(new[] { color,color,color,color });
+                // One phase/rate per catalog star, shared by all four vertices and both eyes.
+                // The near-horizon stars shimmer more; no star disappears or changes position.
+                // Give the brightest points headroom so Sirius scintillates instead of clipping white.
+                float highlightTwinkle = Mathf.Lerp(.72f, 1, Mathf.InverseLerp(-1.44f, 0, magnitude));
+                var twinkle = new Vector4((float)starRandom.NextDouble() * Mathf.PI * 2,
+                    Mathf.Lerp(3.2f, 5.2f, (float)starRandom.NextDouble()),
+                    Mathf.Lerp(.55f, .78f, Mathf.Pow(1 - direction.y, 2)) * highlightTwinkle, 1);
+                scintillation.AddRange(new[] { twinkle, twinkle, twinkle, twinkle });
                 triangles.AddRange(new[] { index,index+1,index+2,index,index+2,index+3 }); VisibleStarCount++;
             }
             starMesh = new Mesh { name = "HYGWinterStars" }; starMesh.SetVertices(vertices); starMesh.SetColors(colors); starMesh.SetUVs(0,uv); starMesh.SetTriangles(triangles,0);
+            starMesh.SetUVs(1, scintillation);
             starMesh.bounds = new Bounds(Vector3.zero, Vector3.one * 100000); CreateMesh("CatalogStars", starMesh);
         }
         private static double Parse(string value) => double.Parse(value, CultureInfo.InvariantCulture);
         public void ToggleGuides() { if (guides != null) guides.SetActive(!guides.activeSelf); }
         private GameObject guides;
-        private bool Allowed => !paused && !unfocused && garden.Experience.Ready && !garden.Experience.Session.State.Paused &&
+        private bool SkyActive => !paused && !unfocused && garden.Experience.Ready;
+        private bool MeteorsAllowed => SkyActive && !garden.Experience.Session.State.Paused &&
             !garden.M5.HelpOpen && !garden.M5.Comparison.PanelOpen && !garden.M5.Extensions.PanelOpen;
         private void Update() => AdvanceSky(Time.unscaledDeltaTime);
         public void AdvanceSky(float seconds)
         {
             if (garden == null || !float.IsFinite(seconds) || seconds < 0) return;
-            if (!Allowed) { meteor.SetActive(false); meteorAge = 2; return; }
+            // Ambient stars continue while inspecting menus or a paused route. Only application
+            // suspension/focus loss freezes them; meteor suppression still follows the model pause.
+            if (SkyActive) {
+                twinkleTime += Mathf.Min(seconds, .25f);
+                points.SetFloat(TwinkleTimeId, twinkleTime);
+            }
+            if (!MeteorsAllowed) { meteor.SetActive(false); meteorAge = 2; return; }
             if (schedule.Advance(seconds, true)) {
                 // Brief sporadic events high in the sky, without a fictitious meteor-shower radiant.
                 float azimuth = (float)random.NextDouble() * Mathf.PI * 2;

@@ -13,6 +13,8 @@ namespace VRExperienceAGB.Presentation
         public const float MinimumScale = .7f, MaximumScale = 1.4f;
         private readonly M5ForestPresentation owner;
         private readonly Transform root, model, magnified;
+        private readonly Mesh tablePineMesh;
+        private readonly Material tablePineMaterial;
         private readonly Canvas controls, hoverCard;
         public TMP_Text HoverText { get; private set; }
         public int HoveredIndex { get; private set; } = -1;
@@ -39,6 +41,10 @@ namespace VRExperienceAGB.Presentation
         public ForestDioramaView(M5ForestPresentation owner, Transform parent)
         {
             this.owner = owner;
+            tablePineMesh = TableFirMesh.Build();
+            tablePineMaterial = new Material(Resources.Load<Shader>("TableTree")) { name = "TableEvergreen", enableInstancing = true };
+            tablePineMaterial.mainTexture = owner.Garden.ModelFoliage.mainTexture;
+            tablePineMaterial.SetTexture("_FillTex",Resources.Load<Texture2D>("TableFirNeedles"));
             root = new GameObject("ForestDiorama").transform; root.SetParent(parent, false);
             model = new GameObject("DioramaModel").transform; model.SetParent(root, false);
             model.localPosition = new Vector3(0, 0, 0);
@@ -152,7 +158,7 @@ namespace VRExperienceAGB.Presentation
                 // Stepped supports keep rear labels above the foreground rows instead of hiding them.
                 float support = .02f + i / columns * Mathf.Min(.045f,.35f/Mathf.Max(1,rows-1));
                 Mesh("Planter", plot, Vector3.down * (support - .02f), new Vector3(spacing * .8f, support, spacing * .8f), garden.planterMesh, garden.stoneMaterial);
-                Mesh("Pine", plot, new Vector3(0, .02f, 0), new Vector3(diameter, height, diameter), garden.pineMesh, garden.ModelFoliage);
+                Mesh("Pine", plot, new Vector3(0, .02f, 0), new Vector3(diameter, height, diameter), tablePineMesh, tablePineMaterial);
                 predictorMarkers.Add(garden.CreatePredictorMarker(plot,height+.055f,.10f));
                 garden.M6.AddComposition(plot,index,new Vector3(0,.012f,-spacing*.42f),spacing*.0012f);
                 rings.Add(Mesh("Ring", plot, new Vector3(0, .024f, 0), new Vector3(spacing * .8f, .009f, spacing * .8f), garden.ringMesh, garden.completedMaterial));
@@ -183,12 +189,17 @@ namespace VRExperienceAGB.Presentation
             var metric=owner.Garden.Metrics[index];
             float h=.25f+.25f*metric.MaximumDepth/Mathf.Max(1,owner.Garden.Metrics.Max(m=>m.MaximumDepth));
             float w=.16f+.15f*Mathf.Sqrt((float)metric.LeafCount/Mathf.Max(1,owner.Garden.Metrics.Max(m=>m.LeafCount)));
-            Mesh("MagnifiedPine",magnified,new Vector3(0,.03f,0),new Vector3(w,h,w),owner.Garden.pineMesh,owner.Garden.ModelFoliage);
+            Mesh("MagnifiedPine",magnified,new Vector3(0,.03f,0),new Vector3(w,h,w),tablePineMesh,tablePineMaterial);
             Mesh("MagnifiedPlanter",magnified,Vector3.zero,new Vector3(.36f,.03f,.36f),owner.Garden.planterMesh,owner.Garden.stoneMaterial);
             magnified.gameObject.SetActive(true);
         }
         public void ClearHover(int index)
         { if(index!=HoveredIndex)return;HoveredIndex=-1;if(hoverCard!=null)hoverCard.gameObject.SetActive(false);if(magnified!=null)magnified.gameObject.SetActive(false); }
+        public void Dispose()
+        {
+            if (tablePineMesh != null) Object.Destroy(tablePineMesh);
+            if (tablePineMaterial != null) Object.Destroy(tablePineMaterial);
+        }
         private static Renderer Mesh(string name, Transform parent, Vector3 position, Vector3 size, Mesh mesh, Material material)
         {
             var go = new GameObject(name, typeof(MeshFilter), typeof(MeshRenderer)); go.transform.SetParent(parent, false);

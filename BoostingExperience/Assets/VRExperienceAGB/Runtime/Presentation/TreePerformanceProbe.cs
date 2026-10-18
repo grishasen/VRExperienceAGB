@@ -30,6 +30,7 @@ namespace VRExperienceAGB.Presentation
             public double scoreA,scoreB,probabilityA,probabilityB;public bool complete;
             public string modelName,page,menuPage;public bool focused,suspended,walkEnabled,inputBlocked,sessionPaused,howlAllowed,howlPlaying,ambience;
             public int audioListeners,treeIndex,stepIndex,backdropRenderers,visibleBackdropRenderers,branchButtons,decisions;public string mode,node;public bool pendingDecision;public float howlIn;public string origin;
+            public Vector3 headPosition,headEuler;
         }
         private void LibraryCommand(string path)
         {
@@ -38,6 +39,8 @@ namespace VRExperienceAGB.Presentation
             if(command=="start"){d.Library.StartUpload();d.OpenMenu("upload");}
             if(command=="forest")d.Activate("forest");
             if(command.StartsWith("ui:"))d.Activate(command.Substring(3));
+            if(command.StartsWith("scenery-capture:") && float.TryParse(command.Substring(16),System.Globalization.NumberStyles.Float,System.Globalization.CultureInfo.InvariantCulture,out float duration))
+                view.GetComponent<ExperiencePerformanceCapture>().Begin(view,duration);
             if(command.StartsWith("open-model:")){
                 var file=d.Library.Storage.Files(false).FirstOrDefault(f=>Path.GetFileName(f)==command.Substring(11));
                 if(file!=null)d.Library.ImportPath(file,false,false);
@@ -71,6 +74,7 @@ namespace VRExperienceAGB.Presentation
                 mode=view.Session.State.Mode.ToString(),node=view.Session.State.NodeId,decisions=view.Session.State.Decisions.Count,pendingDecision=view.Session.State.PendingDecision!=null,
                 backdropRenderers=scenery.Length,visibleBackdropRenderers=scenery.Count(r=>r.enabled && r.gameObject.activeInHierarchy),branchButtons=view.controls.Count(c=>(c.action==TreeAction.TrueBranch||c.action==TreeAction.FalseBranch) && c.gameObject.activeInHierarchy && c.GetComponent<UnityEngine.UI.Button>().IsInteractable()),
                 audioListeners=FindObjectsByType<AudioListener>().Count(a=>a.enabled),origin=view.Garden.Locomotion.Origin.position.ToString(),treeIndex=d.Playback?.TreeIndex??view.Ensemble.Index,stepIndex=d.Playback?.StepIndex??0,
+                headPosition=view.Garden.Locomotion.Head.position,headEuler=view.Garden.Locomotion.Head.eulerAngles,
                 complete=d.Playback?.Complete==true,scoreA=d.Playback?.A.RawScore??0,scoreB=d.Playback?.B?.RawScore??0,probabilityA=d.Playback?.A.Probability??0,probabilityB=d.Playback?.B?.Probability??0
             },true));
         }

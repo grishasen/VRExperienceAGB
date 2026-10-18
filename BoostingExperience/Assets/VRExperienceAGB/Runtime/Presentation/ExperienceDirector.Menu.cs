@@ -68,6 +68,7 @@ namespace VRExperienceAGB.Presentation
                 case "values":BuildInputs();break;
                 case "playback":
                     title.text="PROFILE PLAYBACK";subtitle.text=Playback==null?"No active run":"Tree "+(Playback.TreeIndex+1)+" / "+View.Model.Trees.Count;
+                    menuDetails=PlaybackDetailsCopy()+"\n\n"+menuDetails;
                     Row(Playback?.Paused==true?"Resume":"Pause","pause",0,0,true);Row("Next step","step",0,1,true);
                     Row("Previous tree","previous-tree",1,0,true);Row("Speed: "+(Playback?.Speed??1).ToString("0.#")+"x","speed",1,1,true);
                     Row("Restart all trees","restart",2,0,true);Row("Calculate whole model","calculate-all",2,1,true);Row("Continue viewing","close",3,0,true);Row("Pace: "+Pace,"pace",3,1,true);Row("End playback · forest","stop",4);break;

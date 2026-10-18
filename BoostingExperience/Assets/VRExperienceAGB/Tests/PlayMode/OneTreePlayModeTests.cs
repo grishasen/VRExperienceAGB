@@ -92,7 +92,7 @@ namespace VRExperienceAGB.Tests
         {
             const string json = "{\"type\":\"AdaptiveBoostScoringModel\",\"algorithm\":\"GRADIENT_BOOST\",\"model\":{\"booster\":{\"trees\":[{\"score\":999,\"gain\":4,\"sampleCount\":10,\"split\":\"Audience.Score < 5.017708e-4\",\"left\":{\"score\":-0.25,\"gain\":0,\"sampleCount\":5},\"right\":{\"score\":0.75,\"gain\":0,\"sampleCount\":5}}]}}}";
             var camera = Object.FindAnyObjectByType<DesktopTreePreview>().previewCamera;
-            var position = camera.transform.position; var rotation = camera.transform.rotation;
+            var localPosition = camera.transform.localPosition; var localRotation = camera.transform.localRotation;
             view.modelFile = new TextAsset(json) { name = "Fictional nested export" };
             view.profilesFile = null;
             Assert.That(view.Initialize(), Is.True);
@@ -103,6 +103,8 @@ namespace VRExperienceAGB.Tests
             Assert.That(view.LoadAgbStructure("{}", "Invalid").IsSuccess, Is.False);
             Assert.That(view.Ensemble, Is.SameAs(accepted));
             Click(TreeAction.Manual);
+            Assert.That(camera.transform.localPosition,Is.EqualTo(localPosition));Assert.That(camera.transform.localRotation,Is.EqualTo(localRotation));
+            var position = camera.transform.position; var rotation = camera.transform.rotation;
             Assert.That(view.explanation.text, Does.Not.Contain("< 0?"));
             Click(TreeAction.TrueBranch); Arrive();
             Assert.That(view.Session.State.NodeId, Is.EqualTo("root/left"));
@@ -192,8 +194,11 @@ namespace VRExperienceAGB.Tests
         public IEnumerator PauseFreezesDropAndBackCancelsMoveWhileCameraRemainsIndependent()
         {
             var camera=Object.FindAnyObjectByType<DesktopTreePreview>().previewCamera;
+            var localPosition=camera.transform.localPosition;var localRotation=camera.transform.localRotation;
+            Click(TreeAction.Manual);
+            Assert.That(camera.transform.localPosition,Is.EqualTo(localPosition));Assert.That(camera.transform.localRotation,Is.EqualTo(localRotation));
             var position=camera.transform.position; var rotation=camera.transform.rotation;
-            Click(TreeAction.Manual); Click(TreeAction.TrueBranch); view.Advance(.2f);
+            Click(TreeAction.TrueBranch); view.Advance(.2f);
             var moving=view.drop.position; Click(TreeAction.Pause); view.Advance(4);
             Assert.That(view.drop.position,Is.EqualTo(moving)); Assert.That(view.Session.State.NodeId,Is.EqualTo("t1-root"));
             Click(TreeAction.Back); Click(TreeAction.Pause); view.Advance(2);
@@ -266,8 +271,10 @@ namespace VRExperienceAGB.Tests
         public IEnumerator DeepTreeTraversesEightDecisionsWithBoundedViewsAndRestoresOriginal()
         {
             var camera = Object.FindAnyObjectByType<DesktopTreePreview>().previewCamera;
-            var pose = camera.transform.position;
+            var localPosition=camera.transform.localPosition;var localRotation=camera.transform.localRotation;
             Click(TreeAction.DeepExample); Click(TreeAction.Profile);
+            Assert.That(camera.transform.localPosition,Is.EqualTo(localPosition));Assert.That(camera.transform.localRotation,Is.EqualTo(localRotation));
+            var pose = camera.transform.position;
             for (int depth = 0; depth < 8; depth++)
             {
                 Assert.That(view.nodeViews.Count(n => n.gameObject.activeSelf), Is.LessThanOrEqualTo(7));

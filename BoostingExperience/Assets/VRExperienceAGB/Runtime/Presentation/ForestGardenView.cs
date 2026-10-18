@@ -18,6 +18,11 @@ namespace VRExperienceAGB.Presentation
         public Mesh pineMesh, trunkMesh, planterMesh, ringMesh;
         public Mesh clearingRockMesh, clearingFernMesh;
         public Mesh sceneryPineBranchesMesh, sceneryPineTrunkMesh;
+        public Mesh detailedFirHighMesh, detailedFirMediumMesh, detailedFirLowMesh;
+        public Mesh[] detailedRockMeshes;
+        public Material detailedFirMaterial;
+        public Mesh detailedTrunkMesh, detailedTrunkLowMesh, modelPineLowMesh, grassMesh;
+        public Material detailedBarkMaterial, grassMaterial;
         public Material carezzaBackdropMaterial, carezzaSpruceMaterial, carezzaWaterMaterial;
         public Material carezzaGroundMaterial, carezzaRockMaterial;
         public Material pineMaterial, barkMaterial, stoneMaterial, soilMaterial, pathMaterial, selectedMaterial, completedMaterial;
@@ -47,7 +52,6 @@ namespace VRExperienceAGB.Presentation
         private Mesh predictorMarkerMesh;
         private Material predictorMarkerMaterial;
         private readonly List<Plot> plots = new List<Plot>();
-        private readonly List<Canvas> waypoints = new List<Canvas>();
         private readonly List<GameObject> numberButtons = new List<GameObject>();
         private readonly Dictionary<GameObject,bool> walkthroughObjects = new Dictionary<GameObject,bool>();
         private GardenTreeMetrics[] metrics;
@@ -81,8 +85,13 @@ namespace VRExperienceAGB.Presentation
                     if(decoration.name=="PineTree")StyleBackdrop(decoration.gameObject);
             }
             gardenFoliage=new Material(pineMaterial) { name="GardenEvergreen", enableInstancing=true };
-            gardenFoliage.SetColor("_BaseColor",new Color(.28f,.46f,.31f));
-            gardenFoliage.EnableKeyword("_EMISSION");gardenFoliage.SetColor("_EmissionColor",new Color(.012f,.06f,.018f));
+            if(gardenFoliage.HasProperty("_BaseColor"))gardenFoliage.SetColor("_BaseColor",new Color(.28f,.46f,.31f));
+            if(gardenFoliage.HasProperty("_EmissionColor")) {
+                gardenFoliage.EnableKeyword("_EMISSION");gardenFoliage.SetColor("_EmissionColor",new Color(.012f,.06f,.018f));
+            }
+            NearSceneryDetail.ApplyClearing(environment,this);
+            if(environment!=null && grassMesh!=null && grassMaterial!=null)
+                environment.gameObject.AddComponent<ForestGroundCover>().BuildClearing(environment,grassMesh,grassMaterial);
             quietRing=new Material(completedMaterial) { name="UnvisitedPlanterRing" };
             quietRing.color=new Color(.10f,.25f,.27f); quietRing.enableInstancing=true;
             quietRing.DisableKeyword("_EMISSION");quietRing.SetColor("_EmissionColor",Color.black);
@@ -126,7 +135,7 @@ namespace VRExperienceAGB.Presentation
             // Clone authored scenery before temporary menu suppression is applied to the rebuilt scene.
             Experience.Director?.PrepareSceneRebuild();
             if(root!=null){root.SetActive(false);Destroy(root);}
-            plots.Clear();waypoints.Clear();numberButtons.Clear();hovered=-1;shownBed=-1;
+            plots.Clear();numberButtons.Clear();hovered=-1;shownBed=-1;
             builtModel=Experience.Model;metrics=builtModel.Trees.Select(t=>new GardenTreeMetrics(t)).ToArray();
             maximumContribution=builtModel.Trees.SelectMany(t=>t.Nodes.OfType<LeafNode>().Select(n=>Math.Abs(t.Weight*n.Score))).DefaultIfEmpty(0).Max();
             root=new GameObject("ModelPineGarden");root.transform.SetParent(Experience.transform,false);root.SetActive(false);
@@ -134,13 +143,13 @@ namespace VRExperienceAGB.Presentation
             int rows=(metrics.Length+TreesPerBed-1)/TreesPerBed;
             float length=rows*4.8f+12;
             var groundBounds=new Bounds(new Vector3(0,0,length*.5f-3),new Vector3(42,0,length+10));
-            Block("CentralWalkway",new Vector3(0,-.005f,length*.5f-3),new Vector3(2.2f,.025f,length),pathMaterial);
             var oldEnvironment=Experience.transform.Find("MoonlitEnvironment");
             if(oldEnvironment!=null)
             foreach(Transform decoration in oldEnvironment)
             {
                 if(decoration.name!="PineTree" && decoration.name!="Moon")continue;
-                var copy=Instantiate(decoration.gameObject,root.transform);copy.name="GardenBackdrop-"+decoration.name;
+                var copy=decoration.name=="PineTree"?NearSceneryDetail.BackdropCopy(decoration,root.transform):Instantiate(decoration.gameObject,root.transform);
+                copy.name="GardenBackdrop-"+decoration.name;
                 if(decoration.name=="PineTree")
                 {
                     var p=decoration.localPosition;
@@ -158,28 +167,15 @@ namespace VRExperienceAGB.Presentation
                 }
             }
             root.AddComponent<ForestPerimeterScenery>().Build(length,stoneMaterial,pineMaterial,oldEnvironment,clearingRockMesh,clearingFernMesh,
-                carezzaBackdropMaterial,carezzaSpruceMaterial,carezzaWaterMaterial,carezzaGroundMaterial,carezzaRockMaterial);
+                carezzaBackdropMaterial,carezzaSpruceMaterial,carezzaWaterMaterial,carezzaGroundMaterial,carezzaRockMaterial,detailedRockMeshes,grassMaterial);
             RestoreInteriorPines(rows, oldEnvironment);
+            NearSceneryDetail.Apply(root.transform, detailedFirHighMesh, detailedFirMediumMesh, detailedFirLowMesh, detailedFirMaterial,
+                detailedTrunkMesh,detailedTrunkLowMesh,detailedBarkMaterial);
             Block("GardenGround",new Vector3(groundBounds.center.x,-.13f,groundBounds.center.z),new Vector3(groundBounds.size.x+24,.22f,groundBounds.size.z+24),carezzaGroundMaterial!=null?carezzaGroundMaterial:soilMaterial);
-            for(int row=0;row<rows;row++)
-            {
-                float z=6.6f+row*4.8f-2.1f;
-                Block("BedPath-"+(row+1),new Vector3(0,.01f,z),new Vector3(34,.025f,1.25f),pathMaterial);
-                var waypoint=CanvasAt("StandingPoint-"+(row+1),new Vector3(0,.04f,z),new Vector2(440,440),.0025f,root.transform);
-                waypoint.transform.localRotation=Quaternion.Euler(90,0,0);
-                var target=Button(waypoint,"GO TO GROUP "+(row+1),Vector2.zero,new Vector2(430,430),GardenCommand.Waypoint,row,40);
-                target.GetComponent<UnityEngine.UI.Image>().color=new Color(.08f,.35f,.38f,.75f);waypoints.Add(waypoint);
-            }
-            if(simplifiedNavigation)
-            for(int i=0;i<metrics.Length;i++)
-            {
-                var waypoint=CanvasAt("PlanterPath-"+(i+1),StandingPoint(i)+Vector3.up*.05f,new Vector2(440,440),.0025f,root.transform);
-                waypoint.transform.localRotation=Quaternion.Euler(90,0,0);
-                Button(waypoint,"GO HERE",Vector2.zero,new Vector2(430,430),GardenCommand.Path,i,42);
-                waypoints.Add(waypoint);
-            }
             M6.EnsureModel();
             for(int i=0;i<metrics.Length;i++)BuildPlot(i);
+            if(grassMesh!=null && grassMaterial!=null)
+                root.AddComponent<ForestGroundCover>().Build(this,rows,grassMesh,grassMaterial);
             var trailObject = new GameObject("BoostingOrderTrail"); trailObject.transform.SetParent(root.transform, false);
             boostingTrail = trailObject.AddComponent<LineRenderer>(); boostingTrail.useWorldSpace = false;
             boostingTrail.sharedMaterial = selectedMaterial; boostingTrail.widthMultiplier = .06f;
@@ -203,7 +199,7 @@ namespace VRExperienceAGB.Presentation
                 {
                     var tree = new GameObject("GardenInteriorPine");
                     tree.transform.SetParent(root.transform, false);
-                    // Between planters, before the next crosswalk, away from the central aisle.
+                    // Between planters and rows, away from the central walking space.
                     tree.transform.localPosition = new Vector3(side * (group % 2 == 0 ? 7.55f : 13.75f), 0, 8.05f + row * 4.8f);
                     tree.transform.localRotation = Quaternion.Euler(0, group * 71 + side * 23, 0);
                     float height = 7.8f + group * .55f + (side > 0 ? .5f : 0);
@@ -243,6 +239,7 @@ namespace VRExperienceAGB.Presentation
             MeshObject("Soil",container,new Vector3(0,.37f,0),new Vector3(1.84f,.06f,1.84f),planterMesh,soilMaterial,true);
             MeshObject("Trunk",container,new Vector3(0,.4f,0),new Vector3(.12f+tree.CrownRadius*.1f,tree.PineHeight,.12f+tree.CrownRadius*.1f),trunkMesh,barkMaterial,true);
             var pine=MeshObject("Pine",container,new Vector3(0,.4f,0),new Vector3(tree.CrownRadius*2,tree.PineHeight,tree.CrownRadius*2),pineMesh,gardenFoliage,true);
+            NearSceneryDetail.AddModelLod(pine,modelPineLowMesh);
             var ring=MeshObject("ProgressRing",container,new Vector3(0,.40f,0),new Vector3(1.04f/.555f,1,1.04f/.555f),ringMesh,quietRing,false).GetComponent<Renderer>();
             var ringB=MeshObject("ProfileBRing",container,new Vector3(0,.44f,0),new Vector3(.83f/.555f,1,.83f/.555f),ringMesh,quietRing,false).GetComponent<Renderer>();
             ringB.gameObject.SetActive(false);
@@ -505,7 +502,6 @@ namespace VRExperienceAGB.Presentation
                 }
 
             }
-            foreach(var waypoint in waypoints)waypoint.gameObject.SetActive(forest && Vector3.Distance(Locomotion.Head.position,waypoint.transform.position)<16);
         }
         internal Canvas CanvasAt(string name,Vector3 position,Vector2 size,float scale,Transform parent,bool interactive=true)
         {

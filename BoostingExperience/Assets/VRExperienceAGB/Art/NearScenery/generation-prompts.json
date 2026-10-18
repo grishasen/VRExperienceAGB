@@ -1,0 +1,29 @@
+[
+  {
+    "key": "ground",
+    "args": {
+      "prompt": "Create a production-ready seamless square game albedo texture for a moonlit alpine spruce forest floor, improving the supplied reference. Treat the supplied ground image as the edit target: retain the muted natural gray-brown and olive palette, but improve material hierarchy and realism. Orthographic top-down, edge-to-edge tileable 2048x2048 if supported. About 55% compact rich soil and fine decayed needles, 25% low soft moss in irregular subdued patches, 15% small gray limestone grit, 5% short individual dry spruce needles and tiny bark flakes. Fine tactile detail with a calm medium-scale composition, more believable than the uniformly noisy reference. No giant pebbles, no grass tufts sticking up, no objects, no border, no strong shadows, no baked blue lighting, no highlights blown white, no text. Soft ambient crevice occlusion is allowed. Constant scale, no perspective. Must tile seamlessly on all four edges.",
+      "referenced_image_paths": [
+        "/Users/gregory/Documents/VRExperienceAGB/BoostingExperience/Assets/VRExperienceAGB/Art/Carezza/AlpineGround.png"
+      ],
+      "transparent_background": false
+    }
+  },
+  {
+    "key": "rock",
+    "args": {
+      "prompt": "Create a production-ready seamless square game albedo texture for alpine slate boulders, refining the supplied rock reference as edit target. Preserve its cool neutral gray stone family, but make the rock read as real weathered layered slate/limestone: uneven fine mineral grain, subtle broken strata, sparse thin off-white quartz veins, tiny pits, grounded soft crevice occlusion. Add only a few small muted olive lichen patches totaling under 8% of area. Broad restrained tonal masses with high quality tactile small detail, not a uniform noise pattern. Orthographic flat material scan, edge-to-edge tileable, 2048x2048 if supported. No boulder silhouette, no perspective, no background, no directional cast shadows, no dramatic light or shiny wet reflections, no text, no visible seam. Designed to be multiplied by subdued moonlight in a simple mobile VR shader.",
+      "referenced_image_paths": [
+        "/Users/gregory/Documents/VRExperienceAGB/BoostingExperience/Assets/VRExperienceAGB/Art/Moonlit/SlateAlbedo.png"
+      ],
+      "transparent_background": false
+    }
+  },
+  {
+    "key": "spruce_branch",
+    "args": {
+      "prompt": "A production game foliage texture: exactly ONE single realistic alpine spruce branch spray isolated on a genuinely transparent background, square 1024x1024 composition. NOT a whole tree. A narrow woody brown stem begins at bottom center and grows upward, with several asymmetrical drooping secondary twigs fanning to the left and right, widest in the lower-middle, tapering to an irregular fine tip near the top. Dense but clearly distinct blue-green and muted silver-green needle bundles, with small true transparent gaps between clusters and a ragged organic silhouette. Slight soft self-occlusion inside clusters; restrained pale tips; no snow. Branch fills 90% of height and 85% of width; keep all tips inside frame. Straight-on orthographic specimen view under soft neutral diffuse illumination. No floor, no pot, no horizon, no tree trunk, no drop shadow, no halo, no glow, no black background, no labels. Optimized to look like a branch when mapped onto short curved mesh strips around a 3D fir tree.",
+      "transparent_background": true
+    }
+  }
+]

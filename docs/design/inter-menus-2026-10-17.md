@@ -46,3 +46,12 @@ Base-strip widths still represent stored-gain shares when complete positive gain
 - SHA-256: `8263d03d595550f770e246a0dcb6f3d550680b72a7717d6dca6ee8b1991e7d19`.
 
 Physical Quest reading, controller interaction and performance acceptance remain pending.
+
+
+## Compact transparent playback status — October 17
+
+The latest Quest capture (`forest-20261017-214601-934-8cbc1a.png`) showed the profile explanation board covering the lower clearing with an opaque background and overflowing condition/value text. The board now has no background or ray-interaction surface and uses two fixed-size Inter lines: tree/step (or leaf) and the current A/B branch direction or reached leaf contribution. A remains gold and B purple. Pause is shown briefly in the heading. The layout is 900 × 132 canvas units instead of 1100 × 560.
+
+Full conditions, observed values, accumulated scores, pace and time estimates are available through **A → playback menu → Details**. The existing menu pagination preserves long values. Scene anchoring, playback/evaluation and model data are unchanged.
+
+All **25 ScenarioRevisionTests pass** (33.29 seconds). Inspected 1600 × 900 Editor previews for one profile and A/B; the live A/B leaf status fits two lines without overflow, with no background image or ray surface. Playback-menu Details retains the full observed values and estimate. Evidence is stored under `artifacts/compact-tree-panel-2026-10-17/`: `quest-before.png`, `editor-single.png`, `editor-ab.png`, `playmode-results.json` and `live-layout-check.json`. Android build `build_ef83991a4d3d` succeeded in 40.118 seconds with six warnings. Its report also captured one concurrent Pipeline command timeout; this was not a compilation/build failure. The APK was installed and launched on Quest 3. File: `BoostingExperience/Builds/Android/VRExperienceAGB-compact-playback-2026-10-17.apk`, 119,602,506 bytes, SHA-256 `7821b6873c9777ae0d2c366d1d4a3fd60637d9cebd3b3113eed7d28a6e0f6f2c`. The shared workspace also contained ongoing sky changes from another task; this is not isolated sky acceptance. Physical readability on Quest remains pending.

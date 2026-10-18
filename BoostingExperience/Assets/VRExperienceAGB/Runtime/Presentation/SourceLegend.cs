@@ -21,7 +21,7 @@ namespace VRExperienceAGB.Presentation
         private int page;
         private NavigationPage placedPage;
         public long Revision { get; private set; }
-        public bool Expanded { get; private set; }
+        public bool Expanded { get; private set; } = true;
         public bool Visible => canvas.gameObject.activeInHierarchy;
         public SourceLegend(ForestGardenView garden)
         {
@@ -30,7 +30,7 @@ namespace VRExperienceAGB.Presentation
             ((RectTransform)canvas.transform).pivot=new Vector2(0,.5f);
             var image = canvas.gameObject.AddComponent<UnityEngine.UI.Image>();
             image.color = new Color(.018f,.046f,.063f,1); image.raycastTarget = false;
-            toggle=Button("ToggleSources","Sources  ›",0);
+            toggle=Button("ToggleSources","›  Sources",0);
             for(int i=0;i<labels.Length;i++) {
                 swatches[i]=Text("Swatch"+i,"•",36);
                 labels[i]=Text("Source"+i,"",24);
@@ -97,7 +97,7 @@ namespace VRExperienceAGB.Presentation
             toggleRect.sizeDelta=new Vector2(Expanded?56:172,56);
             toggleRect.anchoredPosition=new Vector2(4+toggleRect.sizeDelta.x*.5f,0);
             var toggleLabel=toggle.GetComponentInChildren<TMP_Text>();
-            toggleLabel.text=Expanded?"‹":"Sources  ›";toggleLabel.rectTransform.sizeDelta=toggleRect.sizeDelta-new Vector2(8,8);
+            toggleLabel.text=Expanded?"‹":"›  Sources";toggleLabel.rectTransform.sizeDelta=toggleRect.sizeDelta-new Vector2(8,8);
             float x=76;
             for(int i=0;i<labels.Length;i++) {
                 int index=page*PageSize+i;bool show=Expanded && index<families.Length;

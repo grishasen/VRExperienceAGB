@@ -322,6 +322,9 @@ namespace VRExperienceAGB.Tests
             var pines=table.ModelRoot.GetComponentsInChildren<MeshFilter>().Where(m=>m.name=="Pine").ToArray();
             var heights=pines.Select(m=>m.sharedMesh.bounds.size.y*m.transform.localScale.y).ToArray();
             var widths=pines.Select(m=>m.sharedMesh.bounds.size.x*m.transform.localScale.x).ToArray();
+            Assert.That(pines.Length,Is.EqualTo(view.Model.Trees.Count));
+            Assert.That(pines.Select(m=>m.sharedMesh).Distinct().Count(),Is.EqualTo(1));
+            Assert.That(pines.Select(m=>m.GetComponent<Renderer>().sharedMaterial).Distinct().Count(),Is.EqualTo(1));
             Assert.That(heights.Max()/heights.Min(),Is.GreaterThan(2));Assert.That(widths.Max()/widths.Min(),Is.GreaterThan(2));
             var target=table.ModelRoot.GetComponentsInChildren<M5PointerTarget>().First(t=>t.action==M5Action.SelectTree && t.index==25);
             var revision=view.Session.State.Revision;var selected=view.Ensemble.Index;
@@ -330,6 +333,48 @@ namespace VRExperienceAGB.Tests
             Assert.That(table.HoveredIndex,Is.EqualTo(25));Assert.That(table.HoverText.text,Does.Contain("26"));
             Assert.That(view.Session.State.Revision,Is.EqualTo(revision));Assert.That(view.Ensemble.Index,Is.EqualTo(selected));
             ExecuteEvents.Execute(target.gameObject,pointer,ExecuteEvents.pointerExitHandler);Assert.That(table.HoveredIndex,Is.EqualTo(-1));
+        }
+        [UnityTest] public IEnumerator SmallestTableTreeKeepsASolidSilhouetteWhenRotated()
+        {
+            view.Director.Activate("table");
+            var table=view.Garden.M5.Diorama;table.ChangeScale(-1);
+            var source=table.ModelRoot.GetComponentsInChildren<MeshFilter>().Where(m=>m.name=="Pine")
+                .OrderBy(m=>m.sharedMesh.bounds.size.x*m.transform.lossyScale.x).First();
+            var tree=new GameObject("TableSilhouetteProbe",typeof(MeshFilter),typeof(MeshRenderer));
+            var cameraObject=new GameObject("TableSilhouetteCamera",typeof(Camera));
+            var target=new RenderTexture(128,128,24);
+            var pixels=new Texture2D(128,128,TextureFormat.RGB24,false);
+            var previous=RenderTexture.active;
+            try {
+                tree.layer=30;tree.transform.position=Vector3.one*1000;tree.transform.localScale=source.transform.lossyScale;
+                tree.GetComponent<MeshFilter>().sharedMesh=source.sharedMesh;
+                var renderer=tree.GetComponent<MeshRenderer>();renderer.sharedMaterial=source.GetComponent<Renderer>().sharedMaterial;
+                var camera=cameraObject.GetComponent<Camera>();camera.cullingMask=1<<30;camera.orthographic=true;
+                // At minimum scale the smallest crown spans roughly nine pixels in this view.
+                camera.orthographicSize=.25f;camera.clearFlags=CameraClearFlags.SolidColor;camera.backgroundColor=Color.black;
+                camera.nearClipPlane=.01f;camera.farClipPlane=5;camera.targetTexture=target;
+                foreach(float yaw in new[]{0f,45f,180f}) {
+                    tree.transform.rotation=Quaternion.Euler(0,yaw,0);
+                    var bounds=renderer.bounds;
+                    camera.transform.position=bounds.center+new Vector3(0,.2f,-1);
+                    camera.transform.LookAt(bounds.center);
+                    yield return null;
+                    camera.Render();RenderTexture.active=target;
+                    pixels.ReadPixels(new Rect(0,0,128,128),0,0);pixels.Apply();
+                    var min=Vector2.one*128;var max=Vector2.zero;
+                    // Project the actual mesh; a rotated world AABB includes empty corner volume.
+                    foreach(var vertex in source.sharedMesh.vertices) {
+                        var p=camera.WorldToViewportPoint(tree.transform.TransformPoint(vertex));
+                        min=Vector2.Min(min,new Vector2(p.x,p.y)*128);max=Vector2.Max(max,new Vector2(p.x,p.y)*128);
+                    }
+                    float area=(max.x-min.x)*(max.y-min.y);
+                    int visible=pixels.GetPixels().Count(c=>c.maxColorComponent>.2f);
+                    Assert.That(visible/area,Is.GreaterThan(.3f),"A miniature must remain a filled silhouette, not sparse needles: yaw "+yaw);
+                }
+            } finally {
+                RenderTexture.active=previous;cameraObject.GetComponent<Camera>().targetTexture=null;target.Release();
+                Object.Destroy(tree);Object.Destroy(cameraObject);Object.Destroy(target);Object.Destroy(pixels);
+            }
         }
         [UnityTest] public IEnumerator CalculateWholeModelSkipsAnimationForSingleAndPairWithCompleteResults()
         {
@@ -347,6 +392,48 @@ namespace VRExperienceAGB.Tests
                 d.Activate("results-table");Assert.That(d.TryContribution(view.Model.Trees.Count-1,false,out var value),Is.True);
                 Assert.That(value,Is.EqualTo(d.Playback.A.Trees[view.Model.Trees.Count-1].Contribution));
                 yield return null;
+            }
+        }
+        [UnityTest] public IEnumerator TreeEntryCentersClearingLikeBAndPreservesForestReturnPose()
+        {
+            var d=view.Director;var movement=view.Garden.Locomotion;var head=movement.Head;
+            view.GetComponent<DesktopTreePreview>().enabled=false;
+            var originalLocal=head.localPosition;
+            foreach(var entry in new[]{"forest","table","single","profile","ab"})
+            {
+                d.Activate("forest");
+                head.localPosition=originalLocal+new Vector3(4,-.4f,-6);
+                head.localRotation=Quaternion.Euler(12,113,0);
+                movement.Teleport(view.Garden.StandingPoint(12));movement.SnapTurn(30);
+                var forestPosition=movement.Origin.position;var forestRotation=movement.Origin.rotation;
+                var localPosition=head.localPosition;var localRotation=head.localRotation;var height=head.position.y;
+                var presentationPosition=view.presentationRoot.position;var presentationRotation=view.presentationRoot.rotation;
+                if(entry=="single")d.Activate("single");
+                else if(entry=="profile" || entry=="ab")d.StartPlayback(entry=="ab");
+                else {
+                    if(entry=="table")d.Activate("table");
+                    view.Garden.Navigation.OpenTree(8);
+                }
+                Assert.That(movement.InGarden,Is.False,entry);
+                Assert.That(Vector3.ProjectOnPlane(head.position,Vector3.up).magnitude,Is.LessThan(.001f),entry);
+                Assert.That(Vector3.Angle(Vector3.ProjectOnPlane(head.forward,Vector3.up),Vector3.forward),Is.LessThan(.01f),entry);
+                Assert.That(head.position.y,Is.EqualTo(height).Within(.001f));
+                Assert.That(head.localPosition,Is.EqualTo(localPosition));Assert.That(head.localRotation,Is.EqualTo(localRotation));
+                Assert.That(Vector3.Distance(view.presentationRoot.position,presentationPosition),Is.LessThan(.001f));
+                Assert.That(Quaternion.Angle(view.presentationRoot.rotation,presentationRotation),Is.LessThan(.01f));
+                var centeredPosition=movement.Origin.position;var centeredRotation=movement.Origin.rotation;
+                d.RecenterScene();
+                Assert.That(Vector3.Distance(movement.Origin.position,centeredPosition),Is.LessThan(.001f),"B must already be centered after entry: "+entry);
+                Assert.That(Quaternion.Angle(movement.Origin.rotation,centeredRotation),Is.LessThan(.01f));
+                head.localRotation=Quaternion.Euler(12,150,0);head.localPosition+=new Vector3(.2f,0,.1f);
+                yield return null;
+                Assert.That(Vector3.Distance(movement.Origin.position,centeredPosition),Is.LessThan(.001f),"Head motion must not move the scene.");
+                Assert.That(Quaternion.Angle(movement.Origin.rotation,centeredRotation),Is.LessThan(.01f));
+                Assert.That(Quaternion.Angle(view.presentationRoot.rotation,presentationRotation),Is.LessThan(.01f));
+                d.RecenterScene();movement.AdjustPlacement(.5f,0,15);
+                d.Activate("forest");
+                Assert.That(movement.Origin.position,Is.EqualTo(forestPosition),"Tree centering/placement must retain the forest return position: "+entry);
+                Assert.That(Quaternion.Angle(movement.Origin.rotation,forestRotation),Is.LessThan(.01f),entry);
             }
         }
         [UnityTest] public IEnumerator RecenterButtonCentersTreeTableAndMenuOncePerPressWithoutChangingPlayback()
@@ -372,16 +459,17 @@ namespace VRExperienceAGB.Tests
         }
         [UnityTest] public IEnumerator CarezzaSceneryKeepsTeachingTreeMaterialsSeparate()
         {
-            var branches=view.transform.Find("MoonlitEnvironment").GetComponentsInChildren<Renderer>(true).Where(r=>r.name=="RadialBranches").ToArray();
+            var branches=view.transform.Find("MoonlitEnvironment").GetComponentsInChildren<Renderer>(true).Where(r=>r.name.StartsWith("DetailedFirLOD")).ToArray();
             Assert.That(branches.Length,Is.GreaterThan(10));
             var material=branches[0].sharedMaterial;
-            Assert.That(material.name,Is.EqualTo("BlueFrostSceneryFoliage"));
+            Assert.That(material,Is.SameAs(view.Garden.detailedFirMaterial));
             Assert.That(branches.All(r=>r.sharedMaterial==material),Is.True);
-            var color=material.GetColor("_BaseColor");Assert.That(color.b-color.g,Is.InRange(.08f,.25f));
-            Assert.That(material.GetColor("_EmissionColor").b,Is.InRange(.04f,.09f));
+            var color=material.color;Assert.That(color.b-color.g,Is.InRange(.08f,.25f));
+            Assert.That(material.mainTexture,Is.Not.Null);
             var model=view.transform.Find("ModelPineGarden/ModelTree-1/Pine").GetComponent<Renderer>();
             Assert.That(model.sharedMaterial,Is.Not.SameAs(material));Assert.That(model.sharedMaterial.color.g,Is.GreaterThan(model.sharedMaterial.color.b));
-            Assert.That(model.sharedMaterial.GetColor("_EmissionColor").g,Is.InRange(.04f,.09f));
+            Assert.That(model.sharedMaterial.mainTexture,Is.Not.Null);
+            Assert.That(model.sharedMaterial.shader.name,Is.EqualTo("VRExperienceAGB/SpruceBranch"));
             var scenery=view.transform.Find("ModelPineGarden").GetComponentsInChildren<Renderer>(true).Where(r=>r.name=="RadialBranches").ToArray();
             Assert.That(scenery.Length,Is.GreaterThan(10));
             Assert.That(scenery.All(r=>r.sharedMaterial==view.Garden.carezzaSpruceMaterial),Is.True);
@@ -389,7 +477,7 @@ namespace VRExperienceAGB.Tests
             Assert.That(view.Garden.carezzaSpruceMaterial.shader.isSupported,Is.True);
             view.Director.Activate("table");
             foreach(var pine in view.Garden.M5.Diorama.ModelRoot.GetComponentsInChildren<MeshRenderer>().Where(r=>r.name=="Pine"))
-                Assert.That(pine.sharedMaterial,Is.SameAs(model.sharedMaterial));
+                Assert.That(pine.sharedMaterial.shader.name,Is.EqualTo("VRExperienceAGB/TableTree"),"Miniature coverage must be independent of the full-size foliage material.");
             yield return null;
         }
         [UnityTest] public IEnumerator CarezzaSceneryStaysWorldAnchoredAndReleasesMeshesOnModelReplacement()

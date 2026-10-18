@@ -1,0 +1,26 @@
+[
+  {
+    "key": "panorama",
+    "args": {
+      "prompt": "Use case: precise-object-edit. Asset type: continuous transparent panoramic mountain and forest strip for a Unity Quest night environment. Edit the attached panorama as a faithful higher-detail restoration. Preserve EXACT mountain silhouette, summit positions, proportions, wooded base, transparency boundary, 3:1 aspect ratio, and current cream limestone / restrained rose / cool blue shadow palette. Add fine believable limestone fissures, ledges, mineral strata and sharper separated conifer textures within the existing forms. No composition changes, new peaks, sky, snow cover, water, fog layer, text, glow or extra objects. Genuine transparent sky area preserved. Highest useful resolution, target 3840x1280 or higher, landscape 3:1. Detail should remain coherent when mipmapped, avoid oversharpening halos.",
+      "referenced_image_paths": [
+        "/Users/gregory/Documents/VRExperienceAGB/BoostingExperience/Assets/VRExperienceAGB/Art/Carezza/LatemarPanorama.png"
+      ],
+      "transparent_background": true
+    }
+  },
+  {
+    "key": "bark",
+    "args": {
+      "prompt": "Use case: photorealistic-natural. Asset type: seamless square spruce bark albedo texture for a low-cost Unity Quest material. Create a flat orthographic macro scan of mature alpine spruce bark, longitudinal irregular fine fissures, broken overlapping dry plates, subtle silvery gray-brown highlights, darker brown crevices, sparse restrained gray lichen. Mid-tone natural neutral brown, readable medium scale structures and fine grain. Bark direction vertical. Seamlessly tile on all edges, no centered knot or unique landmark, no perspective, no shadows cast by external objects, no baked directional lighting, no background, text or border. Material appearance should match realistic conifer branches in a cool moonlit forest. Square 2048x2048 desired.",
+      "transparent_background": false
+    }
+  },
+  {
+    "key": "grass",
+    "args": {
+      "prompt": "Use case: photorealistic-natural. Asset type: single transparent alpine grass tuft sprite for restrained crossed-card ground vegetation in a Unity Quest scene. One small natural clump of 18 to 24 slender gently curved blades, irregular heights, muted olive sage green with a few dried straw tips and fine pale edges; modest width, clearly separated blades, not dense bush. Front orthographic view, entire tuft visible, roots gather at bottom center just above image bottom, widest blade tips within middle 80 percent width. Neutral diffuse illumination, readable texture, no drop shadow, ground, soil, stones, flowers, snow, text or border. Genuine transparent background and gaps between blades. Square texture 1024x1024.",
+      "transparent_background": true
+    }
+  }
+]

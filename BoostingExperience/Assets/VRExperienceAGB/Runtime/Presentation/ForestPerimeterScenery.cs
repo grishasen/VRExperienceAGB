@@ -13,7 +13,7 @@ namespace VRExperienceAGB.Presentation
         private static readonly Vector2 LakeRadius = new Vector2(65, 45);
 
         public void Build(float length, Material stone, Material foliage, Transform clearing, Mesh rockMesh, Mesh fernMesh,
-            Material backdrop = null, Material spruce = null, Material water = null, Material ground = null, Material rock = null)
+            Material backdrop = null, Material spruce = null, Material water = null, Material ground = null, Material rock = null, Mesh[] rockVariants = null, Material grass = null)
         {
             var random = new System.Random(82104);
             if (backdrop != null && spruce != null && water != null)
@@ -32,12 +32,13 @@ namespace VRExperienceAGB.Presentation
                 RestyleGardenTrees(treeMesh, spruce);
                 ScatterTrees(treeMesh, spruce, length, random);
             }
-            ScatterDetails(clearing, "SlateBoulder", rockMesh, 24, length, random, rock);
-            ScatterDetails(clearing, "GroundFern", fernMesh, 100, length, random, null);
+            ScatterDetails(clearing, "SlateBoulder", rockMesh, 24, length, random, rock, rockVariants);
+            ScatterDetails(clearing, "GroundFern", fernMesh, 100, length, random, grass);
         }
 
         private void RestyleGardenTrees(Mesh treeMesh, Material material)
         {
+            var farMesh=SpruceCards(2);
             foreach (Transform tree in transform)
             {
                 if (tree.name != "GardenBackdrop-PineTree") continue;
@@ -53,6 +54,11 @@ namespace VRExperienceAGB.Presentation
                 crown.transform.localScale=branches.localScale;
                 crown.GetComponent<MeshFilter>().sharedMesh=treeMesh;
                 crown.GetComponent<MeshRenderer>().sharedMaterial=material;
+                var far=new GameObject("FarBranches",typeof(MeshFilter),typeof(MeshRenderer));
+                far.transform.SetParent(tree,false);far.transform.localRotation=crown.transform.localRotation;far.transform.localScale=crown.transform.localScale;
+                far.GetComponent<MeshFilter>().sharedMesh=farMesh;far.GetComponent<MeshRenderer>().sharedMaterial=material;
+                var lod=tree.gameObject.AddComponent<LODGroup>();lod.fadeMode=LODFadeMode.None;
+                lod.SetLODs(new[]{new LOD(.10f,new[]{crown.GetComponent<Renderer>()}),new LOD(.004f,new[]{far.GetComponent<Renderer>()})});lod.RecalculateBounds();
                 branches.gameObject.SetActive(false);
                 Destroy(branches.gameObject);
                 foreach (var renderer in tree.GetComponentsInChildren<MeshRenderer>())
@@ -96,7 +102,10 @@ namespace VRExperienceAGB.Presentation
                 float height = Next(random, 10, 20);
                 instances.Add(Instance(treeMesh, GroundedTreePosition(position), Vector3.one * height, random));
             }
-            Combine("CarezzaShorePines", instances, material);
+            // Spatial batches let Unity reject off-screen banks without one renderer per tree.
+            var chunks=new[]{new List<CombineInstance>(),new List<CombineInstance>(),new List<CombineInstance>(),new List<CombineInstance>()};
+            foreach(var instance in instances)chunks[(instance.transform.m03<0?0:1)+(instance.transform.m23<0?0:2)].Add(instance);
+            for(int i=0;i<chunks.Length;i++)if(chunks[i].Count>0)Combine("CarezzaShorePines"+(i==0?"":"-"+i),chunks[i],material);
         }
 
         private static Vector3 GroundedTreePosition(Vector3 position)
@@ -148,7 +157,7 @@ namespace VRExperienceAGB.Presentation
             mesh.CombineMeshes(instances); meshes.Add(mesh); return mesh;
         }
 
-        private void ScatterDetails(Transform clearing, string templateName, Mesh sourceMesh, int count, float length, System.Random random, Material rockMaterial)
+        private void ScatterDetails(Transform clearing, string templateName, Mesh sourceMesh, int count, float length, System.Random random, Material rockMaterial, Mesh[] variants = null)
         {
             var template = clearing != null ? clearing.Find(templateName) : null;
             var renderer = template != null ? template.GetComponent<MeshRenderer>() : null;
@@ -175,9 +184,10 @@ namespace VRExperienceAGB.Presentation
                 if(rock && Mathf.Abs(position.x)<20 && position.z>-18)size*=.45f;
                 position.y = rock ? size * .16f : 0;
                 var scale = rock ? new Vector3(size*1.4f,size*.8f,size) : new Vector3(size,size*1.35f,size);
-                instances.Add(Instance(sourceMesh, position, scale, random));
+                var shape=rock && variants!=null && variants.Length>0 ? variants[i%variants.Length] : sourceMesh;
+                instances.Add(Instance(shape!=null?shape:sourceMesh, position, scale, random));
             }
-            if (rock && rockMaterial != null) { Combine("Rear"+templateName,instances,rockMaterial); return; }
+            if (rockMaterial != null) { Combine("Rear"+templateName,instances,rockMaterial); return; }
             var detail = new Material(renderer.sharedMaterial) { name = "Carezza" + templateName };
             detail.color = rock ? new Color(.38f,.45f,.52f) : new Color(.12f,.25f,.21f);
             detail.EnableKeyword("_EMISSION");
@@ -218,7 +228,7 @@ namespace VRExperienceAGB.Presentation
             {
                 float fraction0 = i/(float)segments, fraction1 = (i+1)/(float)segments;
                 float degreesA=Mathf.Lerp(-145,145,fraction0),degreesB=Mathf.Lerp(-145,145,fraction1);
-                float u0=PanoramaU(degreesA),u1=PanoramaU(degreesB);
+                float u0=fraction0,u1=fraction1;
                 float a = degreesA*Mathf.Deg2Rad, b = degreesB*Mathf.Deg2Rad;
                 var p = new Vector3(Mathf.Sin(a)*220,-8,-Mathf.Cos(a)*220);
                 var q = new Vector3(Mathf.Sin(b)*220,-8,-Mathf.Cos(b)*220);
@@ -229,20 +239,13 @@ namespace VRExperienceAGB.Presentation
             return Finish(geometry,"CarezzaPanoramaMesh");
         }
 
-        private static float PanoramaU(float degrees)
-        {
-            if (degrees < -60) return Mathf.Lerp(.28f,0,Mathf.InverseLerp(-145,-60,degrees));
-            if (degrees > 60) return Mathf.Lerp(1,.72f,Mathf.InverseLerp(60,145,degrees));
-            return Mathf.InverseLerp(-60,60,degrees);
-        }
-
-        private Mesh SpruceCards()
+        private Mesh SpruceCards(int planes=3)
         {
             var geometry = new Geometry();
             // Three fixed intersecting planes retain volume as the observer turns. No camera-facing updates.
-            for (int i = 0; i < 3; i++)
+            for (int i = 0; i < planes; i++)
             {
-                var rotation = Quaternion.Euler(0,i*60,0);
+                var rotation = Quaternion.Euler(0,i*180f/planes,0);
                 // Alpha-tested artwork occupies pixels x=124..923, y=29..1507 in 1024x1536.
                 // Map the visible trunk base to the ground instead of lifting it by the transparent margin.
                 geometry.Quad(rotation*new Vector3(-.27f,-.003f,0),rotation*new Vector3(.27f,-.003f,0),

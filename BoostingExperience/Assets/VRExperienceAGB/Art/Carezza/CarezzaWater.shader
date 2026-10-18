@@ -13,6 +13,7 @@ Shader "VRExperienceAGB/CarezzaWater"
             #pragma fragment frag
             #pragma multi_compile_instancing
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
+            #include "CarezzaPanorama.hlsl"
             TEXTURE2D(_MainTex); SAMPLER(sampler_MainTex);
             CBUFFER_START(UnityPerMaterial)
                 half4 _Color;
@@ -31,15 +32,14 @@ Shader "VRExperienceAGB/CarezzaWater"
                 float3 view=normalize(GetWorldSpaceViewDir(i.world));
                 float3 ray=reflect(-view,n);
                 float degrees=atan2(ray.x,-ray.z)*57.29578;
-                float u=degrees < -60 ? lerp(.28,0,saturate((degrees+145)/85)) :
-                    degrees > 60 ? lerp(1,.72,saturate((degrees-60)/85)) : (degrees+60)/120;
                 float v=(ray.y/max(length(ray.xz),.01)*220+8)/148;
-                half side=smoothstep(55,100,abs(degrees));
-                v/=lerp(1,.48,side);
-                half4 reflection=SAMPLE_TEXTURE2D(_MainTex,sampler_MainTex,float2(saturate(u),saturate(v)));
+                float2 uv=CarezzaPanoramaUV(degrees,v);
+                half side=CarezzaSideBlend(degrees);
+                half4 reflection=SAMPLE_TEXTURE2D(_MainTex,sampler_MainTex,float2(uv.x,saturate(uv.y)));
                 reflection.rgb=lerp(reflection.rgb,half3(.025,.04,.065),side*.72);
                 half3 sky=half3(.04,.075,.12);
-                half3 reflected=lerp(sky,reflection.rgb,reflection.a*step(0,u)*step(u,1)*step(v,1));
+                half ridgeFade=1-smoothstep(115,145,abs(degrees));
+                half3 reflected=lerp(sky,reflection.rgb,reflection.a*ridgeFade*step(uv.y,1));
                 half fresnel=pow(1-saturate(dot(n,view)),3);
                 half shimmer=pow(saturate(sin(i.world.z*7+wave)*.5+.5),12)*.008;
                 return half4(lerp(_Color.rgb,reflected*half3(.48,.63,.72),fresnel*.68)+shimmer,1);

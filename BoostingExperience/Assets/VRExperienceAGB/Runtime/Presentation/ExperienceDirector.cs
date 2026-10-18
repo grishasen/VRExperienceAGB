@@ -40,6 +40,7 @@ namespace VRExperienceAGB.Presentation
         private readonly Transform[] dots = new Transform[2];
         private int builtTree = -1, builtStep = -1;
         private PlaybackPhase shownPhase=(PlaybackPhase)(-1);
+        private bool shownPaused;
         private bool completeShown, configured;
         private string runA, runB;
         private VRExperienceAGB.Domain.PreparedProfile runProfileA, runProfileB;
@@ -75,12 +76,10 @@ namespace VRExperienceAGB.Presentation
             foreach(var text in view.GetComponentsInChildren<TMP_Text>(true)) TreeCardTypography.SetFont(text);
             TreeCardTypography.SetFont(title,true);
             routeRoot = new GameObject("ProfileRoutePresentation").transform; routeRoot.SetParent(view.presentationRoot,false);
-            detailCanvas = Garden.M5.Panel("ProfileExplanation",new Vector2(1100,560),routeRoot);
-            detailCanvas.transform.localPosition = new Vector3(0,.6f,2.8f);
-            detailCanvas.transform.localScale=Vector3.one*.0019f;
-            detailCanvas.GetComponent<UnityEngine.UI.Image>().raycastTarget=false;
-            explanation = Garden.Text(detailCanvas.transform,"Explanation","",Vector2.zero,new Vector2(1020,520),36);
-            explanation.enableAutoSizing=true; explanation.fontSizeMin=32; explanation.fontSizeMax=40;
+            detailCanvas = Garden.CanvasAt("ProfileExplanation",new Vector3(0,.6f,2.8f),new Vector2(900,132),.0019f,routeRoot,false);
+            explanation = Garden.Text(detailCanvas.transform,"Explanation","",Vector2.zero,new Vector2(880,120),32);
+            TreeCardTypography.SetFont(explanation,true);
+            explanation.richText=true;explanation.textWrappingMode=TextWrappingModes.NoWrap;explanation.overflowMode=TextOverflowModes.Ellipsis;
             resultCanvas = Garden.CanvasAt("WholeForestResult",Vector3.zero,new Vector2(1300,280),.0014f,view.transform);
             resultText = Garden.Text(resultCanvas.transform,"FinalScore","",Vector2.zero,new Vector2(1280,270),36);
             resultText.richText=false;resultText.enableAutoSizing=true;resultText.fontSizeMin=24;resultText.fontSizeMax=35;
@@ -305,7 +304,7 @@ namespace VRExperienceAGB.Presentation
                 if(!completeShown){completeShown=true;CommitResultSessions();PlayingTour=false;ResultsVisible=true;routeRoot.gameObject.SetActive(false);Garden.Navigation.ShowForest();OpenMenu("result");}
                 return;
             }
-            bool changed=builtTree!=Playback.TreeIndex || builtStep!=Playback.StepIndex || shownPhase!=Playback.Phase;
+            bool changed=builtTree!=Playback.TreeIndex || builtStep!=Playback.StepIndex || shownPhase!=Playback.Phase || shownPaused!=Playback.Paused;
             if(builtTree!=Playback.TreeIndex)BuildRoute();
             var a=Playback.A.Trees[builtTree];var b=Playback.B?.Trees[builtTree];
             if(builtStep!=Playback.StepIndex){
@@ -323,10 +322,25 @@ namespace VRExperienceAGB.Presentation
                 dots[p].position=pos+(b==null?Vector3.zero:View.presentationRoot.right*(p==0?-.1f:.1f));
             }
             if(!changed)return;
-            shownPhase=Playback.Phase;
-            string heading="TREE "+(builtTree+1)+" / "+View.Model.Trees.Count+" · decision "+(Playback.StepIndex+1)+" · "+Pace+"\n"+Playback.CompletedTrees+" complete · animation estimate "+TimeSpan.FromSeconds(Playback.EstimatedRemainingSeconds).ToString(@"hh\:mm\:ss")+(Playback.Paused?" after resume":" remaining")+"\n";
-            if(Playback.Phase==PlaybackPhase.TreeResult)explanation.text=heading+TreeCopy(Playback.A,"A")+(Playback.B==null?"":"\n"+TreeCopy(Playback.B,"B"))+(Playback.Paused?"\nPaused · Next step continues.":"\nNext tree follows automatically.");
-            else explanation.text=heading+DecisionCopy(Playback.A,"A")+(Playback.B==null?"":"\n\n"+DecisionCopy(Playback.B,"B"));
+            shownPhase=Playback.Phase;shownPaused=Playback.Paused;
+            explanation.text="Tree "+(builtTree+1)+" / "+View.Model.Trees.Count+" · "+
+                (Playback.Phase==PlaybackPhase.TreeResult?"Leaf":"Step "+(Playback.StepIndex+1))+(Playback.Paused?" · Paused":"")+"\n"+
+                CompactRouteCopy(Playback.A,"A",AColor)+(Playback.B==null?"":"     "+CompactRouteCopy(Playback.B,"B",BColor));
+        }
+        private string CompactRouteCopy(EvaluationResult result,string prefix,Color color)
+        {
+            var tree=result.Trees[Playback.TreeIndex];int step=Math.Min(Playback.StepIndex,tree.Decisions.Count);
+            string status=step==tree.Decisions.Count?"Leaf "+Signed(tree.Contribution):"→ "+(tree.Decisions[step].Matched?"L":"R");
+            return "<color=#"+ColorUtility.ToHtmlStringRGB(color)+">"+prefix+" · "+status+"</color>";
+        }
+        private string PlaybackDetailsCopy()
+        {
+            if(Playback==null)return "No active run.";
+            if(Playback.Complete)return ResultCopy();
+            string heading="TREE "+(Playback.TreeIndex+1)+" / "+View.Model.Trees.Count+" · decision "+(Playback.StepIndex+1)+" · "+Pace+"\n"+Playback.CompletedTrees+" complete · animation estimate "+TimeSpan.FromSeconds(Playback.EstimatedRemainingSeconds).ToString(@"hh\:mm\:ss")+(Playback.Paused?" after resume":" remaining")+"\n\n";
+            return heading+(Playback.Phase==PlaybackPhase.TreeResult?
+                TreeCopy(Playback.A,"A")+(Playback.B==null?"":"\n"+TreeCopy(Playback.B,"B")):
+                DecisionCopy(Playback.A,"A")+(Playback.B==null?"":"\n\n"+DecisionCopy(Playback.B,"B")));
         }
         private string TreeCopy(EvaluationResult result,string prefix)
         {var t=result.Trees[Playback.TreeIndex];return prefix+": leaf "+Signed(t.Contribution)+" · accumulated Score "+Number(t.RunningRawScore);}

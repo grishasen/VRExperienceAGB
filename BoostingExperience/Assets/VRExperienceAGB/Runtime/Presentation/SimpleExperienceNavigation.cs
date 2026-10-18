@@ -54,7 +54,7 @@ namespace VRExperienceAGB.Presentation
 
             forest=Panel("ForestNavigation",new Vector2(600,210),root);
             garden.Button(forest,"Menu · A / Tab",new Vector2(0,60),new Vector2(350,64),GardenCommand.Home,0,27);
-            garden.Text(forest.transform,"Hint","Select a crown · Choose Explore tree\nLeft stick: walk · Right stick: turn\nPath markers: teleport",new Vector2(0,-36),new Vector2(565,105),25);
+            garden.Text(forest.transform,"Hint","Select a crown · Choose Explore tree\nLeft stick: walk · Right stick: turn",new Vector2(0,-36),new Vector2(565,105),25);
             Refresh();Place();
         }
         private Canvas Panel(string name,Vector2 size,Transform root)

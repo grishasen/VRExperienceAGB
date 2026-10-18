@@ -85,6 +85,27 @@ namespace VRExperienceAGB.Tests
             Assert.That(card.GetComponentsInChildren<Oculus.Interaction.RayInteractable>(true).All(r=>!r.isActiveAndEnabled),Is.True);
         }
 
+        [UnityTest] public IEnumerator CrownHoverNeverCreatesAnEmptyHintAndBothPointersCanOpenChoices()
+        {
+            var target=view.transform.Find("ModelPineGarden/ModelTree-1/PineCrownTarget-1").GetComponentInChildren<GardenPointerTarget>();
+            int hintCount=view.GetComponentsInChildren<Canvas>(true).Count(c=>c.name=="ButtonHint");
+            foreach(int pointer in new[]{81,82}) {
+                var input=new PointerEventData(EventSystem.current){pointerId=pointer,button=PointerEventData.InputButton.Left};
+                ExecuteEvents.Execute(target.gameObject,input,ExecuteEvents.pointerEnterHandler);
+                Assert.That(target.GetComponent<ButtonHint>().Visible,Is.False);
+                Assert.That(target.GetComponent<UnityEngine.UI.Outline>(),Is.Null);
+                Assert.That(view.GetComponentsInChildren<Canvas>(true).Count(c=>c.name=="ButtonHint"),Is.EqualTo(hintCount));
+                Assert.That(view.Garden.DescriptionCard.Visible,Is.False);
+                ExecuteEvents.Execute(target.gameObject,input,ExecuteEvents.pointerDownHandler);
+                ExecuteEvents.Execute(target.gameObject,input,ExecuteEvents.pointerClickHandler);
+                Assert.That(view.Garden.DescriptionCard.Visible,Is.True);
+                Assert.That(view.Garden.DescriptionCard.Index,Is.Zero);
+                ExecuteEvents.Execute(target.gameObject,input,ExecuteEvents.pointerExitHandler);
+                view.Garden.DescriptionCard.Hide();
+            }
+            yield return null;
+        }
+
         [UnityTest] public IEnumerator RetargetedPressCannotOpenWrongTreeAndExploreStillWorks()
         {
             var garden=view.Garden;garden.Hover(0);Assert.That(garden.DescriptionCard.Visible,Is.False);OpenChoices(0);var card=garden.DescriptionCard;
@@ -140,11 +161,16 @@ namespace VRExperienceAGB.Tests
             var garden=view.Garden;
             garden.M6.RefreshVisibility();Assert.That(garden.M6.Legend.Visible,Is.True);
             var legend=view.transform.Find("SourceLegend");
-            Assert.That(garden.M6.Legend.Expanded,Is.False);
-            Assert.That(legend.GetComponentsInChildren<TMP_Text>().Any(t=>t.name.StartsWith("Source")),Is.False);
+            Assert.That(garden.M6.Legend.Expanded,Is.True);
+            Assert.That(legend.GetComponentsInChildren<TMP_Text>().Any(t=>t.name.StartsWith("Source")),Is.True);
             var toggle=legend.GetComponentsInChildren<SourceLegendTarget>().Single(t=>t.Delta==0);
             var input=new PointerEventData(EventSystem.current){pointerId=87,button=PointerEventData.InputButton.Left};
             var position=legend.position;var rotation=legend.rotation;
+            var offset=Quaternion.Inverse(rotation)*(position-garden.Locomotion.Head.position);
+            Assert.That(offset.x,Is.LessThan(0));Assert.That(offset.y,Is.LessThan(0));
+            toggle.OnPointerDown(input);toggle.OnPointerClick(input);
+            Assert.That(garden.M6.Legend.Expanded,Is.False);
+            Assert.That(legend.GetComponentsInChildren<TMP_Text>().Any(t=>t.name.StartsWith("Source")),Is.False);
             toggle.OnPointerDown(input);toggle.OnPointerClick(input);
             Assert.That(garden.M6.Legend.Expanded,Is.True);
             Assert.That(legend.position,Is.EqualTo(position));Assert.That(legend.rotation,Is.EqualTo(rotation));
@@ -187,6 +213,7 @@ namespace VRExperienceAGB.Tests
             var model=new ModelDefinition(1,"legend-pages","synthetic","binary_logistic","response",0,features,trees);
             Assert.That(view.OpenImportedModel(new ImportedModel(model),new ProfileSet(1,model.Id,System.Array.Empty<PreparedProfile>()),"Synthetic legend pages").IsSuccess,Is.True);
             view.Director.Activate("forest");view.Garden.M6.RefreshVisibility();yield return null;
+            if(view.Garden.M6.Legend.Expanded)view.Garden.M6.Legend.Toggle();
             var root=(RectTransform)view.transform.Find("SourceLegend");var head=view.Garden.Locomotion.Head;
             var toggle=root.Find("ToggleSources").GetComponent<SourceLegendTarget>();
             var next=root.Find("Next").GetComponent<SourceLegendTarget>();
