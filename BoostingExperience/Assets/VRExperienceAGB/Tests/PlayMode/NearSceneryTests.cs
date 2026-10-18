@@ -29,6 +29,7 @@ namespace VRExperienceAGB.Tests
 
         [UnityTest] public IEnumerator DetailIsBoundedSharedAndIndependentOfTrackingAndModelTrees()
         {
+            view.Garden.SetFullSceneryDetail(false);
             var root=view.transform.Find("ModelPineGarden");
             var head=view.Garden.Locomotion.Head;var position=head.localPosition;var rotation=head.localRotation;
             var trees=root.Cast<Transform>().Where(t=>t.name=="GardenInteriorPine").OrderBy(t=>t.localPosition.sqrMagnitude).ToArray();
@@ -73,6 +74,7 @@ namespace VRExperienceAGB.Tests
 
         [UnityTest] public IEnumerator ModelLodsPreserveMetricBoundsAndNeverCullTheEnsemble()
         {
+            view.Garden.SetFullSceneryDetail(false);
             var root=view.transform.Find("ModelPineGarden");
             var crowns=root.GetComponentsInChildren<LODGroup>().Where(g=>g.name=="Pine").ToArray();
             Assert.That(crowns.Length,Is.EqualTo(100));
@@ -130,6 +132,75 @@ namespace VRExperienceAGB.Tests
             Assert.That(banks.Sum(t=>t.GetComponent<MeshFilter>().sharedMesh.triangles.Length/3),Is.EqualTo(72*6));
             Load(3);yield return null;yield return null;
             Assert.That(owned.All(m=>m==null),Is.True);
+        }
+
+        [UnityTest] public IEnumerator FullDetailKeepsGrassRocksAndBranchesRenderedAcrossViewsAndRebuilds()
+        {
+            Assert.That(view.Garden.FullSceneryDetail,Is.True,"The comparison build must start with full scenery detail.");
+            var head=view.Garden.Locomotion.Head;
+            var position=head.localPosition;var rotation=head.localRotation;
+            var root=view.transform.Find("ModelPineGarden");
+            foreach(var name in new[]{"ForestGrass-0","ForestRocks-0","Pine","GardenInteriorPine","GardenBackdrop-PineTree"})
+                yield return Compare(root.GetComponentsInChildren<LODGroup>().First(g=>g.name==name));
+            Assert.That(view.Garden.VisiblePlotCount,Is.EqualTo(100));
+            Assert.That(head.localPosition,Is.EqualTo(position));Assert.That(head.localRotation,Is.EqualTo(rotation));
+
+            view.Director.Activate("single");yield return null;
+            var clearing=view.transform.Find("MoonlitEnvironment");
+            foreach(var name in new[]{"PineTree","RockGrass"})
+                yield return Compare(clearing.GetComponentsInChildren<LODGroup>().First(g=>g.name==name));
+
+            Load(3);yield return null;yield return null;
+            Assert.That(view.Garden.FullSceneryDetail,Is.True);
+            yield return Compare(view.transform.Find("ModelPineGarden").GetComponentsInChildren<LODGroup>().First(g=>g.name=="ForestRocks-0"));
+        }
+
+        private IEnumerator Compare(LODGroup group)
+        {
+            var renderers=group.GetLODs().SelectMany(l=>l.renderers).Distinct().ToArray();
+            var layers=renderers.Select(r=>r.gameObject.layer).ToArray();
+            var cameraObject=new GameObject("SceneryDistanceProbe",typeof(Camera));
+            var target=new RenderTexture(256,256,24);
+            var pixels=new Texture2D(256,256,TextureFormat.RGB24,false);
+            var previous=RenderTexture.active;float bias=QualitySettings.lodBias;
+            try {
+                foreach(var renderer in renderers)renderer.gameObject.layer=30;
+                var bounds=renderers[0].bounds;
+                foreach(var renderer in group.GetLODs()[0].renderers)bounds.Encapsulate(renderer.bounds);
+                if(group.name.StartsWith("Forest")||group.name=="RockGrass") {
+                    // Frame a local tuft/rock, not the entire wide batch where grass becomes subpixel.
+                    var filter=renderers[0].GetComponent<MeshFilter>();
+                    var points=filter.sharedMesh.vertices.Take(12).Select(filter.transform.TransformPoint).ToArray();
+                    bounds=new Bounds(points[0],Vector3.zero);foreach(var point in points)bounds.Encapsulate(point);
+                }
+                var camera=cameraObject.GetComponent<Camera>();camera.enabled=false;camera.cullingMask=1<<30;
+                camera.fieldOfView=60;camera.clearFlags=CameraClearFlags.SolidColor;camera.backgroundColor=Color.black;
+                camera.nearClipPlane=.01f;camera.farClipPlane=2000;camera.targetTexture=target;
+                camera.transform.position=bounds.center+new Vector3(0,.65f,-1).normalized*Mathf.Max(2,bounds.size.magnitude*1.2f);
+                camera.transform.LookAt(bounds.center);
+                // Simulate a far-distance LOD decision while retaining enough pixels to inspect branch geometry.
+                QualitySettings.lodBias=.0001f;
+                yield return null;
+                var full=Render();
+                Assert.That(full.Count(c=>c.maxColorComponent>.01f),Is.GreaterThan(10),group.name+" disappeared in full-detail mode.");
+                view.Garden.SetFullSceneryDetail(false);yield return null;
+                var automatic=Render();
+                int changed=full.Zip(automatic,(a,b)=>Mathf.Abs(a.r-b.r)+Mathf.Abs(a.g-b.g)+Mathf.Abs(a.b-b.b)).Count(d=>d>.04f);
+                Assert.That(changed,Is.GreaterThan(10),group.name+" did not retain additional visible detail over automatic LOD.");
+                view.Garden.SetFullSceneryDetail(true);yield return null;
+                var restored=Render();
+                Assert.That(restored.Zip(full,(a,b)=>Mathf.Abs(a.r-b.r)+Mathf.Abs(a.g-b.g)+Mathf.Abs(a.b-b.b)).Max(),Is.LessThan(.01f),group.name+" did not restore full detail.");
+
+                Color[] Render() {
+                    camera.Render();RenderTexture.active=target;
+                    pixels.ReadPixels(new Rect(0,0,256,256),0,0);pixels.Apply();return pixels.GetPixels();
+                }
+            } finally {
+                QualitySettings.lodBias=bias;view.Garden.SetFullSceneryDetail(true);
+                for(int i=0;i<renderers.Length;i++)renderers[i].gameObject.layer=layers[i];
+                RenderTexture.active=previous;cameraObject.GetComponent<Camera>().targetTexture=null;target.Release();
+                Object.Destroy(cameraObject);Object.Destroy(target);Object.Destroy(pixels);
+            }
         }
     }
 }

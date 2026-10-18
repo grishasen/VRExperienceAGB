@@ -12,6 +12,9 @@ namespace VRExperienceAGB.Presentation
     public sealed class ForestGardenView : MonoBehaviour
     {
         public bool simplifiedNavigation;
+        [SerializeField, Tooltip("Keep scenery at its highest detail without distance-based hiding, for Quest comparison.")]
+        private bool keepFullSceneryDetail = true;
+        public bool FullSceneryDetail => keepFullSceneryDetail;
         public SimpleExperienceNavigation Navigation { get; private set; }
         public M5ForestPresentation M5 { get; private set; }
         public M6ExplanationPresentation M6 { get; private set; }
@@ -92,6 +95,7 @@ namespace VRExperienceAGB.Presentation
             NearSceneryDetail.ApplyClearing(environment,this);
             if(environment!=null && grassMesh!=null && grassMaterial!=null)
                 environment.gameObject.AddComponent<ForestGroundCover>().BuildClearing(environment,grassMesh,grassMaterial);
+            ApplySceneryDetail(environment);
             quietRing=new Material(completedMaterial) { name="UnvisitedPlanterRing" };
             quietRing.color=new Color(.10f,.25f,.27f); quietRing.enableInstancing=true;
             quietRing.DisableKeyword("_EMISSION");quietRing.SetColor("_EmissionColor",Color.black);
@@ -182,6 +186,31 @@ namespace VRExperienceAGB.Presentation
             boostingTrail.gameObject.SetActive(false);
             if(simplifiedNavigation) Navigation = new SimpleExperienceNavigation(this, root.transform);
             else { Navigation = null; BuildGuide(); }
+            ApplySceneryDetail(root.transform);
+        }
+        public void SetFullSceneryDetail(bool fullDetail)
+        {
+            keepFullSceneryDetail=fullDetail;
+            ApplySceneryDetail(root!=null?root.transform:null);
+            ApplySceneryDetail(Experience!=null?Experience.transform.Find("MoonlitEnvironment"):null);
+        }
+        private void ApplySceneryDetail(Transform scenery)
+        {
+            if(scenery==null)return;
+            // Include inactive views so switching between the forest and clearing retains the same policy.
+            // Disable automatic selection entirely: quality/LOD-bias changes can reset ForceLOD.
+            // Only highest-detail renderers stay enabled; native frustum/depth culling still applies.
+            foreach(var group in scenery.GetComponentsInChildren<LODGroup>(true)) {
+                var levels=group.GetLODs();
+                group.enabled=!keepFullSceneryDetail;
+                foreach(var level in levels)
+                    foreach(var renderer in level.renderers)
+                        if(renderer!=null)renderer.enabled=!keepFullSceneryDetail;
+                if(keepFullSceneryDetail && levels.Length>0) {
+                    foreach(var renderer in levels[0].renderers)
+                        if(renderer!=null)renderer.enabled=true;
+                } else group.ForceLOD(-1);
+            }
         }
         private void RestoreInteriorPines(int rows, Transform originalEnvironment)
         {

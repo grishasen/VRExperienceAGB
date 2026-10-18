@@ -15,6 +15,7 @@ namespace VRExperienceAGB.Presentation
         [Serializable] public sealed class Report
         {
             public string utc, buildGuid, version, unityVersion, device, modelId, status, measurementKind;
+            public string sceneryDetailMode;
             public bool editor, xrRunning, cpuTimingAvailable, gpuTimingAvailable;
             public int trees, frames, framesOverBudget, interruptedFrames;
             public float seconds, averageFps, medianMs, p95Ms, p99Ms, maximumMs, refreshHz;
@@ -48,17 +49,20 @@ namespace VRExperienceAGB.Presentation
         private int compositorCount, xrGpuCount, droppedStart, presentedStart;
         private bool droppedAvailable,presentedAvailable;
         private Vector3 headStart,headMinimum,headMaximum,headEulerStart;
+        private bool initialFullDetail, detailModeChanged;
         public void Begin(OneTreeExperience target,float durationSeconds=60)
         {
             view=target;frames.Clear();transitions.Clear();warmup=elapsed=0;cpu=gpu=0;cpuCount=gpuCount=interrupted=0;peakMemory=0;lastState=null;
             duration=float.IsFinite(durationSeconds)?Mathf.Clamp(durationSeconds,10,600):60;
             compositorGpu=0;compositorCount=xrGpuCount=0;droppedAvailable=presentedAvailable=false;
+            initialFullDetail=view.Garden.FullSceneryDetail;detailModeChanged=false;
             SubsystemManager.GetSubsystems(displays);xrDisplay=displays.FirstOrDefault(d=>d.running);
             Recording=true;Status="Recording after warm-up; close this menu to use the scene.";
         }
         private void Update()
         {
             if(!Recording||view==null||!view.Ready)return;
+            detailModeChanged|=view.Garden.FullSceneryDetail!=initialFullDetail;
             if(view.ApplicationSuspended){interrupted++;return;}
             float dt=Time.unscaledDeltaTime;if(!float.IsFinite(dt)||dt<=0)return;
             warmup+=dt;if(warmup<3)return;
@@ -106,6 +110,7 @@ namespace VRExperienceAGB.Presentation
                 utc=DateTime.UtcNow.ToString("O"),buildGuid=UnityEngine.Application.buildGUID,version=UnityEngine.Application.version,unityVersion=UnityEngine.Application.unityVersion,
                 device=SystemInfo.deviceModel,modelId=view.Model.Id,trees=view.Model.Trees.Count,editor=UnityEngine.Application.isEditor,xrRunning=display!=null,
                 measurementKind=UnityEngine.Application.isEditor?"Editor diagnostic; not Quest acceptance":display==null?"Player without active XR":"XR device measurement; acceptance requires review",
+                sceneryDetailMode=detailModeChanged?"Mixed":initialFullDetail?"Full detail; no distance hiding":"Automatic LOD",
                 status=elapsed>=duration?"Completed":"Stopped early",seconds=elapsed,requestedSeconds=duration,frames=frames.Count,averageFps=frames.Count/elapsed,
                 medianMs=sorted[sorted.Length/2],p95Ms=sorted[(int)((sorted.Length-1)*.95)],p99Ms=sorted[(int)((sorted.Length-1)*.99)],maximumMs=sorted[sorted.Length-1],refreshHz=refresh,
                 framesOverBudget=refresh>0?frames.Count(f=>f>1000/refresh):-1,interruptedFrames=interrupted,peakAllocatedBytes=peakMemory,

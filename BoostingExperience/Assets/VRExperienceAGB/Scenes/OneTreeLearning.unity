@@ -31330,6 +31330,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: VRExperienceAGB.Presentation::VRExperienceAGB.Presentation.ForestGardenView
   simplifiedNavigation: 1
+  keepFullSceneryDetail: 1
   pineMesh: {fileID: 4300000, guid: 83fec242c39e84455ab45e67a5459414, type: 2}
   trunkMesh: {fileID: 4300000, guid: 2e7bb8b06f27141c8bcf46fd389978fb, type: 2}
   planterMesh: {fileID: 4300000, guid: f2c44eab911c545398f02f573bd6a51a, type: 2}
