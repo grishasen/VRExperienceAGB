@@ -331,8 +331,67 @@ namespace VRExperienceAGB.Tests
             var pointer=new PointerEventData(EventSystem.current);
             ExecuteEvents.Execute(target.gameObject,pointer,ExecuteEvents.pointerEnterHandler);
             Assert.That(table.HoveredIndex,Is.EqualTo(25));Assert.That(table.HoverText.text,Does.Contain("26"));
+            Assert.That(target.GetComponent<ButtonHint>().Visible,Is.False,"The duplicate number tooltip must not cover the preview tree.");
+            Assert.That(view.GetComponentsInChildren<Transform>().Any(t=>t.name=="MagnifiedTableTree"),Is.True);
             Assert.That(view.Session.State.Revision,Is.EqualTo(revision));Assert.That(view.Ensemble.Index,Is.EqualTo(selected));
             ExecuteEvents.Execute(target.gameObject,pointer,ExecuteEvents.pointerExitHandler);Assert.That(table.HoveredIndex,Is.EqualTo(-1));
+        }
+        [UnityTest] public IEnumerator TableLeftStickRotatesAndMovesContentWithoutMovingTrackingOrChangingResults()
+        {
+            view.GetComponent<DesktopTreePreview>().enabled=false;
+            var d=view.Director;d.StartPlayback(true);d.Activate("calculate-all");d.Activate("results-table");d.SendMessage("LateUpdate");
+            var movement=view.Garden.Locomotion;var table=view.Garden.M5.Diorama;
+            var head=movement.Head;var localPosition=head.localPosition;var localRotation=head.localRotation;
+            var origin=movement.Origin.position;var originRotation=movement.Origin.rotation;
+            var a=d.Playback.A.RawScore;var b=d.Playback.B.RawScore;var revision=view.Session.State.Revision;
+            var start=table.ModelRoot.position;var height=start.y;var scale=table.Scale;
+            var result=view.transform.Find("WholeForestResult");var resultOffset=result.position-start;
+            movement.WalkEnabled=false;
+            movement.HandleLeftStick(new Vector2(.19f,-.19f),.1f);
+            Assert.That(table.ModelRoot.position,Is.EqualTo(start));Assert.That(table.Yaw,Is.Zero);
+            movement.HandleLeftStick(Vector2.right,.1f);Assert.That(table.Yaw,Is.EqualTo(4.5f).Within(.001f));
+            movement.HandleLeftStick(Vector2.left,.1f);Assert.That(table.Yaw,Is.EqualTo(0).Within(.001f));
+            float distance=Vector3.ProjectOnPlane(start-head.position,Vector3.up).magnitude;
+            movement.HandleLeftStick(Vector2.up,.1f);
+            Assert.That(Vector3.ProjectOnPlane(table.ModelRoot.position-head.position,Vector3.up).magnitude,Is.EqualTo(distance-.065f).Within(.001f));
+            d.SendMessage("LateUpdate");
+            Assert.That(Vector3.Distance(result.position-table.ModelRoot.position,resultOffset),Is.LessThan(.001f),"The complete result must travel with its table.");
+            for(int i=0;i<100;i++)movement.HandleLeftStick(Vector2.up,.1f);
+            Assert.That(Vector3.ProjectOnPlane(table.ModelRoot.position-head.position,Vector3.up).magnitude,Is.EqualTo(ForestDioramaView.MinimumDistance).Within(.001f));
+            for(int i=0;i<100;i++)movement.HandleLeftStick(Vector2.down,.1f);
+            Assert.That(Vector3.ProjectOnPlane(table.ModelRoot.position-head.position,Vector3.up).magnitude,Is.EqualTo(ForestDioramaView.MaximumDistance).Within(.001f));
+            Assert.That(table.ModelRoot.position.y,Is.EqualTo(height));Assert.That(table.Scale,Is.EqualTo(scale));
+            Assert.That(head.localPosition,Is.EqualTo(localPosition));Assert.That(head.localRotation,Is.EqualTo(localRotation));
+            Assert.That(movement.Origin.position,Is.EqualTo(origin));Assert.That(movement.Origin.rotation,Is.EqualTo(originRotation));
+            Assert.That(d.Playback.A.RawScore,Is.EqualTo(a));Assert.That(d.Playback.B.RawScore,Is.EqualTo(b));
+            Assert.That(d.Playback.CompletedTrees,Is.EqualTo(view.Model.Trees.Count));Assert.That(view.Session.State.Revision,Is.EqualTo(revision));
+            var target=table.ModelRoot.GetComponentsInChildren<M5PointerTarget>().First(t=>t.action==M5Action.SelectTree);
+            var pointer=new PointerEventData(EventSystem.current){pointerId=73,button=PointerEventData.InputButton.Left};
+            ExecuteEvents.Execute(target.gameObject,pointer,ExecuteEvents.pointerDownHandler);
+            movement.HandleLeftStick(Vector2.right,.1f);
+            ExecuteEvents.Execute(target.gameObject,pointer,ExecuteEvents.pointerClickHandler);
+            Assert.That(view.Garden.Navigation.Page,Is.EqualTo(NavigationPage.Diorama),"A press on the previous table pose must be cancelled.");
+            Assert.That(Quaternion.Angle(target.GetComponentInParent<Canvas>().transform.rotation,table.ModelRoot.parent.rotation),Is.LessThan(.01f));
+            d.RecenterScene();Assert.That(Vector3.ProjectOnPlane(table.ModelRoot.position-head.position,Vector3.up).magnitude,Is.EqualTo(1.6f).Within(.001f));
+            d.Activate("forest");movement.WalkEnabled=true;origin=movement.Origin.position;movement.HandleLeftStick(Vector2.up,.1f);
+            Assert.That(Vector3.Distance(origin,movement.Origin.position),Is.GreaterThan(.1f),"Forest walking still uses the left stick.");
+            yield return null;
+        }
+        [UnityTest] public IEnumerator TableLeftStickStopsForMenusFocusLossAndInvalidInput()
+        {
+            view.Director.Activate("table");var movement=view.Garden.Locomotion;var table=view.Garden.M5.Diorama;
+            var position=table.ModelRoot.position;var yaw=table.Yaw;
+            view.Director.OpenMenu("table-tools");movement.HandleLeftStick(Vector2.one,.1f);view.Director.CloseMenu();
+            view.SendMessage("OnApplicationFocus",false);movement.HandleLeftStick(Vector2.one,.1f);view.SendMessage("OnApplicationFocus",true);
+            view.SendMessage("OnApplicationPause",true);movement.HandleLeftStick(Vector2.one,.1f);view.SendMessage("OnApplicationPause",false);
+            view.Garden.M5.OpenHelp();movement.HandleLeftStick(Vector2.one,.1f);view.Garden.M5.CloseHelp();
+            foreach(float invalid in new[]{float.NaN,float.PositiveInfinity,float.NegativeInfinity}) {
+                movement.HandleLeftStick(new Vector2(invalid,1),.1f);movement.HandleLeftStick(new Vector2(1,invalid),.1f);movement.HandleLeftStick(Vector2.one,invalid);
+            }
+            movement.HandleLeftStick(Vector2.one,0);movement.HandleLeftStick(Vector2.one,-1);
+            Assert.That(table.ModelRoot.position,Is.EqualTo(position));Assert.That(table.Yaw,Is.EqualTo(yaw));
+            movement.HandleLeftStick(Vector2.right,.1f);Assert.That(table.Yaw,Is.GreaterThan(yaw));
+            yield return null;
         }
         [UnityTest] public IEnumerator SmallestTableTreeKeepsASolidSilhouetteWhenRotated()
         {

@@ -1,5 +1,7 @@
 # VRExperienceAGB
 
+**Table thumbstick controls — October 19:** in Table View, the left stick rotates the model sideways and moves the table closer/farther with forward/back input. Removed the duplicate black number tooltip covering the enlarged tree. Editor visuals are verified, and all 143 runnable PlayMode cases have passing results across the full run and a focused correction of an outdated scenery assertion. The non-Development APK is installed and launched on Quest 3 with its checksum verified; physical stick/comfort acceptance remains pending. See [controls and verification](docs/table-controls-2026-10-19.md).
+
 **English narrated demo — October 18:** the revised 4:26 desktop Editor film uses the user-selected Nova / Patient Teacher voice, English captions, and eight navigation chapters. It covers model selection, the forest and a quiet sky panorama, manual splits, profile playback, all-100-tree scoring, Table View, and A/B comparison; the wildlife surprise is omitted. The original film is retained. This is not headset performance evidence. See [storyboard, output, and verification](docs/narrated-demo-2026-10-18.md).
 
 **ZIP model/profile packages — October 18:** import one archive containing a model and its profiles. Each package stays isolated, including when different archives contain identical model bytes. Complete input validation and existing loose-file import remain available. All 218 EditMode and six library PlayMode tests pass; The non-Development Android APK is built and signature-verified; installation and headset acceptance are pending. See [behavior and verification](docs/zip-packages-2026-10-18.md).
@@ -162,4 +164,4 @@ A Quest user can inspect one seven-node tree, choose a branch, reach a leaf, go 
 
 The existing `AGBVisualizer` is a reference implementation. This repository does not modify it or assume that its display calculations are a verified production scorer.
 
-The repository is local. Creating a remote, publishing a build, and selecting an open-source license are separate decisions.
+Source is hosted at [grishasen/VRExperienceAGB](https://github.com/grishasen/VRExperienceAGB). Sideload builds are distributed through [GitHub Releases](https://github.com/grishasen/VRExperienceAGB/releases); selecting an open-source license remains a separate decision.

@@ -121,12 +121,27 @@ namespace VRExperienceAGB.Presentation
         {
             if (!InGarden || InputBlocked) return;
             var left = InputDevices.GetDeviceAtXRNode(XRNode.LeftHand);
-            if (left.TryGetFeatureValue(CommonUsages.primary2DAxis, out var walkAxis)) Move(walkAxis, Mathf.Min(Time.unscaledDeltaTime, .05f));
+            if (left.TryGetFeatureValue(CommonUsages.primary2DAxis, out var walkAxis)) HandleLeftStick(walkAxis, Mathf.Min(Time.unscaledDeltaTime, .05f));
             var right = InputDevices.GetDeviceAtXRNode(XRNode.RightHand);
             if (!right.TryGetFeatureValue(CommonUsages.primary2DAxis, out var axis)) return;
             if (Mathf.Abs(axis.x) < .25f) stickReleased = true;
             if (stickReleased && Mathf.Abs(axis.x) > .75f) { stickReleased = false; SnapTurn(Mathf.Sign(axis.x) * 30); }
         }
+        public void HandleLeftStick(Vector2 axis, float seconds)
+        {
+            if (!InGarden || InputBlocked || !float.IsFinite(seconds) || seconds<=0 ||
+                !float.IsFinite(axis.x) || !float.IsFinite(axis.y)) return;
+            var garden=experience.Garden;
+            if (garden.Navigation?.Page!=NavigationPage.Diorama) { Move(axis,seconds);return; }
+            if (!garden.M5.Diorama.Visible) return;
+            float turn=StickAxis(axis.x), distance=StickAxis(axis.y);
+            if (turn==0 && distance==0) return;
+            garden.Navigation.InvalidatePointerPresses();
+            float dt=Mathf.Min(seconds,.1f);
+            if (turn!=0) garden.M5.Diorama.Rotate(turn*45*dt);
+            if (distance!=0) garden.M5.Diorama.MoveDistance(-distance*.65f*dt);
+        }
+        private static float StickAxis(float value) => Mathf.Abs(value)<=.2f ? 0 : Mathf.Sign(value)*(Mathf.Clamp01(Mathf.Abs(value))-.2f)/.8f;
         public void Move(Vector2 axis, float seconds)
         {
             var garden = experience.Garden;

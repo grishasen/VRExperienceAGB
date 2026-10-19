@@ -95,11 +95,17 @@ namespace VRExperienceAGB.Tests
                 var scenery=view.transform.Find("ModelPineGarden").Cast<Transform>().Where(t=>t.name=="GardenBackdrop-PineTree")
                     .SelectMany(t=>t.GetComponentsInChildren<Renderer>(true)).ToArray();
                 Assert.That(scenery.Length,Is.GreaterThan(0));
+                // Full-detail mode intentionally disables the lower-detail copies of each pine.
+                var lowerDetail=view.transform.Find("ModelPineGarden").GetComponentsInChildren<LODGroup>(true)
+                    .SelectMany(g=>g.GetLODs().Skip(1)).SelectMany(l=>l.renderers).ToArray();
+                var visibleScenery=scenery.Except(lowerDetail).ToArray();
+                Assert.That(visibleScenery,Is.Not.Empty);
                 d.SendMessage("LateUpdate");Assert.That(scenery.All(r=>!r.enabled),Is.True,"The open menu still suppresses background geometry.");
                 d.Activate("forest");
-                Assert.That(scenery.All(r=>r.enabled && r.gameObject.activeInHierarchy),Is.True,"Cloned trees must not inherit the temporary hidden state.");
+                Assert.That(visibleScenery.All(r=>r.enabled && r.gameObject.activeInHierarchy),Is.True,"Cloned trees must not inherit the temporary hidden state.");
+                Assert.That(scenery.Intersect(lowerDetail).All(r=>!r.enabled),Is.True,"Lower-detail copies must stay hidden.");
                 d.OpenMenu("home");d.CloseMenu();
-                Assert.That(scenery.All(r=>r.enabled),Is.True);
+                Assert.That(visibleScenery.All(r=>r.enabled),Is.True);
             }
         }
         [UnityTest] public IEnumerator EndingPlaybackRestoresBothManualBranchButtons()

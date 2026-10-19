@@ -85,15 +85,15 @@ namespace VRExperienceAGB.Presentation
                     Row("Table display","table-tools",3,0,true);Row("Go to tree","tree-jump",3,1,true);
                     Row("About model","model-info",4,0,true);Row("Constellation guides","stars",4,1,true);break;
                 case "table-tools":
-                    title.text="TABLE DISPLAY";subtitle.text="Adjust size, rotation and labels.";
+                    title.text="TABLE DISPLAY";subtitle.text="Left stick: sideways to rotate · forward/back to move closer/farther.";
                     Row("Smaller","table-smaller",0,0,true);Row("Larger","table-larger",0,1,true);
                     Row("Turn left","table-left",1,0,true);Row("Turn right","table-right",1,1,true);
                     Row("Labels: "+(Garden.M5.Diorama.ShowAllLabels?"all":"selected / hover"),"table-labels",2);
                     Row(Garden.M5.Diorama.GroupDescription+" · change group","table-group",3);Row("Inspect selected tree","table-inspect",4,0,true);Row("Go to tree","tree-jump",4,1,true);break;
                 case "help":
                     title.text="HOW TO EXPLORE";subtitle.text="A / Tab: menu · B / R: center scene · X / F12: screenshot";
-                    menuDetails += "\n\n" + "Point and press the trigger to select.\nLeft stick: walk (toggle in Comfort). Right stick: snap turn.\nX (left) / F12: save a screenshot.\nDownload: Models / profiles → From computer / Wi-Fi.\n\nClick a tree, then choose Explore tree or Details.\nPlay profiles to see every tree in order.\nGold = A · Purple = B\nBlue result = positive · Red = negative\n\nPoint at a node label for a summary; click to pin.\nModel details opens its full condition and evidence.";
-                    ReadingBlock("Point + trigger: select\nLeft stick: walk · Right stick: turn\n\nTree → Explore tree or Details\nNode label → summary · Click to pin\n\nGold: profile A · Purple: profile B",new Vector2(0,35),new Vector2(940,350));break;
+                    menuDetails += "\n\n" + "Point and press the trigger to select.\nLeft stick: walk in the forest; rotate and move closer/farther in Table View. Right stick: snap turn.\nX (left) / F12: save a screenshot.\nDownload: Models / profiles → From computer / Wi-Fi.\n\nClick a tree, then choose Explore tree or Details.\nPlay profiles to see every tree in order.\nGold = A · Purple = B\nBlue result = positive · Red = negative\n\nPoint at a node label for a summary; click to pin.\nModel details opens its full condition and evidence.";
+                    ReadingBlock("Point + trigger: select\nForest: left stick to walk · Right stick to turn\nTable: left stick to rotate / move closer\n\nTree → Explore tree or Details\nNode label → summary · Click to pin\n\nGold: profile A · Purple: profile B",new Vector2(0,35),new Vector2(940,350));break;
                 default:BuildLearningMenu();break;
             }
             foreach(var text in menu.GetComponentsInChildren<TMP_Text>()) TreeCardTypography.SetFont(text,text==title);

@@ -21,6 +21,7 @@ namespace VRExperienceAGB.Presentation
         private readonly MenuReadingSpace readingSpace = new MenuReadingSpace();
         private bool resultPlaced;
         private NavigationPage resultPage;
+        private Vector3 resultTablePosition;
         public void ResetProfileSelection() { SelectedA=0;SelectedB=View.AvailableProfiles.Profiles.Count>1?1:0;wasPaused=false;valuePage=0;ValueSearch="";DifferencesOnly=false; }
         public ForestPlayback Playback { get; private set; }
         public bool PlayingTour { get; private set; }
@@ -271,6 +272,10 @@ namespace VRExperienceAGB.Presentation
             if(MenuVisible) { readingSpace.Hide(View.transform,menu.transform,Revision); resultCanvas.gameObject.SetActive(false); }
             else if(ResultsVisible && Garden.Navigation.Page!=NavigationPage.Tree) {
                 if(!resultPlaced || resultPage!=Garden.Navigation.Page)PlaceResult(Garden.Navigation.Page==NavigationPage.Diorama);
+                if(resultPage==NavigationPage.Diorama) {
+                    var tablePosition=Garden.M5.Diorama.ModelRoot.position;
+                    resultCanvas.transform.position+=tablePosition-resultTablePosition;resultTablePosition=tablePosition;
+                }
                 resultCanvas.gameObject.SetActive(true);
             } else resultCanvas.gameObject.SetActive(false);
         }
@@ -292,7 +297,7 @@ namespace VRExperienceAGB.Presentation
             resultCanvas.gameObject.SetActive(ResultsVisible && !MenuVisible);if(!ResultsVisible)return;
             resultPlaced=true;resultPage=Garden.Navigation.Page;
             resultText.text=ResultSummary();var head=Garden.Locomotion.Head;
-            if(table) resultCanvas.transform.position=Garden.M5.Diorama.ModelRoot.position+Vector3.up*.85f;
+            if(table) { resultTablePosition=Garden.M5.Diorama.ModelRoot.position;resultCanvas.transform.position=resultTablePosition+Vector3.up*.85f; }
             else {var f=Vector3.ProjectOnPlane(head.forward,Vector3.up).normalized;resultCanvas.transform.position=head.position+f*2.7f+Vector3.up*.55f;}
             resultCanvas.transform.rotation=Quaternion.LookRotation(resultCanvas.transform.position-head.position);
         }

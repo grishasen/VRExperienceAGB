@@ -19,6 +19,9 @@ namespace VRExperienceAGB.Presentation
             // Tree selection has an explicit click-to-open card. Its transparent crown target has no label.
             var tree=GetComponent<GardenPointerTarget>();
             if(tree!=null && tree.command==GardenCommand.SelectTree)return;
+            // Table trees already provide a passport and an enlarged preview; a number tooltip obscures them.
+            var tableTree=GetComponent<M5PointerTarget>();
+            if(tableTree!=null && tableTree.action==M5Action.SelectTree)return;
             var branch=GetComponent<TreeActionButton>();
             if(branch!=null && (branch.action==TreeAction.TrueBranch || branch.action==TreeAction.FalseBranch))return;
             var button=GetComponent<UnityEngine.UI.Button>();

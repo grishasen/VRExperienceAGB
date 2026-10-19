@@ -11,6 +11,7 @@ namespace VRExperienceAGB.Presentation
     public sealed class ForestDioramaView
     {
         public const float MinimumScale = .7f, MaximumScale = 1.4f;
+        public const float MinimumDistance = 1.25f, MaximumDistance = 3.2f;
         private readonly M5ForestPresentation owner;
         private readonly Transform root, model, magnified;
         private readonly Mesh tablePineMesh;
@@ -93,8 +94,24 @@ namespace VRExperienceAGB.Presentation
         }
         public void ChangeScale(float amount) { Scale = Mathf.Clamp(Scale + amount, MinimumScale, MaximumScale); ApplyTransform(); }
         public void Rotate(float degrees) { Yaw = Mathf.Repeat(Yaw + degrees, 360); ApplyTransform(); }
+        public void MoveDistance(float amount)
+        {
+            if (!Visible || !float.IsFinite(amount) || amount==0) return;
+            var offset=Vector3.ProjectOnPlane(root.position-owner.Garden.Locomotion.Head.position,Vector3.up);
+            float distance=offset.magnitude;
+            var direction=distance>.001f?offset/distance:root.forward;
+            float next=Mathf.Clamp(distance+amount,MinimumDistance,MaximumDistance);
+            // Physical movement can put the observer outside the bounds; never jump the table in the opposite direction.
+            next=amount<0?Mathf.Min(distance,next):Mathf.Max(distance,next);
+            root.position+=direction*(next-distance);
+            ClearHover(HoveredIndex);
+        }
         public void Reset() { Scale = 1; Yaw = 0; ApplyTransform(); Place(); }
-        private void ApplyTransform() { ClearHover(HoveredIndex); model.localScale = Vector3.one * Scale; model.localRotation = Quaternion.Euler(0, Yaw, 0); }
+        private void ApplyTransform()
+        {
+            ClearHover(HoveredIndex); model.localScale = Vector3.one * Scale; model.localRotation = Quaternion.Euler(0, Yaw, 0);
+            foreach(var target in crownTargets)target.rotation=root.rotation;
+        }
         public void Refresh()
         {
             if (builtModel != owner.View.Model || builtPage != GroupPage) Build();
