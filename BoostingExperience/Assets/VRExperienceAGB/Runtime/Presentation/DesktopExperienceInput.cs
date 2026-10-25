@@ -106,7 +106,7 @@ namespace VRExperienceAGB.Presentation
             bool table = view?.Garden?.Navigation?.Page == NavigationPage.Diorama;
             string text = TextEntryActive ? "Type to edit · Enter: apply · Esc: cancel · Cmd+V: paste" :
                 (table ? "A / D: rotate table · W / S: distance · Q / E: size" : "W A S D: walk in forest") +
-                "\nRight-drag: look · Click: select · Esc: menu · R: center · F1: hide help";
+                "\nOption + move: look · Click: select · Esc: menu · R: center · F1: help";
             helpText.text = text;
         }
         private void OnDestroy() { if (help != null) Destroy(help.gameObject); }

@@ -13,7 +13,11 @@
 
 ## Controls
 
-WASD walks in the forest. In Table View, A/D rotates and W/S changes distance; Q/E changes size. Right-drag looks around, left-click selects, Esc opens/closes the menu, R centers the scene, F12 captures a screenshot, and F1 toggles the screen hints. Text entry supports typing, backspace, Enter, Escape and Cmd+V. Existing on-screen controls remain available.
+WASD walks in the forest. In Table View, A/D rotates and W/S changes distance; Q/E changes size. Hold either Option key and move one finger on the trackpad to look around, without pressing the trackpad. Release Option to use the pointer normally. Right-drag also looks around; selection is suppressed while looking. Left-click selects, Esc opens/closes the menu, R centers the scene, F12 captures a screenshot, and F1 toggles the screen hints. Text entry supports typing, backspace, Enter, Escape and Cmd+V. Existing on-screen controls remain available.
+
+## Install and launch
+
+Open `/Users/gregory/Documents/VRExperienceAGB/artifacts/macos-desktop/VRExperienceAGB.app` in Finder and double-click it. No Unity installation or installer is required to run this local Apple Silicon build. Optionally copy the entire `.app` to Applications for convenient access; do not extract its Contents folder. Quit with Cmd+Q. Keep the application window focused for keyboard and trackpad controls.
 
 ## Build
 
@@ -26,6 +30,8 @@ The initial unstripped build failed because unused Meta modules referenced Micro
 The development app is for local testing. Distribution signing/notarization and Intel execution are outside this first prototype. Local model resources remain ignored and must not be published inadvertently.
 
 ## Verification
+
+Option-control follow-up: the macOS rebuild succeeded and the actual standalone player passed all 18 acceptance checks with no captured errors. Five added checks cover both Option keys, blocked selection while looking, restored pointer movement after release, and retained right-button look. These use queued Input System events; physical trackpad feel still needs user confirmation. The updated screen hint was inspected in the player screenshot. Evidence: ignored `artifacts/mac-smoke-option/`. The full Editor suites below were run for the initial desktop implementation, not repeated for this input-only follow-up.
 
 - 218/218 EditMode tests passed.
 - Full PlayMode rerun: 147 passed, zero failed, two opt-in video tests skipped (149 total). This includes four new Desktop integration tests. The first full run exposed automatic desktop activation in legacy fixtures; restricting activation to the player and guarding navigation availability resolved it.
@@ -40,6 +46,6 @@ The development app is for local testing. Distribution signing/notarization and 
 
 Run the opt-in player check with `-desktop-smoke <new-empty-output-directory>`. It writes `result.json` and screenshots, imports a small synthetic package into this desktop app's local library, then exits. The app must remain focused for the mouse/keyboard checks. The probe is inert in the Editor, on Quest, and in non-development players.
 
-The local deliverable is copied to `/Users/gregory/Documents/VRExperienceAGB/artifacts/macos-desktop/VRExperienceAGB.app`. It is an Apple Silicon development build. The copied bundle passes recursive signature verification. Its main executable SHA-256 is `ac07cbafd57b0f45a1ba561d8123df3cb41a4718cfcbc55ba38d5383a1146312`.
+The local deliverable is copied to `/Users/gregory/Documents/VRExperienceAGB/artifacts/macos-desktop/VRExperienceAGB.app`. It is an Apple Silicon development build. The copied bundle passes recursive signature verification. Its main executable SHA-256 is `530c3ced024f181b0dc49577b5e21b45ebbdd21bd922afb754c9202d6278dc00`. The previous local app is preserved alongside it as `VRExperienceAGB-before-option.app`.
 
 Native dialog selection/cancellation, Intel Macs, other macOS versions, distribution notarization and physical headset regression have not been accepted. Existing documented scoring/calibration limitations remain unchanged.

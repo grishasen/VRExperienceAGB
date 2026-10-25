@@ -68,6 +68,25 @@ namespace VRExperienceAGB.Presentation
             Capture("01-menu"); yield return new WaitForSecondsRealtime(.5f);
             var forest = view.GetComponentsInChildren<ExperienceMenuTarget>().Single(t => t.Command == "forest");
             var screen = (Vector2)observer.previewCamera.WorldToScreenPoint(forest.transform.position);
+            var camera = observer.previewCamera.transform;
+            var rotation = camera.localRotation;
+            foreach (var option in new[] { Key.LeftAlt, Key.RightAlt })
+            {
+                InputSystem.QueueStateEvent(Keyboard.current, new KeyboardState(option));
+                InputSystem.QueueStateEvent(Mouse.current, new MouseState { position = screen, delta = new Vector2(40, 20) });
+                yield return null;
+                Require(Quaternion.Angle(rotation, camera.localRotation) > 1, option + " and pointer movement rotate camera without clicking");
+                camera.localRotation = rotation;
+            }
+            InputSystem.QueueStateEvent(Mouse.current, new MouseState { position = screen }.WithButton(MouseButton.Left)); yield return null;
+            InputSystem.QueueStateEvent(Mouse.current, new MouseState { position = screen }); yield return null;
+            Require(view.Director.MenuVisible, "Option look suppresses menu selection");
+            InputSystem.QueueStateEvent(Keyboard.current, new KeyboardState());
+            InputSystem.QueueStateEvent(Mouse.current, new MouseState { position = screen, delta = new Vector2(40, 20) }); yield return null;
+            Require(Quaternion.Angle(rotation, camera.localRotation) < .01f, "Releasing Option restores ordinary pointer movement");
+            InputSystem.QueueStateEvent(Mouse.current, new MouseState { position = screen, delta = new Vector2(40, 20) }.WithButton(MouseButton.Right)); yield return null;
+            Require(Quaternion.Angle(rotation, camera.localRotation) > 1, "Right-button mouse look remains available");
+            camera.localRotation = rotation;
             InputSystem.QueueStateEvent(Mouse.current, new MouseState { position = screen }); yield return null;
             InputSystem.QueueStateEvent(Mouse.current, new MouseState { position = screen }.WithButton(MouseButton.Left)); yield return null;
             InputSystem.QueueStateEvent(Mouse.current, new MouseState { position = screen }); yield return null;

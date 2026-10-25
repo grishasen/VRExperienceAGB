@@ -93,7 +93,7 @@ namespace VRExperienceAGB.Presentation
                 case "help":
                     if (View.GetComponent<DesktopExperienceInput>()?.enabled == true) {
                         title.text="HOW TO EXPLORE";subtitle.text="Esc: menu · R: center scene · F12: screenshot";
-                        string controls="Click: select · Right-drag: look\nForest: W A S D to walk\nTable: A / D rotate · W / S distance · Q / E size\n\nTree → Explore tree or Details\nNode label → summary · Click to pin\n\nGold: profile A · Purple: profile B";
+                        string controls="Click: select · Option + move or right-drag: look\nForest: W A S D to walk\nTable: A / D rotate · W / S distance · Q / E size\n\nTree → Explore tree or Details\nNode label → summary · Click to pin\n\nGold: profile A · Purple: profile B";
                         menuDetails += "\n\n"+controls+"\n\nModels / profiles: import a JSON file or ZIP package.\nF1: show or hide keyboard hints.\nCmd+Q: quit the application.";
                         ReadingBlock(controls,new Vector2(0,35),new Vector2(940,350));break;
                     }

@@ -35,15 +35,19 @@ namespace VRExperienceAGB.Presentation
         private void Update()
         {
             if (!preview || !UnityEngine.Application.isFocused || Mouse.current == null || EventSystem.current == null) return;
-            if (Mouse.current.rightButton.isPressed)
+            var keyboard = Keyboard.current;
+            bool looking = Mouse.current.rightButton.isPressed ||
+                (keyboard != null && (keyboard.leftAltKey.isPressed || keyboard.rightAltKey.isPressed));
+            if (looking)
             {
-                // Explicit mouse look only; the Quest player never enters this path.
+                // Option supports trackpad movement without a held mouse button.
+                // The Quest player never enters this path.
                 var delta=Mouse.current.delta.ReadValue();var angles=previewCamera.transform.localEulerAngles;
                 float pitch=angles.x>180?angles.x-360:angles.x;
                 previewCamera.transform.localRotation=Quaternion.Euler(Mathf.Clamp(pitch-delta.y*.12f,-65,65),angles.y+delta.x*.12f,0);
             }
             var pointer = new PointerEventData(EventSystem.current) { pointerId = -1, position = Mouse.current.position.ReadValue(), button = PointerEventData.InputButton.Left };
-            if (Mouse.current.rightButton.isPressed) { CancelPointer(pointer); return; }
+            if (looking) { CancelPointer(pointer); return; }
             hits.Clear(); EventSystem.current.RaycastAll(pointer, hits);
             var target = hits.Count == 0 ? null : ExecuteEvents.GetEventHandler<IPointerClickHandler>(hits[0].gameObject);
             var hoverTarget = hits.Count == 0 ? null : ExecuteEvents.GetEventHandler<IPointerEnterHandler>(hits[0].gameObject);
