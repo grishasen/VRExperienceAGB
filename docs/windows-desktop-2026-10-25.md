@@ -38,9 +38,9 @@ Package the complete `VRExperienceAGB` output directory, excluding any Unity-gen
 - The first build after installing the module into a running Editor incorrectly reported success without producing the player, with missing platform settings and postprocess errors. Restarting the Editor loaded Windows support fully; the next build succeeded with actual output files. The builder now rejects reports with errors or missing executable/runtime files.
 - Evidence: ignored `artifacts/windows-desktop-tests.json`, `artifacts/windows-library-tests.json`, `artifacts/windows-build-report.json`, and `artifacts/windows-editor.log` in the worktree.
 
-The local package is `/Users/gregory/Documents/VRExperienceAGB/artifacts/windows-desktop/VRExperienceAGB-Windows-x64.zip` (111,678,672 bytes, 173 files). ZIP integrity and required entries passed verification; Unity's backup directory is excluded. SHA-256: `b499cb39a2a2d4cc06fe0bda1f0911c2d1e2ad6c1a7c329f281917c5c7e0e463`. An extracted copy and checksum file are alongside the ZIP.
+The local package is `/Users/gregory/Documents/VRExperienceAGB/artifacts/windows-desktop/VRExperienceAGB-Windows-x64.zip` (111,774,969 bytes, 173 files), refreshed with the [desktop icon](desktop-icon-2026-10-25.md). ZIP integrity and required entries passed verification; Unity's backup directory is excluded. SHA-256: `269aeda8bf70c3434cfdf0169aba5b5ddc93b4564ccef804ef21569d1e1d84cf`. An extracted copy and checksum file are alongside the ZIP.
 
-Windows runtime rendering, native file selection/cancellation, and physical keyboard/mouse behavior require a Windows PC and have not been verified on this Mac. The existing delivered Mac app and preserved Quest APK were not rebuilt or replaced by this Windows task.
+Windows runtime rendering, native file selection/cancellation, and physical keyboard/mouse behavior require a Windows PC and have not been verified on this Mac. The initial Windows task left the Mac app intact; the later desktop-icon task rebuilt both desktop versions. The preserved Quest APK remains unchanged.
 
 For the development player's opt-in acceptance probe, run the following from its extracted directory, using a new output directory on each run:
 

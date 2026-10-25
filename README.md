@@ -1,5 +1,7 @@
 # VRExperienceAGB
 
+**Desktop icon — October 25:** Mac and Windows packages are rebuilt with a shared emerald-tree/gold-decision-graph icon. Both builds have zero errors; embedded icons, Mac signing, and Windows ZIP integrity are verified. See [source artwork, prompts and build evidence](docs/desktop-icon-2026-10-25.md).
+
 **Windows desktop prototype — October 25:** the Windows x64 Mono/Direct3D 11 player builds successfully on macOS with zero errors. Ten focused desktop/library PlayMode tests pass in the Editor. The portable ZIP includes the runtime, data, controls, and launch instructions; Windows-native file selection and actual Windows rendering/input still need PC validation. See [Windows build, package and launch](docs/windows-desktop-2026-10-25.md).
 
 **macOS desktop prototype — October 25:** an isolated desktop branch adds an Apple Silicon player with keyboard walking, mouse look/selection, Option + trackpad movement to look, Table View controls, physical text entry and a native file picker. The initial suites passed all 218 EditMode tests and 147 runnable PlayMode tests; the rebuilt standalone player passes 18 acceptance checks, including Option controls, full-100-tree A/B scoring and synthetic ZIP import. The Quest baseline is preserved at `quest-before-macos-2026-10-25`. Native dialog interaction, distribution notarization and renewed headset acceptance remain pending. See [launch/build instructions and verification](docs/macos-desktop-2026-10-25.md).

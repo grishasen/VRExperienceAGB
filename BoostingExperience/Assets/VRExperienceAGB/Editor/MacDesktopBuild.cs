@@ -56,13 +56,18 @@ namespace VRExperienceAGB.Editor
                 PlayerSettings.fullScreenMode = FullScreenMode.Windowed;
                 PlayerSettings.defaultScreenWidth = 1440; PlayerSettings.defaultScreenHeight = 900;
                 PlayerSettings.resizableWindow = true; PlayerSettings.runInBackground = false;
+                // Meta's postprocessor copies this generated file beside the app without overwriting.
+                string bindings = Path.Combine(Path.GetDirectoryName(destination), "RuntimeActionBindings.json");
+                if (File.Exists(bindings)) File.Delete(bindings);
                 var report = BuildPipeline.BuildPlayer(new BuildPlayerOptions {
                     scenes = new[] { "Assets/VRExperienceAGB/Scenes/OneTreeLearning.unity" },
                     locationPathName = destination, target = BuildTarget.StandaloneOSX,
                     options = BuildOptions.Development
                 });
                 Debug.Log("macOS desktop build: " + report.summary.result + " · " + destination);
-                if (report.summary.result != BuildResult.Succeeded) throw new InvalidOperationException("macOS build failed: " + report.summary.result);
+                if (report.summary.result != BuildResult.Succeeded || report.summary.totalErrors != 0 ||
+                    !File.Exists(Path.Combine(destination, "Contents/MacOS/VRExperienceAGB Desktop")))
+                    throw new InvalidOperationException("macOS build is incomplete: " + report.summary.result + ", errors: " + report.summary.totalErrors);
             }
             finally
             {

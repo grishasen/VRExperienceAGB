@@ -48,6 +48,9 @@ namespace VRExperienceAGB.Editor
                 PlayerSettings.fullScreenMode = FullScreenMode.Windowed;
                 PlayerSettings.defaultScreenWidth = 1440; PlayerSettings.defaultScreenHeight = 900;
                 PlayerSettings.resizableWindow = true; PlayerSettings.runInBackground = false;
+                // Meta's postprocessor copies this generated file without overwrite support.
+                string bindings = Path.Combine(Path.GetDirectoryName(destination), "RuntimeActionBindings.json");
+                if (File.Exists(bindings)) File.Delete(bindings);
                 var report = BuildPipeline.BuildPlayer(new BuildPlayerOptions {
                     scenes = new[] { "Assets/VRExperienceAGB/Scenes/OneTreeLearning.unity" },
                     locationPathName = destination, target = target, options = BuildOptions.Development
