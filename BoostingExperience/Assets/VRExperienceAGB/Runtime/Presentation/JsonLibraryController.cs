@@ -60,14 +60,18 @@ namespace VRExperienceAGB.Presentation
             string path=UnityEditor.EditorUtility.OpenFilePanelWithFilters(profiles?"Import profiles or package":"Import model or package","",profiles?new[]{"ZIP / JSON / JSONL","zip,json,jsonl"}:new[]{"ZIP / JSON","zip,json"});
             Busy=false;if(string.IsNullOrEmpty(path)){Status="Import cancelled.";return;}
             ImportPath(path,profiles,true,Path.GetFileName(path));
-#elif UNITY_STANDALONE_OSX
+#elif UNITY_STANDALONE_OSX || UNITY_STANDALONE_WIN
             try {
+#if UNITY_STANDALONE_WIN
+                string path=WindowsFilePicker.Pick(profiles);
+#else
                 string path=MacFilePicker.Pick(profiles);
+#endif
                 Busy=false;
                 if(string.IsNullOrEmpty(path)){Status="Import cancelled.";return;}
                 ImportPath(path,profiles,true,Path.GetFileName(path));
             }
-            catch(Exception error) when(error is System.DllNotFoundException || error is System.EntryPointNotFoundException) {
+            catch(Exception error) when(error is System.DllNotFoundException || error is System.EntryPointNotFoundException || error is IOException) {
                 Busy=false;Status="File picker unavailable. Copy files into Models / Profiles and use Refresh.";
                 Debug.LogException(error);
             }

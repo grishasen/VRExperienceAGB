@@ -5,7 +5,7 @@ using UnityEngine.InputSystem;
 
 namespace VRExperienceAGB.Presentation
 {
-    /// <summary>Mouse observer for Editor previews and the standalone macOS player.</summary>
+    /// <summary>Mouse observer for Editor previews and standalone desktop players.</summary>
     [DefaultExecutionOrder(-10000)]
     public sealed class DesktopTreePreview : MonoBehaviour
     {
@@ -22,13 +22,13 @@ namespace VRExperienceAGB.Presentation
         {
 #if UNITY_EDITOR
             preview = editorPreview;
-#elif UNITY_STANDALONE_OSX
+#elif UNITY_STANDALONE_OSX || UNITY_STANDALONE_WIN
             preview = true;
 #endif
             if (trackedRig != null) trackedRig.SetActive(!preview);
             if (previewCamera != null) previewCamera.gameObject.SetActive(preview);
             if (preview && canvases != null) foreach (var canvas in canvases) canvas.worldCamera = previewCamera;
-#if UNITY_STANDALONE_OSX && !UNITY_EDITOR
+#if (UNITY_STANDALONE_OSX || UNITY_STANDALONE_WIN) && !UNITY_EDITOR
             if (preview) gameObject.AddComponent<DesktopExperienceInput>();
 #endif
         }

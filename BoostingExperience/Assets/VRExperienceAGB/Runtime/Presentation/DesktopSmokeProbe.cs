@@ -28,7 +28,8 @@ namespace VRExperienceAGB.Presentation
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
         private static void Launch()
         {
-            if (UnityEngine.Application.isEditor || !Debug.isDebugBuild || UnityEngine.Application.platform != RuntimePlatform.OSXPlayer) return;
+            if (UnityEngine.Application.isEditor || !Debug.isDebugBuild ||
+                (UnityEngine.Application.platform != RuntimePlatform.OSXPlayer && UnityEngine.Application.platform != RuntimePlatform.WindowsPlayer)) return;
             var args = Environment.GetCommandLineArgs();
             int index = Array.IndexOf(args, "-desktop-smoke");
             if (index < 0 || index + 1 == args.Length) return;

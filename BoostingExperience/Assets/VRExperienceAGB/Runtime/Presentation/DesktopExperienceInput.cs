@@ -14,6 +14,11 @@ namespace VRExperienceAGB.Presentation
         private Canvas help;
         private TMP_Text helpText;
         public bool TextEntryActive => view?.Garden?.M5?.Extensions?.TextEntryActive == true;
+        private static bool Mac => UnityEngine.Application.platform == RuntimePlatform.OSXPlayer ||
+            UnityEngine.Application.platform == RuntimePlatform.OSXEditor;
+        public static string LookModifier => Mac ? "Option" : "Alt";
+        public static string PasteShortcut => Mac ? "Cmd+V" : "Ctrl+V";
+        public static string QuitShortcut => Mac ? "Cmd+Q" : "Alt+F4";
 
         private void Awake()
         {
@@ -104,9 +109,9 @@ namespace VRExperienceAGB.Presentation
             if (help == null) return;
             help.gameObject.SetActive(helpVisible);
             bool table = view?.Garden?.Navigation?.Page == NavigationPage.Diorama;
-            string text = TextEntryActive ? "Type to edit · Enter: apply · Esc: cancel · Cmd+V: paste" :
+            string text = TextEntryActive ? "Type to edit · Enter: apply · Esc: cancel · " + PasteShortcut + ": paste" :
                 (table ? "A / D: rotate table · W / S: distance · Q / E: size" : "W A S D: walk in forest") +
-                "\nOption + move: look · Click: select · Esc: menu · R: center · F1: help";
+                "\n" + LookModifier + " + move: look · Click: select · Esc: menu · R: center · F1: help";
             helpText.text = text;
         }
         private void OnDestroy() { if (help != null) Destroy(help.gameObject); }

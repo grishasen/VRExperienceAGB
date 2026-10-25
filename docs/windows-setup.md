@@ -1,5 +1,7 @@
 # Windows development setup
 
+For the portable Windows desktop application, see [Windows desktop build and launch](windows-desktop-2026-10-25.md). The guide below covers developing the Quest application on a Windows host.
+
 Prepared on 2026-09-28 for **Windows → Android APK → standalone Meta Quest 3**. This guide uses the existing project and its pinned dependencies. **Windows installation, Editor compilation, APK builds, and headset behavior have not been verified on a Windows machine.** Existing Mac results in [Toolchain](toolchain.md) do not establish Windows compatibility.
 
 ## 1. Install the host tools
