@@ -60,6 +60,17 @@ namespace VRExperienceAGB.Presentation
             string path=UnityEditor.EditorUtility.OpenFilePanelWithFilters(profiles?"Import profiles or package":"Import model or package","",profiles?new[]{"ZIP / JSON / JSONL","zip,json,jsonl"}:new[]{"ZIP / JSON","zip,json"});
             Busy=false;if(string.IsNullOrEmpty(path)){Status="Import cancelled.";return;}
             ImportPath(path,profiles,true,Path.GetFileName(path));
+#elif UNITY_STANDALONE_OSX
+            try {
+                string path=MacFilePicker.Pick(profiles);
+                Busy=false;
+                if(string.IsNullOrEmpty(path)){Status="Import cancelled.";return;}
+                ImportPath(path,profiles,true,Path.GetFileName(path));
+            }
+            catch(Exception error) when(error is System.DllNotFoundException || error is System.EntryPointNotFoundException) {
+                Busy=false;Status="File picker unavailable. Copy files into Models / Profiles and use Refresh.";
+                Debug.LogException(error);
+            }
 #elif UNITY_ANDROID
             try { using(var bridge=new AndroidJavaClass("com.vrexperienceagb.importer.JsonFilePicker")) {
                 if(!bridge.CallStatic<bool>("available")){Busy=false;PickerUnavailable=true;StartUpload();return;}

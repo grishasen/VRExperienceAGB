@@ -16,6 +16,15 @@ namespace VRExperienceAGB.Presentation
         private NavigationPage returnPage;
         private string returnFocus;
         private bool editingText;
+        public bool TextEntryActive => PanelOpen && editingText;
+        public void AppendDesktopText(string text)
+        {
+            if (!TextEntryActive || string.IsNullOrEmpty(text)) return;
+            foreach (char character in text)
+                if (!char.IsControl(character) && textDraft.Length < 240) textDraft += character;
+            Refresh();
+        }
+        public void CancelTextEntry() { editingText = false; Refresh(); }
         private int textPurpose;
         public string ReviewMessage => reviewMessage;
         private string textDraft = "";
