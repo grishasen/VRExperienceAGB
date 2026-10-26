@@ -1,5 +1,7 @@
 # macOS desktop prototype
 
+The latest delivered app was rebuilt from merged `main` on October 26. See [current build identity and verification](merged-builds-2026-10-26.md); the records below describe the October 25 prototype builds.
+
 ## Baseline and plan
 
 - Quest baseline commit: `07bd682`, annotated tag `quest-before-macos-2026-10-25`.

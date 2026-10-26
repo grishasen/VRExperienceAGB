@@ -1,5 +1,7 @@
 # VRExperienceAGB
 
+**Main merge — October 26:** Mac/Windows desktop changes and the shared icon are merged into local `main`. Fresh Quest ARM64 and Mac Apple Silicon builds succeed with zero errors; 218 EditMode and 147 PlayMode tests pass (two optional video tests skipped). APK signing matches the previous Quest build. Headset installation/acceptance remains pending. See [builds and verification](docs/merged-builds-2026-10-26.md).
+
 **Desktop icon — October 25:** Mac and Windows packages are rebuilt with a shared emerald-tree/gold-decision-graph icon. Both builds have zero errors; embedded icons, Mac signing, and Windows ZIP integrity are verified. See [source artwork, prompts and build evidence](docs/desktop-icon-2026-10-25.md).
 
 **Windows desktop prototype — October 25:** the Windows x64 Mono/Direct3D 11 player builds successfully on macOS with zero errors. Ten focused desktop/library PlayMode tests pass in the Editor. The portable ZIP includes the runtime, data, controls, and launch instructions; Windows-native file selection and actual Windows rendering/input still need PC validation. See [Windows build, package and launch](docs/windows-desktop-2026-10-25.md).
