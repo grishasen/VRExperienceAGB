@@ -256,7 +256,7 @@ namespace VRExperienceAGB.Presentation
             if(startupDelay>=0){startupDelay-=Time.unscaledDeltaTime;if(startupDelay<0){Garden.Locomotion.Recenter();PlaceMenu(true);}}
             var right=UnityEngine.XR.InputDevices.GetDeviceAtXRNode(UnityEngine.XR.XRNode.RightHand);
             HandleRecenterButton(right.TryGetFeatureValue(UnityEngine.XR.CommonUsages.secondaryButton,out bool pressed) && pressed);
-            if(UnityEngine.InputSystem.Keyboard.current?.rKey.wasPressedThisFrame==true)RecenterScene();
+            if(UnityEngine.InputSystem.Keyboard.current?.rKey.wasPressedThisFrame==true && !Garden.M5.Extensions.TextEntryActive)RecenterScene();
             AdvanceTour(Time.unscaledDeltaTime);
         }
         private void LateUpdate()
